@@ -1,4 +1,3 @@
-from . import _startup
 from . import _version as version
 from .coalesce import Coalesce
 from .collections import DatasetDict, DatasetList
@@ -10,8 +9,6 @@ from .pipelines import LabreaPipeline
 from .switch import Switch
 from .template import Template
 from .types import Value
-
-_startup.run()
 
 
 __version__ = version.__version__
