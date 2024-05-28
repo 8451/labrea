@@ -1,0 +1,40 @@
+# This workflow will upload a Python Package using Twine when a release is created
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python#publishing-to-package-registries
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Build & Deploy
+
+on:
+  release:
+    types: [published]
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+
+  build:
+    uses: ./.github/workflows/build.yml
+    needs: test
+
+  publish:
+    uses: ./.github/workflows/publish.yml
+    permissions:
+      id-token: write
+    with:
+      # release if this is a published release, test-release otherwise
+      environment: ${{ github.event.release && 'release' || 'test-release' }}
+    needs: build
