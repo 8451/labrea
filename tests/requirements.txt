@@ -1,0 +1,6 @@
+coverage
+coverage-badge
+pytest
+pytest-console-scripts
+pytest-cov
+pytest-env

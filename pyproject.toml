@@ -1,0 +1,93 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "labrea"
+authors = [
+    {name = "Austin Warner", email = "austin.warner@8451.com"},
+    {name = "Michael Stoepel", email = "michael.stoepel@8451.com"},
+]
+description = "A framework for declarative, functional dataset definitions."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python",
+]
+dependencies = [
+    "typing_extensions>=4.0; python_version<\"3.10\"",
+    "confectioner>=1.0,<2.0",
+    "functional-pypelines>=1.0,<2.0",
+]
+dynamic = ["version"]
+
+[project.license]
+file = "LICENSE"
+
+[tool.hatch.version]
+path = "labrea/_version.py"
+
+[project.urls]
+repository = "https://github.com/8451/labrea"
+documentation = "https://8451.github.io/labrea"
+bugs = "https://github.com/8451/labrea/issues"
+
+[project.optional-dependencies]
+test = [
+    "coverage",
+    "coverage-badge",
+    "pytest",
+    "pytest-cov",
+]
+doc = [
+    "nbsphinx",
+    "recommonmark",
+    "sphinx",
+    "sphinx_rtd_theme",
+    "sphinxcontrib.napoleon",
+    "myst-parser",
+    "sphinxemoji",
+]
+dev = [
+    "bump2version",
+    "mypy",
+    "black",
+    "flake8>=3.7.9",
+    "pre-commit",
+    "coverage",
+    "labrea[test]",
+    "labrea[doc]",
+]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests/"
+]
+
+[tool.black]
+line-length = 88
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
