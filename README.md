@@ -50,7 +50,7 @@ def sales_by_region(
         transactions_: pd.DataFrame = transactions
 ) -> pd.DataFrame:
     """Merge stores to transactions, sum sales by region"""
-    return pd.merge(transactions_, stores_, on='region').groupby('region')['sales'].sum().reset_index()
+    return pd.merge(transactions_, stores_, on='store_id').groupby('region')['sales'].sum().reset_index()
 
 
 options = {
