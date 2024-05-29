@@ -25,6 +25,70 @@ pip install git+https://github.com/8451/labrea@develop
 ## Usage
 See our usage guide [here](docs/source/usage.md).
 
+Labrea exposes a `dataset` decorator that allows you to define datasets and their dependencies in a declarative manner. 
+Dependencies can either be other datasets or `Option`s, which are values that can be passed in at runtime via a 
+dictionary.
+
+```python
+from labrea import dataset, Option
+import pandas as pd
+
+
+@dataset
+def stores(path: Option('PATHS.STORES')) -> pd.DataFrame:
+    return pd.read_csv(path)
+
+
+@dataset
+def transactions(path: Option('PATHS.SALES')) -> pd.DataFrame:
+    return pd.read_csv(path)
+
+
+@dataset
+def sales_by_region(
+        stores_: pd.DataFrame = stores, 
+        transactions_: pd.DataFrame = transactions
+) -> pd.DataFrame:
+    """Merge stores to transactions, sum sales by region"""
+    return pd.merge(transactions_, stores_, on='region').groupby('region')['sales'].sum().reset_index()
+
+
+options = {
+    'PATHS': {
+        'STORES': 'path/to/stores.csv',
+        'SALES': 'path/to/sales.csv'
+    }
+}
+
+
+stores(options)
+## +-----------------+-----------+
+## | store_id        | region    |
+## |-----------------+-----------|
+## | 1               | North     |
+## | 2               | South     |
+## | 3               | East      |
+## +-----------------+-----------+
+
+transactions(options)
+## +-----------------+-----------------+-----------------+
+## | store_id        | sales           | transaction_id  |
+## |-----------------+-----------------+-----------------|
+## | 1               | 100             | 1               |
+## | 2               | 200             | 2               |
+## | 3               | 300             | 3               |
+## +-----------------+-----------------+-----------------+
+
+sales_by_region(options)
+## +-----------------+-----------------+
+## | region          | sales           |
+## |-----------------+-----------------|
+## | North           | 100             |
+## | South           | 200             |
+## | East            | 300             |
+## +-----------------+-----------------+
+```
+
 ## Contributing
 If you would like to contribute to **labrea**, please read the
 [Contributing Guide](docs/source/contributing.md).
