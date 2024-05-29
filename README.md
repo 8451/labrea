@@ -10,7 +10,17 @@
 A framework for declarative, functional dataset definitions.
 
 ## Installation
-See our installation guide [here](docs/source/installation.md).
+Labrea is available for install via pip.
+
+```bash
+pip install labrea
+````
+
+Alternatively, you can install the latest development version from GitHub.
+
+```bash
+pip install git+https://github.com/8451/labrea@develop
+```
 
 ## Usage
 See our usage guide [here](docs/source/usage.md).
