@@ -35,12 +35,12 @@ import pandas as pd
 
 
 @dataset
-def stores(path: Option('PATHS.STORES')) -> pd.DataFrame:
+def stores(path: str = Option('PATHS.STORES')) -> pd.DataFrame:
     return pd.read_csv(path)
 
 
 @dataset
-def transactions(path: Option('PATHS.SALES')) -> pd.DataFrame:
+def transactions(path: str = Option('PATHS.SALES')) -> pd.DataFrame:
     return pd.read_csv(path)
 
 
@@ -66,8 +66,9 @@ stores(options)
 ## | store_id        | region    |
 ## |-----------------+-----------|
 ## | 1               | North     |
-## | 2               | South     |
-## | 3               | East      |
+## | 2               | North     |
+## | 3               | South     |
+## | 4               | South      |
 ## +-----------------+-----------+
 
 transactions(options)
@@ -77,15 +78,15 @@ transactions(options)
 ## | 1               | 100             | 1               |
 ## | 2               | 200             | 2               |
 ## | 3               | 300             | 3               |
+## | 4               | 400             | 4               |
 ## +-----------------+-----------------+-----------------+
 
 sales_by_region(options)
 ## +-----------------+-----------------+
 ## | region          | sales           |
 ## |-----------------+-----------------|
-## | North           | 100             |
-## | South           | 200             |
-## | East            | 300             |
+## | North           | 300             |
+## | South           | 700             |
 ## +-----------------+-----------------+
 ```
 
