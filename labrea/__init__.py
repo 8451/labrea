@@ -4,6 +4,7 @@ from .collections import DatasetDict, DatasetList
 from .datasetclasses import Field, datasetclass
 from .datasets import Dataset, Overload, abstractdataset, dataset
 from .interfaces import Interface, interface
+from .iterables import Map
 from .options import Option
 from .pipelines import LabreaPipeline
 from .switch import Switch
@@ -21,6 +22,7 @@ __all__ = [
     "Overload",
     "interface",
     "Interface",
+    "Map",
     "Template",
     "Option",
     "Switch",
