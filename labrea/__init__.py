@@ -11,7 +11,6 @@ from .switch import Switch
 from .template import Template
 from .types import Value
 
-
 __version__ = version.__version__
 
 
