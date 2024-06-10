@@ -1,7 +1,7 @@
 import sys
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Callable, List, Mapping, Optional, Set, TypeVar, Union
+from typing import Any, Callable, List, Mapping, Optional, Set, TypeVar, Union
 
 # Support Python < 3.8
 if sys.version_info >= (3, 8):  # pragma: nocover
@@ -137,6 +137,108 @@ class Evaluatable(Validatable, Protocol[A]):
         an Evaluatable. At runtime, it simply returns the Evaluatable itself.
         """
         return self  # type: ignore
+
+    def apply(
+        self, f: "Union[Callable[[A], B], Evaluatable[Callable[[A], B]]]"
+    ) -> "Evaluatable[B]":
+        """Apply a function to the result of this Evaluatable.
+
+        Parameters
+        ----------
+        f : Union[Callable[[A], B], Evaluatable[Callable[[A], B]]]
+            The function to apply to the result of this Evaluatable.
+
+        Returns
+        -------
+        Evaluatable[B]
+            An Evaluatable that applies the function to the result of this
+            Evaluatable.
+        """
+        if isinstance(f, Evaluatable):
+            return Apply(self, f)
+        return Apply(self, Value(f))
+
+
+class Apply(Evaluatable[B]):
+    """Apply a function to the result of an Evaluatable.
+
+    This class is used to apply a function to the result of an Evaluatable. The
+    function can be an Evaluatable itself, in which case it will be evaluated
+    before being applied.
+
+    Parameters
+    ----------
+    evaluatable : Evaluatable[A]
+        The Evaluatable to apply the function to.
+    function : Evaluatable[Callable[[A], B]]
+        The function to apply to the result of the Evaluatable.
+    """
+
+    evaluatable: Evaluatable
+    function: Evaluatable[Callable[[Any], B]]
+
+    def __init__(
+        self, evaluatable: Evaluatable[A], function: Evaluatable[Callable[[A], B]]
+    ):
+        self.evaluatable = evaluatable
+        self.function = function
+
+    def evaluate(self, options: JSONDict) -> B:
+        """Evaluate the object.
+
+        This method evaluates the function and the Evaluatable, and then
+        applies the function to the result of the Evaluatable.
+
+        Parameters
+        ----------
+        options : JSONDict
+            The options dictionary to evaluate against.
+
+        Returns
+        -------
+        B
+            The result of applying the function to the result of the
+            Evaluatable.
+        """
+        f = self.function.evaluate(options)
+        x = self.evaluatable.evaluate(options)
+        return f(x)
+
+    def validate(self, options: JSONDict) -> None:
+        """Validate the object.
+
+        This method validates the function and the Evaluatable.
+
+        Parameters
+        ----------
+        options : JSONDict
+            The options dictionary to validate against.
+
+        Raises
+        ------
+        ValidationError
+            If the object is invalid.
+        """
+        self.function.validate(options)
+        self.evaluatable.validate(options)
+
+    def keys(self, options: JSONDict) -> Set[str]:
+        """Return the keys that this object depends on.
+
+        This method returns the keys that the function and the Evaluatable
+        depend on.
+
+        Parameters
+        ----------
+        options : JSONDict
+            The options dictionary to validate against.
+
+        Returns
+        -------
+        Set[str]
+            The keys that this object depends on.
+        """
+        return self.function.keys(options) | self.evaluatable.keys(options)
 
 
 Callback = Callable[[A, JSONDict], Optional[B]]

@@ -25,8 +25,8 @@ pip install git+https://github.com/8451/labrea@develop
 ## Usage
 See our usage guide [here](docs/source/usage.md).
 
-Labrea exposes a `dataset` decorator that allows you to define datasets and their dependencies in a declarative manner. 
-Dependencies can either be other datasets or `Option`s, which are values that can be passed in at runtime via a 
+Labrea exposes a `dataset` decorator that allows you to define datasets and their dependencies in a declarative manner.
+Dependencies can either be other datasets or `Option`s, which are values that can be passed in at runtime via a
 dictionary.
 
 ```python
@@ -46,7 +46,7 @@ def transactions(path: str = Option('PATHS.SALES')) -> pd.DataFrame:
 
 @dataset
 def sales_by_region(
-        stores_: pd.DataFrame = stores, 
+        stores_: pd.DataFrame = stores,
         transactions_: pd.DataFrame = transactions
 ) -> pd.DataFrame:
     """Merge stores to transactions, sum sales by region"""

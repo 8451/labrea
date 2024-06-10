@@ -6,7 +6,7 @@ from labrea import dataset
 
 @dataset.nocache
 def inner():
-    return threading.currentThread()
+    return threading.current_thread()
 
 
 @dataset.nocache
@@ -17,12 +17,12 @@ def outer(inr=inner):
 def test_multithreading():
     assert labrea.multithreading.__PARALLEL
 
-    assert outer({}) is not threading.currentThread()
+    assert outer({}) is not threading.current_thread()
 
     labrea.multithreading.disable()
     assert not labrea.multithreading.__PARALLEL
 
-    assert outer({}) is threading.currentThread()
+    assert outer({}) is threading.current_thread()
 
     labrea.multithreading.enable()
     assert labrea.multithreading.__PARALLEL
