@@ -158,6 +158,21 @@ class Evaluatable(Validatable, Protocol[A]):
             return Apply(self, f)
         return Apply(self, Value(f))
 
+    def bind(self, f: "Callable[[A], Evaluatable[B]]") -> "Evaluatable[B]":
+        """Bind a function that returns an Evaluatable to this Evaluatable.
+
+        Parameters
+        ----------
+        f : Callable[[A], Evaluatable[B]]
+            The function to bind to this Evaluatable.
+
+        Returns
+        -------
+        Evaluatable[B]
+            An Evaluatable that binds the function to this Evaluatable.
+        """
+        return Bind(self, f)
+
 
 class Apply(Evaluatable[B]):
     """Apply a function to the result of an Evaluatable.
@@ -188,57 +203,71 @@ class Apply(Evaluatable[B]):
 
         This method evaluates the function and the Evaluatable, and then
         applies the function to the result of the Evaluatable.
-
-        Parameters
-        ----------
-        options : JSONDict
-            The options dictionary to evaluate against.
-
-        Returns
-        -------
-        B
-            The result of applying the function to the result of the
-            Evaluatable.
         """
         f = self.function.evaluate(options)
         x = self.evaluatable.evaluate(options)
         return f(x)
 
     def validate(self, options: JSONDict) -> None:
-        """Validate the object.
-
-        This method validates the function and the Evaluatable.
-
-        Parameters
-        ----------
-        options : JSONDict
-            The options dictionary to validate against.
-
-        Raises
-        ------
-        ValidationError
-            If the object is invalid.
-        """
+        """Validate the evaluatable and the function."""
         self.function.validate(options)
         self.evaluatable.validate(options)
 
     def keys(self, options: JSONDict) -> Set[str]:
+        """Returns the keys that the function and the source Evaluatable depend on."""
+        return self.function.keys(options) | self.evaluatable.keys(options)
+
+
+class Bind(Evaluatable[B]):
+    """Bind a function that returns an Evaluatable to an Evaluatable.
+
+    Parameters
+    ----------
+    evaluatable : Evaluatable[A]
+        The Evaluatable to bind the function to.
+    function : Callable[[A], Evaluatable[B]]
+    """
+
+    evaluatable: Evaluatable
+    function: Callable[[Any], Evaluatable[B]]
+
+    def __init__(
+        self, evaluatable: Evaluatable[A], function: Callable[[A], Evaluatable[B]]
+    ):
+        self.evaluatable = evaluatable
+        self.function = function
+
+    def evaluate(self, options: JSONDict) -> B:
+        """Evaluate the object.
+
+        This method evaluates the Evaluatable, passes the result to the function,
+        and then evaluates the result.
+        """
+        x = self.evaluatable.evaluate(options)
+        return self.function(x).evaluate(options)
+
+    def validate(self, options: JSONDict) -> None:
+        """Validate the evaluatable.
+
+        Note
+        ----
+        This method must evaluate the evaluatable and pass the result to the
+        function to validate the result.
+        """
+        self.evaluatable.validate(options)
+        self.function(self.evaluatable.evaluate(options)).validate(options)
+
+    def keys(self, options: JSONDict) -> Set[str]:
         """Return the keys that this object depends on.
 
-        This method returns the keys that the function and the Evaluatable
-        depend on.
-
-        Parameters
-        ----------
-        options : JSONDict
-            The options dictionary to validate against.
-
-        Returns
-        -------
-        Set[str]
-            The keys that this object depends on.
+        Note
+        ----
+        This method must evaluate the evaluatable and pass the result to the
+        function to determine the keys.
         """
-        return self.function.keys(options) | self.evaluatable.keys(options)
+        return self.evaluatable.keys(options) | self.function(
+            self.evaluatable.evaluate(options)
+        ).keys(options)
 
 
 Callback = Callable[[A, JSONDict], Optional[B]]

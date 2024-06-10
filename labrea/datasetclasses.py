@@ -3,7 +3,7 @@ import operator
 from types import new_class
 from typing import Any, Callable, Generic, Set, Type, TypeVar, Union
 
-from .types import Apply, Evaluatable, JSONDict, Value
+from .types import Apply, Bind, Evaluatable, JSONDict, Value
 
 A = TypeVar("A")
 B = TypeVar("B")
@@ -64,6 +64,9 @@ class DatasetClassMeta(type, Generic[A]):
         if isinstance(f, Evaluatable):
             return Apply(cls, f)  # type: ignore
         return Apply(cls, Value(f))  # type: ignore
+
+    def bind(cls, f: "Callable[[A], Evaluatable[B]]") -> "Evaluatable[B]":
+        return Bind(cls, f)  # type: ignore
 
 
 class Field(Value):
