@@ -8,6 +8,8 @@ A = TypeVar("A", covariant=True)
 
 
 class Application(Generic[P, A], Evaluatable[A]):
+    """A class representing the application of a function to a set of arguments."""
+
     func: Callable[P, A]
     arguments: Evaluatable[Arguments[P]]
     _repr: str
