@@ -5,7 +5,7 @@ from typing import Any, Dict, Set
 from confectioner import mix
 from confectioner.templating import dotted_key_exists, find_template_keys, resolve
 
-from .types import Evaluatable, EvaluationError, JSONDict, ValidationError, Value
+from .evaluatable import Evaluatable, Options, Value
 
 TEMPLATE_PARAM = re.compile(r"^:[a-zA-Z_][a-zA-Z0-9_]*:$")
 
@@ -20,7 +20,7 @@ class Template(Evaluatable[str]):
     the template using the standard :code:`{NESTED.KEY}` syntax from
     confectioner.
 
-    Parameters
+    Arguments
     ----------
     template : str
         The template string to evaluate
@@ -77,18 +77,16 @@ class Template(Evaluatable[str]):
                 f"{template}"
             )
 
-    def evaluate(self, options: JSONDict) -> str:
+    def evaluate(self, options: Options) -> str:
         """Evaluates the template using the options dictionary."""
         params = {f":{key}:": val.evaluate(options) for key, val in self.params.items()}
 
         try:
             return str(resolve(self.template, mix(options, params)))  # type: ignore
         except KeyError as e:
-            raise EvaluationError(
-                f"Missing option {e.args[0]} for {self.template}"
-            ) from e
+            self.panic((*e.args, "UNKNOWN")[0], e)
 
-    def validate(self, options: JSONDict) -> None:
+    def validate(self, options: Options) -> None:
         """Validates that the template can be evaluated using the options."""
         for val in self.params.values():
             val.validate(options)
@@ -97,9 +95,9 @@ class Template(Evaluatable[str]):
             if TEMPLATE_PARAM.match(key):
                 continue
             if not dotted_key_exists(key, options):
-                raise ValidationError(f"Missing option {key} for {self.template}")
+                self.panic(key)
 
-    def keys(self, options: JSONDict) -> Set[str]:
+    def keys(self, options: Options) -> Set[str]:
         """Returns the keys that this object depends on."""
         return set.union(
             *(value.keys(options) for value in self.params.values()),
@@ -108,4 +106,11 @@ class Template(Evaluatable[str]):
                 for key in find_template_keys(self.template)
                 if not TEMPLATE_PARAM.match(key)
             },
+        )
+
+    def __repr__(self) -> str:
+        return (
+            f"Template({self.template!r}, "
+            f"{', '.join(f'{key}={value!r}' for key, value in self.params.items())}"
+            f")"
         )
