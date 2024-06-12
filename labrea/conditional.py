@@ -64,3 +64,6 @@ def switch(
         return Evaluatable.ensure(result)
 
     return evaluatable.bind(_switch)
+
+
+Switch = switch

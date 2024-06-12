@@ -4,6 +4,7 @@ from typing import Set, TypeVar, Union
 from confectioner.templating import dotted_key_exists, get_dotted_key, resolve
 
 from .evaluatable import Evaluatable, MaybeEvaluatable, Options
+from .template import Template
 
 A = TypeVar("A")
 
@@ -21,6 +22,8 @@ class Option(Evaluatable[A]):
         self.key = key
         if default is ...:
             self.default = default
+        elif isinstance(default, str):
+            self.default = Template(default)  # type: ignore [assignment]
         else:
             self.default = Evaluatable.ensure(default)
 
