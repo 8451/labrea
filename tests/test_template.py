@@ -10,6 +10,7 @@ def test_basic():
     assert template(options) == 'Hello, World!'
     template.validate(options)
     assert template.keys(options) == {'GREETING'}
+    assert template.explain(options) == {'GREETING'}
 
 
 def test_malformed():
@@ -36,6 +37,8 @@ def test_missing():
         template.keys(options)
         assert excinfo.value.key == 'GREETING'
 
+    assert template.explain(options) == {'GREETING'}
+
 
 def test_confectioner_templating():
     template = Template('{A} {B}{:punc:}', punc='!')
@@ -58,3 +61,5 @@ def test_confectioner_templating():
         template.keys(missing)
         assert excinfo.value.key == 'D'
 
+    assert template.explain(present) == {'A', 'B', 'C', 'D'}
+    assert template.explain(missing) == {'A', 'B', 'C', 'D'}

@@ -1,6 +1,6 @@
 import re
 import warnings
-from typing import Any, Dict, Set
+from typing import Any, Dict, Optional, Set
 
 from confectioner import mix
 from confectioner.templating import find_template_keys, resolve
@@ -113,6 +113,22 @@ class Template(Evaluatable[str]):
                 keys.update(Option(key).keys(options))
             except KeyNotFoundError as e:
                 raise KeyNotFoundError(e.key, self) from e
+
+        return keys
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        """Returns the keys that this object depends on."""
+        from .option import Option
+
+        options = options or {}
+        keys = set().union(*(value.explain(options) for value in self.params.values()))
+        for key in find_template_keys(self.template):
+            if TEMPLATE_PARAM.match(key):
+                continue
+            try:
+                keys.update(Option(key).explain(options))
+            except KeyNotFoundError as e:
+                keys.add(e.key)
 
         return keys
 

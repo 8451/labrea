@@ -1,4 +1,4 @@
-from typing import Dict, Generic, ParamSpec, Set, Tuple
+from typing import Dict, Generic, Optional, ParamSpec, Set, Tuple
 
 from .evaluatable import Evaluatable, MaybeEvaluatable, Options
 
@@ -42,6 +42,9 @@ class EvaluatableArgs(Generic[P], Evaluatable[P.args]):
     def keys(self, options: Options) -> Set[str]:
         return set().union(*(arg.keys(options) for arg in self.args))
 
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return set().union(*(arg.explain(options) for arg in self.args))
+
     def __repr__(self) -> str:
         return f"EvaluatableArgs({', '.join(map(repr, self.args))})"
 
@@ -62,7 +65,10 @@ class EvaluatableKwargs(Generic[P], Evaluatable[P.kwargs]):
             value.validate(options)
 
     def keys(self, options: Options) -> Set[str]:
-        return set(self.kwargs.keys())
+        return set().union(*(value.keys(options) for value in self.kwargs.values()))
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return set().union(*(value.explain(options) for value in self.kwargs.values()))
 
     def __repr__(self) -> str:
         return (
@@ -91,6 +97,9 @@ class EvaluatableArguments(Evaluatable[Arguments[P]]):
 
     def keys(self, options: Options) -> Set[str]:
         return self.args.keys(options).union(self.kwargs.keys(options))
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return self.args.explain(options) | self.kwargs.explain(options)
 
     def __repr__(self) -> str:
         return (

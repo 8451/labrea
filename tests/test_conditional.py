@@ -1,11 +1,11 @@
 from labrea.conditional import switch, SwitchError
-from labrea.evaluatable import Value, EvaluationError
-from labrea.option import Option, KeyNotFoundError
+from labrea.evaluatable import Value, InsufficientInformationError, KeyNotFoundError
+from labrea.option import Option
 import pytest
 
 
 def test_switch():
-    s = switch(Option('A'), {'X': Value(42), 'Y': Option('Z')})
+    s = switch(Option('A'), {'X': 42, 'Y': Option('Z')})
 
     assert s({'A': 'X'}) == 42
     assert s({'A': 'Y', 'Z': 43}) == 43
@@ -33,4 +33,12 @@ def test_switch():
         s.keys({'A': 'Y'})
     with pytest.raises(SwitchError):
         s.keys({'A': 'Z'})
+
+    assert s.explain({'A': 'X'}) == {'A'}
+    assert s.explain({'A': 'Y', 'Z': 43}) == {'A', 'Z'}
+    with pytest.raises(InsufficientInformationError):
+        s.explain({})
+    assert s.explain({'A': 'Y'}) == {'A', 'Z'}
+    with pytest.raises(InsufficientInformationError):
+        print(s.explain({'A': 'Z'}))
 

@@ -1,4 +1,4 @@
-from typing import Set, TypeVar
+from typing import Optional, Set, TypeVar
 
 from confectioner.templating import dotted_key_exists, get_dotted_key, resolve
 
@@ -71,6 +71,19 @@ class Option(Evaluatable[A]):
             return self.default.keys(options)
         else:
             raise KeyNotFoundError(self.key, self)
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        options = options or {}
+        if dotted_key_exists(self.key, options):
+            value = get_dotted_key(self.key, options)
+            if isinstance(value, str):
+                return {self.key} | Template(value).explain(options)
+            else:
+                return {self.key}
+        elif self.default is not MISSING:
+            return self.default.explain(options)
+        else:
+            return {self.key}
 
     def __repr__(self) -> str:
         return (

@@ -257,6 +257,9 @@ class CachedEvaluation(Evaluatable[A]):
     def keys(self, options: Options) -> Set[str]:
         return self.evaluatable.keys(options)
 
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return self.evaluatable.explain(options)
+
     def __repr__(self) -> str:
         return f"CachedEvaluation({self.evaluatable!r}, {self.cache!r})"
 
@@ -282,6 +285,9 @@ class SetCacheEffect(Effect[A, A]):
 
     def validate(self, options: Options) -> None:
         pass
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return self.evaluatable.explain(options)
 
 
 def _disabled_set_cache_handler(request: CacheSetRequest[A]) -> A:

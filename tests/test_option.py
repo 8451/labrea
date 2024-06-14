@@ -11,6 +11,8 @@ def test_basic():
     assert option.evaluate(options) == 42
     option.validate(options)
     assert option.keys(options) == {'A'}
+    assert option.explain(options) == {'A'}
+    assert option.explain() == {'A'}
 
 
 def test_multiple_provided():
@@ -20,6 +22,7 @@ def test_multiple_provided():
     assert option.evaluate(options) == 42
     option.validate(options)
     assert option.keys(options) == {'A'}
+    assert option.explain(options) == {'A'}
 
 
 def test_missing():
@@ -38,6 +41,8 @@ def test_missing():
         option.keys(options)
         assert excinfo.value.key == 'A'
 
+    assert option.explain(options) == {'A'}
+
 
 def test_default():
     option = Option('A', default=42)
@@ -47,10 +52,12 @@ def test_default():
     assert option.evaluate(missing) == 42
     option.validate(missing)
     assert option.keys(missing) == set()
+    assert option.explain(missing) == set()
 
     assert option.evaluate(provided) == 43
     option.validate(provided)
     assert option.keys(provided) == {'A'}
+    assert option.explain(provided) == {'A'}
 
 
 def test_evaluatable_default():
@@ -60,6 +67,8 @@ def test_evaluatable_default():
     assert option.evaluate(options) == 42
     option.validate(options)
     assert option.keys(options) == {'B'}
+    assert option.explain(options) == {'B'}
+    assert option.explain() == {'B'}
 
 
 def test_nested():
@@ -69,6 +78,7 @@ def test_nested():
     assert option.evaluate(options) == 42
     option.validate(options)
     assert option.keys(options) == {'A.B'}
+    assert option.explain(options) == {'A.B'}
 
 
 def test_nested_missing():
@@ -86,6 +96,8 @@ def test_nested_missing():
     with pytest.raises(KeyNotFoundError) as excinfo:
         option.keys(options)
         assert excinfo.value.key == 'A.B'
+
+    assert option.explain(options) == {'A.B'}
 
 
 def test_template_default():
@@ -113,6 +125,10 @@ def test_confectioner_templating():
     with pytest.raises(KeyNotFoundError) as excinfo:
         option.keys(missing)
         assert excinfo.value.key == 'C'
+
+    assert option.explain(present) == {'A', 'B', 'C'}
+    assert option.explain(missing) == {'A', 'B', 'C'}
+    assert option.explain() == {'A'}
 
 
 def test_repr():

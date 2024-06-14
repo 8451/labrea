@@ -2,13 +2,13 @@ from abc import ABC, abstractmethod
 from typing import Callable, Generic, Optional, Set, TypeVar
 
 from .evaluatable import Evaluatable
-from .types import Options, Transformation, Validatable
+from .types import Explainable, Options, Transformation, Validatable
 
 A = TypeVar("A", contravariant=True)
 B = TypeVar("B", covariant=True)
 
 
-class Effect(Transformation[A, B], Validatable, ABC):
+class Effect(Transformation[A, B], Validatable, Explainable, ABC):
     @abstractmethod
     def __call__(self, value: A, options: Optional[Options] = None) -> B:
         """Apply the effect to a value.
@@ -45,6 +45,9 @@ class UnvalidatedEffect(Effect[A, B]):
     def validate(self, options: Options) -> None:
         pass
 
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return set()
+
 
 class Computation(Generic[A, B], Evaluatable[B]):
     evaluatable: Evaluatable[A]
@@ -64,6 +67,9 @@ class Computation(Generic[A, B], Evaluatable[B]):
 
     def keys(self, options: Options) -> Set[str]:
         return self.evaluatable.keys(options)
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return self.evaluatable.explain(options) | self.effect.explain(options)
 
     def __repr__(self) -> str:
         return f"Computation({self.evaluatable!r}, {self.effect!r})"

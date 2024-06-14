@@ -1,12 +1,8 @@
-import hashlib
-import json
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from typing import Callable, Generic, Optional, Set, TypeVar, Union
 
-from confectioner.templating import get_dotted_key
-
-from .types import Cacheable, Options, Validatable
+from .types import Cacheable, Explainable, Options, Validatable
 
 A = TypeVar("A", covariant=True)
 B = TypeVar("B", covariant=True)
@@ -41,7 +37,16 @@ class KeyNotFoundError(EvaluationError):
         super().__init__(f"Key '{self.key}' not found", source)
 
 
-class Evaluatable(Generic[A], Validatable, Cacheable, ABC):
+class InsufficientInformationError(EvaluationError):
+    """Error raised when not enough information is provided to explain an object."""
+
+    def __init__(self, reason: str, source: "Evaluatable") -> None:
+        super().__init__(
+            f"Insufficient information to evaluate {source}: {reason}", source
+        )
+
+
+class Evaluatable(Generic[A], Cacheable, Explainable, Validatable, ABC):
     """A protocol for objects that can be evaluated.
 
     This protocol is used to define a common interface for objects that can be
@@ -156,18 +161,6 @@ class Evaluatable(Generic[A], Validatable, Cacheable, ABC):
     def bind(self, func: Callable[[A], "Evaluatable[B]"]) -> "Evaluatable[B]":
         return Bind(self, func)
 
-    def fingerprint(self, options: Options) -> bytes:
-        """Return a fingerprint, which is a unique identifier for a given evaluation."""
-        fingerprint = hashlib.blake2b(repr(self).encode(), digest_size=64)
-
-        for key in sorted(self.keys(options)):
-            fingerprint.update(key.encode())
-            fingerprint.update(
-                json.dumps(get_dotted_key(key, options), sort_keys=True).encode()
-            )
-
-        return fingerprint.digest()
-
 
 MaybeEvaluatable = Union[Evaluatable[A], A]
 
@@ -215,6 +208,9 @@ class Value(Evaluatable[A]):
         """
         return set()
 
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return set()
+
     def __repr__(self) -> str:
         return f"Value({self.value!r})"
 
@@ -242,6 +238,9 @@ class Apply(Generic[A, B], Evaluatable[B]):
     def keys(self, options: Options) -> Set[str]:
         return self.evaluatable.keys(options) | self.func.keys(options)
 
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return self.evaluatable.explain(options) | self.func.explain(options)
+
     def __repr__(self) -> str:
         return f"{self.evaluatable!r}.apply({self.func!r})"
 
@@ -267,6 +266,14 @@ class Bind(Generic[A, B], Evaluatable[B]):
         return self.evaluatable.keys(options) | self.func(
             self.evaluatable(options)
         ).keys(options)
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        try:
+            return self.evaluatable.explain(options) | self.func(
+                self.evaluatable(options)
+            ).explain(options)
+        except EvaluationError as e:
+            raise InsufficientInformationError(f"Cannot explain {self}", self) from e
 
     def __repr__(self) -> str:
         return f"{self.evaluatable!r}.bind({self.func!r})"

@@ -35,6 +35,9 @@ class Overloaded(Evaluatable[A]):
     def keys(self, options: Options) -> Set[str]:
         return self.switch.keys(options)
 
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return self.switch.explain(options)
+
     def __repr__(self) -> str:
         return f"Overloaded({self.dispatch!r}, {self.lookup!r})"
 

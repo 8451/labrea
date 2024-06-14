@@ -1,5 +1,5 @@
 import inspect
-from typing import Callable, Dict, Generic, ParamSpec, Set, TypeVar
+from typing import Callable, Dict, Generic, Optional, ParamSpec, Set, TypeVar
 
 from .arguments import Arguments, arguments
 from .evaluatable import Evaluatable, Options
@@ -41,6 +41,9 @@ class FunctionApplication(Generic[P, A], Evaluatable[A]):
 
     def keys(self, options: Options) -> Set[str]:
         return self.arguments.keys(options)
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return self.arguments.explain(options)
 
     def __repr__(self) -> str:
         return self._repr

@@ -1,6 +1,11 @@
 from typing import Any, List, Optional, Set, TypeVar
 
-from .evaluatable import Evaluatable, EvaluationError, MaybeEvaluatable
+from .evaluatable import (
+    Evaluatable,
+    EvaluationError,
+    InsufficientInformationError,
+    MaybeEvaluatable,
+)
 from .types import Options
 
 A = TypeVar("A", covariant=True)
@@ -46,6 +51,15 @@ class Coalesce(Evaluatable[A]):
     def keys(self, options: Options) -> Set[str]:
         """Return the keys for the first Evaluatable that can be evaluated."""
         return self._delegate("keys", options)
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        """Return the explanation for the first Evaluatable that can be evaluated."""
+        try:
+            return self._delegate("explain", options or {})
+        except CoalesceError as e:
+            raise InsufficientInformationError(
+                f"No members of {self} returned an explanation", self
+            ) from e
 
     def _delegate(self, method: str, options: Options) -> Any:
         """Delegate a method to the first Evaluatable that can be evaluated."""

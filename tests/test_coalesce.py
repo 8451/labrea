@@ -23,6 +23,8 @@ def test_coalesce():
     with pytest.raises(CoalesceError):
         c.keys({})
 
+    assert c.explain() == {'A'}
+
 
 def test_repr():
     assert repr(Coalesce(Option('A'), Option('B'))) == "Coalesce(Option('A'), Option('B'))"
