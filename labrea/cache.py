@@ -208,6 +208,25 @@ class CacheExistsRequest(Request[bool]):
         self.cache = cache
 
 
+@CacheSetRequest.handle
+def set_cache_handler(request: CacheSetRequest[A]) -> A:
+    request.cache.set(request.fingerprint, request.options, request.value)
+    try:
+        return request.cache.get(request.fingerprint, request.options)
+    except CacheGetFailure:
+        return request.value
+
+
+@CacheGetRequest.handle
+def get_cache_handler(request: CacheGetRequest[A]) -> A:
+    return request.cache.get(request.fingerprint, request.options)
+
+
+@CacheExistsRequest.handle
+def exists_cache_handler(request: CacheExistsRequest) -> bool:
+    return request.cache.exists(request.fingerprint, request.options)
+
+
 class CachedEvaluation(Evaluatable[A]):
     """A class representing an Evaluatable that may be cached."""
 
@@ -265,27 +284,6 @@ class SetCacheEffect(Effect[A, A]):
         pass
 
 
-def set_cache_handler(request: CacheSetRequest[A]) -> A:
-    request.cache.set(request.fingerprint, request.options, request.value)
-    try:
-        return request.cache.get(request.fingerprint, request.options)
-    except CacheGetFailure:
-        return request.value
-
-
-def get_cache_handler(request: CacheGetRequest[A]) -> A:
-    return request.cache.get(request.fingerprint, request.options)
-
-
-def exists_cache_handler(request: CacheExistsRequest) -> bool:
-    return request.cache.exists(request.fingerprint, request.options)
-
-
-runtime.handle_by_default(CacheSetRequest, set_cache_handler)
-runtime.handle_by_default(CacheGetRequest, get_cache_handler)
-runtime.handle_by_default(CacheExistsRequest, exists_cache_handler)
-
-
 def _disabled_set_cache_handler(request: CacheSetRequest[A]) -> A:
     return request.value
 
@@ -299,7 +297,7 @@ def _disabled_exists_cache_handler(request: CacheExistsRequest) -> bool:
 
 
 def disable() -> runtime.Runtime:
-    return runtime.current_runtime().handle(
+    return runtime.handle(
         {
             CacheSetRequest: _disabled_set_cache_handler,
             CacheGetRequest: _disabled_get_cache_handler,

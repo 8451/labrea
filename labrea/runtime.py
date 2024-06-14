@@ -1,5 +1,17 @@
 import threading
-from typing import Callable, Dict, Generic, Mapping, Optional, Type, TypeVar, Union
+from typing import (
+    Callable,
+    Dict,
+    Generic,
+    Mapping,
+    Optional,
+    Self,
+    Type,
+    TypeVar,
+    Union,
+)
+
+from .types import Options
 
 A = TypeVar("A", covariant=True)
 R = TypeVar("R", covariant=True, bound="Request")
@@ -8,12 +20,19 @@ R = TypeVar("R", covariant=True, bound="Request")
 lock = threading.Lock()
 
 
+Handler = Callable[[R], A]
+
+
 class Request(Generic[A]):
+    options: Options
+
     def run(self) -> A:
         return current_runtime().run(self)
 
-
-Handler = Callable[[R], A]
+    @classmethod
+    def handle(cls, handler: Handler[Self, A]) -> Handler[Self, A]:
+        handle_by_default(cls, handler)
+        return handler
 
 
 _DEFAULT_HANDLERS: Dict[Type[Request], Handler] = {}
@@ -74,7 +93,10 @@ def current_runtime() -> Runtime:
         return _RUNTIMES.setdefault(threading.current_thread(), Runtime())
 
 
-def handle(request: Type[R], handler: Handler[R, A]) -> Runtime:
+def handle(
+    request: Union[Type[R], Mapping[Type[Request], Handler]],
+    handler: Optional[Handler[R, A]] = None,
+) -> Runtime:
     return current_runtime().handle(request, handler)
 
 
