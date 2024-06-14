@@ -1,31 +1,32 @@
-import builtins
-from typing import Dict, Hashable, TypeVar, Union
+from typing import Hashable, Mapping, TypeVar
 
-from .evaluatable import Evaluatable, MaybeEvaluatable
+from ._missing import MISSING, MaybeMissing
+from .evaluatable import Evaluatable, EvaluationError, MaybeEvaluatable
 
 H = TypeVar("H", bound=Hashable)
 B = TypeVar("B")
 
 
-class SwitchError(Exception):
+class SwitchError(EvaluationError):
     """An error raised when a switch statement encounters an invalid value."""
 
     def __init__(
         self,
         evaluatable: Evaluatable[H],
         value: H,
-        lookup: Dict[H, MaybeEvaluatable[B]],
+        lookup: Mapping[H, MaybeEvaluatable[B]],
     ):
         super().__init__(
-            f"{evaluatable} evaluated to {value}, "
-            f"but must be one of {', '.join(map(str, lookup.keys()))}."
+            f"Evaluated to {value}, "
+            f"but must be one of {', '.join(map(str, lookup.keys()))}.",
+            evaluatable,
         )
 
 
 def switch(
     evaluatable: Evaluatable[H],
-    lookup: Dict[H, MaybeEvaluatable[B]],
-    default: Union[MaybeEvaluatable[B], builtins.ellipsis] = ...,
+    lookup: Mapping[H, MaybeEvaluatable[B]],
+    default: MaybeMissing[MaybeEvaluatable[B]] = MISSING,
 ) -> Evaluatable[B]:
     """Evaluates the given evaluatable and returns the value associated with it in the lookup table.
 
@@ -38,7 +39,7 @@ def switch(
         The evaluatable to evaluate.
     lookup : Dict[H, MaybeEvaluatable[B]]
         The lookup table.
-    default : Union[MaybeEvaluatable[B], ...], optional
+    default : MaybeEvaluatable[B], optional
         The default value to return if the value is not found in the lookup table.
 
     Returns
@@ -54,11 +55,9 @@ def switch(
     """
 
     def _switch(value: H) -> Evaluatable[B]:
-        result: Union[MaybeEvaluatable[B], builtins.ellipsis] = lookup.get(
-            value, default
-        )
+        result: MaybeMissing[MaybeEvaluatable[B]] = lookup.get(value, default)
 
-        if result is ...:
+        if result is MISSING:
             raise SwitchError(evaluatable, value, lookup)
 
         return Evaluatable.ensure(result)

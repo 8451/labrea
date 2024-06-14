@@ -1,81 +1,47 @@
+import hashlib
+import json
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import (
-    Any,
-    Callable,
-    Generic,
-    Mapping,
-    NoReturn,
-    Optional,
-    Set,
-    TypeVar,
-    Union,
-)
+from typing import Callable, Generic, Optional, Set, TypeVar, Union
 
-Options = Mapping[str, Any]
+from confectioner.templating import get_dotted_key
 
+from .types import Cacheable, Options, Validatable
 
 A = TypeVar("A", covariant=True)
 B = TypeVar("B", covariant=True)
 T = TypeVar("T")
 
 
-class Validatable(ABC):
-    """A protocol for objects that can be validated.
+class EvaluationError(Exception):
+    """Error raised when an object cannot be evaluated."""
 
-    This protocol is used to validate objects that are not yet evaluated.
-    """
+    msg: str
+    source: "Evaluatable"
 
-    @abstractmethod
-    def validate(self, options: Options) -> None:
-        """Validate the object.
+    def __init__(self, msg: str, source: "Evaluatable") -> None:
+        self.msg = msg
+        self.source = source
 
-        Arguments
-        ----------
-        options : Options
-            The options dictionary to validate against.
+        super().__init__(msg, source)
 
-        Raises
-        ------
-        KeyNotFoundError
-            If a required key is not found in the options dictionary.
-
-        Notes
-        -----
-        This method should be called recursively on all child objects where
-        applicable.
-        """
-        raise NotImplementedError  # pragma: nocover
-
-    @abstractmethod
-    def keys(self, options: Options) -> Set[str]:
-        """
-        Return the keys that this object depends on.
-
-        Arguments
-        ----------
-        options : Options
-            The options dictionary to validate against.
-
-        Returns
-        -------
-        Set[str]
-            The keys that this object depends on.
-
-        Raises
-        ------
-        KeyNotFoundError
-            If a required key is not found in the options dictionary.
-
-        Notes
-        -----
-        This method should be called recursively on all child objects where
-        applicable.
-        """
-        raise NotImplementedError  # pragma: nocover
+    def __str__(self):
+        return f"Originating in {self.source} | {self.msg}"
 
 
-class Evaluatable(Generic[A], Validatable, ABC):
+class KeyNotFoundError(EvaluationError):
+    """Error raised when a key is not found in the options dictionary."""
+
+    key: str
+    source: "Evaluatable"
+
+    def __init__(self, key: str, source: "Evaluatable") -> None:
+        self.key = key
+
+        super().__init__(f"Key '{self.key}' not found", source)
+
+
+class Evaluatable(Generic[A], Validatable, Cacheable, ABC):
     """A protocol for objects that can be evaluated.
 
     This protocol is used to define a common interface for objects that can be
@@ -86,7 +52,7 @@ class Evaluatable(Generic[A], Validatable, ABC):
     def __call__(self, options: Optional[Options] = None) -> A:
         """Evaluate the object.
 
-        Any object that explicitly inherits from Evaluatble can be called as a
+        Any object that explicitly inherits from Evaluatable can be called as a
         function
 
         Arguments
@@ -190,11 +156,17 @@ class Evaluatable(Generic[A], Validatable, ABC):
     def bind(self, func: Callable[[A], "Evaluatable[B]"]) -> "Evaluatable[B]":
         return Bind(self, func)
 
-    def panic(self, key: str, source: Optional[Exception] = None) -> NoReturn:
-        if source is not None:
-            raise KeyNotFoundError(key, self) from source
+    def fingerprint(self, options: Options) -> bytes:
+        """Return a fingerprint, which is a unique identifier for a given evaluation."""
+        fingerprint = hashlib.blake2b(repr(self).encode(), digest_size=64)
 
-        raise KeyNotFoundError(key, self)
+        for key in sorted(self.keys(options)):
+            fingerprint.update(key.encode())
+            fingerprint.update(
+                json.dumps(get_dotted_key(key, options), sort_keys=True).encode()
+            )
+
+        return fingerprint.digest()
 
 
 MaybeEvaluatable = Union[Evaluatable[A], A]
@@ -298,16 +270,3 @@ class Bind(Generic[A, B], Evaluatable[B]):
 
     def __repr__(self) -> str:
         return f"{self.evaluatable!r}.bind({self.func!r})"
-
-
-class KeyNotFoundError(Exception):
-    """Error raised when a key is not found in the options dictionary."""
-
-    key: str
-    source: Optional[Evaluatable]
-
-    def __init__(self, key: str, source: Optional[Evaluatable] = None) -> None:
-        self.key = key
-        self.source = source
-
-        super().__init__(key, source)

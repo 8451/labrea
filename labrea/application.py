@@ -1,4 +1,5 @@
-from typing import Callable, Generic, ParamSpec, Set, TypeVar
+import inspect
+from typing import Callable, Dict, Generic, ParamSpec, Set, TypeVar
 
 from .arguments import Arguments, arguments
 from .evaluatable import Evaluatable, Options
@@ -7,7 +8,7 @@ P = ParamSpec("P")
 A = TypeVar("A", covariant=True)
 
 
-class Application(Generic[P, A], Evaluatable[A]):
+class FunctionApplication(Generic[P, A], Evaluatable[A]):
     """A class representing the application of a function to a set of arguments."""
 
     func: Callable[P, A]
@@ -25,7 +26,7 @@ class Application(Generic[P, A], Evaluatable[A]):
         self.arguments = arguments(*args, **kwargs)
 
         self._repr = (
-            f"Application("
+            f"FunctionApplication("
             f"{', '.join(map(repr, args))}"
             f"{', '.join(f'{key}={value!r}' for key, value in kwargs.items())}"
             f")"
@@ -43,3 +44,17 @@ class Application(Generic[P, A], Evaluatable[A]):
 
     def __repr__(self) -> str:
         return self._repr
+
+    @classmethod
+    def lift(cls, func: Callable[P, A]) -> "FunctionApplication[P, A]":
+        signature = inspect.signature(func)
+        kwargs: Dict[str, Evaluatable["P.kwargs"]] = {}
+
+        for param in signature.parameters.values():
+            if param.default is param.empty:
+                raise TypeError(
+                    f"Cannot lift function {func} with non-defaulted parameters"
+                )
+            kwargs[param.name] = Evaluatable.ensure(param.default)
+
+        return FunctionApplication(func, **kwargs)

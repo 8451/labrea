@@ -3,9 +3,9 @@ import warnings
 from typing import Any, Dict, Set
 
 from confectioner import mix
-from confectioner.templating import dotted_key_exists, find_template_keys, resolve
+from confectioner.templating import find_template_keys, resolve
 
-from .evaluatable import Evaluatable, Options, Value
+from .evaluatable import Evaluatable, KeyNotFoundError, Options, Value
 
 TEMPLATE_PARAM = re.compile(r"^:[a-zA-Z_][a-zA-Z0-9_]*:$")
 
@@ -84,29 +84,37 @@ class Template(Evaluatable[str]):
         try:
             return str(resolve(self.template, mix(options, params)))  # type: ignore
         except KeyError as e:
-            self.panic((*e.args, "UNKNOWN")[0], e)
+            raise KeyNotFoundError((*e.args, "UNKNOWN")[0], self) from e
 
     def validate(self, options: Options) -> None:
         """Validates that the template can be evaluated using the options."""
+        from .option import Option
+
         for val in self.params.values():
             val.validate(options)
 
         for key in find_template_keys(self.template):
             if TEMPLATE_PARAM.match(key):
                 continue
-            if not dotted_key_exists(key, options):
-                self.panic(key)
+            try:
+                Option(key).validate(options)
+            except KeyNotFoundError as e:
+                raise KeyNotFoundError(e.key, self) from e
 
     def keys(self, options: Options) -> Set[str]:
         """Returns the keys that this object depends on."""
-        return set.union(
-            *(value.keys(options) for value in self.params.values()),
-            {
-                key
-                for key in find_template_keys(self.template)
-                if not TEMPLATE_PARAM.match(key)
-            },
-        )
+        from .option import Option
+
+        keys = set().union(*(value.keys(options) for value in self.params.values()))
+        for key in find_template_keys(self.template):
+            if TEMPLATE_PARAM.match(key):
+                continue
+            try:
+                keys.update(Option(key).keys(options))
+            except KeyNotFoundError as e:
+                raise KeyNotFoundError(e.key, self) from e
+
+        return keys
 
     def __repr__(self) -> str:
         return (

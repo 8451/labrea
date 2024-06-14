@@ -1,6 +1,7 @@
 import pytest
 
-from labrea.evaluatable import Evaluatable, Value, KeyNotFoundError
+from labrea.evaluatable import Evaluatable, Value, EvaluationError, KeyNotFoundError
+from labrea.option import Option
 
 
 def test_value():
@@ -52,19 +53,17 @@ def test_bind():
     assert repr(bind) == f"Value(42).bind({repr(incr)})"
 
 
-def test_panic():
-    with pytest.raises(KeyNotFoundError) as excinfo:
-        Value(42).panic("key")
-        assert excinfo.value.key == "key"
-        assert excinfo.value.evaluatable == Value(42)
-        assert excinfo.value.source is None
-
-    with pytest.raises(KeyNotFoundError) as excinfo:
-        source = Exception()
-        Value(42).panic("key", source)
-        assert excinfo.value.key == "key"
-        assert excinfo.value.evaluatable == Value(42)
-        assert excinfo.value.source is source
+def test_error_str():
+    assert str(EvaluationError('message', Value(1))) == "Originating in Value(1) | message"
+    assert str(KeyNotFoundError('key', Value(1))) == "Originating in Value(1) | Key 'key' not found"
 
 
+def test_fingerprint():
+    value = Value(42)
+    option = Option('A')
 
+    assert value.fingerprint({}) == value.fingerprint({'A': 1})
+    assert value.fingerprint({'A': 1}) != option.fingerprint({'A': 1})
+    assert option.fingerprint({'A': 1}) == option.fingerprint({'A': 1})
+    assert option.fingerprint({'A': 1}) != option.fingerprint({'A': 2})
+    assert option.fingerprint({'A': 1}) == option.fingerprint({'A': 1, 'B': 2})

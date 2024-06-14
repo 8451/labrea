@@ -102,7 +102,7 @@ class EvaluatableArguments(Evaluatable[Arguments[P]]):
 
 
 def arguments(
-    *args: MaybeEvaluatable[P.args], **kwargs: MaybeEvaluatable[P.kwargs]
+    *args: MaybeEvaluatable["P.args"], **kwargs: MaybeEvaluatable["P.kwargs"]
 ) -> Evaluatable[Arguments[P]]:
     return EvaluatableArguments(
         *(Evaluatable.ensure(arg) for arg in args),
