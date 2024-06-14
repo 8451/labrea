@@ -296,7 +296,7 @@ def _disabled_exists_cache_handler(request: CacheExistsRequest) -> bool:
     return False
 
 
-def disable() -> runtime.Runtime:
+def disabled() -> runtime.Runtime:
     return runtime.handle(
         {
             CacheSetRequest: _disabled_set_cache_handler,
