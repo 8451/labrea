@@ -1,38 +1,34 @@
-from labrea.coalesce import Coalesce, CoalesceError
+from labrea.coalesce import Coalesce
 from labrea.option import Option
-from labrea.conditional import switch
-from labrea.evaluatable import InsufficientInformationError
+from labrea.evaluatable import KeyNotFoundError
 import pytest
 
 
 def test_coalesce():
     a = Option('A')
-    b = Option('V')
+    b = Option('B')
 
     c = Coalesce(a, b)
 
     assert c({'A': 'Hello'}) == 'Hello'
-    assert c({'V': 'World!'}) == 'World!'
-    assert c({'A': 'Hello', 'V': 'World!'}) == 'Hello'
-    assert c({'V': 'World!', 'C': 'foo'}) == 'World!'
+    assert c({'B': 'World!'}) == 'World!'
+    assert c({'A': 'Hello', 'B': 'World!'}) == 'Hello'
+    assert c({'B': 'World!', 'C': 'foo'}) == 'World!'
 
-    with pytest.raises(CoalesceError):
+    with pytest.raises(KeyNotFoundError):
         c({})
 
-    with pytest.raises(CoalesceError):
+    with pytest.raises(KeyNotFoundError):
         c.validate({})
 
-    with pytest.raises(CoalesceError):
+    with pytest.raises(KeyNotFoundError):
         c.keys({})
 
-    assert c.explain() == {'A'}
-
-    with pytest.raises(InsufficientInformationError):
-        Coalesce(switch(Option('A'), {1: True})).explain({'A': 2})
+    assert c.explain() == {'B'}
 
 
 def test_repr():
-    assert repr(Coalesce(Option('A'), Option('V'))) == "Coalesce(Option('A'), Option('V'))"
+    assert repr(Coalesce(Option('A'), Option('B'))) == "Coalesce(Option('A'), Option('B'))"
 
 
 def test_init():

@@ -1,21 +1,9 @@
 from typing import Any, List, Optional, Set, TypeVar
 
-from .evaluatable import (
-    Evaluatable,
-    EvaluationError,
-    InsufficientInformationError,
-    MaybeEvaluatable,
-)
+from .evaluatable import Evaluatable, EvaluationError, MaybeEvaluatable
 from .types import Options
 
 A = TypeVar("A", covariant=True)
-
-
-class CoalesceError(EvaluationError):
-    """An error raised when no Evaluatable in a Coalesce can be evaluated"""
-
-    def __init__(self, source: Evaluatable):
-        super().__init__("No members of Coalesce returned a result", source)
 
 
 class Coalesce(Evaluatable[A]):
@@ -54,12 +42,7 @@ class Coalesce(Evaluatable[A]):
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
         """Return the explanation for the first Evaluatable that can be evaluated."""
-        try:
-            return self._delegate("explain", options or {})
-        except CoalesceError as e:
-            raise InsufficientInformationError(
-                f"No members of {self} returned an explanation", self
-            ) from e
+        return self._delegate("explain", options or {})
 
     def _delegate(self, method: str, options: Options) -> Any:
         """Delegate a method to the first Evaluatable that can be evaluated."""
@@ -71,7 +54,7 @@ class Coalesce(Evaluatable[A]):
             except EvaluationError as e:
                 err = e
 
-        raise CoalesceError(self) from err
+        raise err  # type: ignore
 
     def __repr__(self) -> str:
         return f"Coalesce({', '.join(map(repr, self.members))})"

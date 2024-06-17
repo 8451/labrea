@@ -12,12 +12,8 @@ from typing import (
 )
 
 from ._missing import MISSING, MaybeMissing
-from .evaluatable import (
-    Evaluatable,
-    EvaluationError,
-    InsufficientInformationError,
-    MaybeEvaluatable,
-)
+from .coalesce import coalesce
+from .evaluatable import Evaluatable, EvaluationError, MaybeEvaluatable
 from .types import Options
 
 A = TypeVar("A")
@@ -42,80 +38,25 @@ class SwitchError(EvaluationError):
         )
 
 
-class Switch(Generic[K, V], Evaluatable[V]):
-    """A class representing a switch statement."""
+def switch(
+    dispatch: Evaluatable[K],
+    lookup: Mapping[K, MaybeEvaluatable[V]],
+    default: MaybeMissing[MaybeEvaluatable[V]] = MISSING,
+) -> Evaluatable[V]:
+    def _switch(key: K) -> Evaluatable[V]:
+        if key not in lookup:
+            raise SwitchError(dispatch, key, lookup)
 
-    dispatch: Evaluatable[K]
-    lookup: Mapping[K, MaybeEvaluatable[V]]
-    default: MaybeMissing[Evaluatable[V]]
+        return Evaluatable.ensure(lookup[key])
 
-    def __init__(
-        self,
-        dispatch: MaybeEvaluatable[K],
-        lookup: Mapping[K, MaybeEvaluatable[V]],
-        default: MaybeMissing[MaybeEvaluatable[V]] = MISSING,
-    ) -> None:
-        self.dispatch = Evaluatable.ensure(dispatch)
-        self.lookup = lookup
-        self.default = (
-            Evaluatable.ensure(default) if default is not MISSING else default
-        )
-
-    def _dispatch(self, options: Options) -> MaybeMissing[K]:
-        value: MaybeMissing[K]
-        try:
-            value = self.dispatch.evaluate(options)
-        except EvaluationError as e:
-            if self.default is MISSING:
-                raise e
-            else:
-                value = MISSING
-
-        return value
-
-    def _lookup(self, key: MaybeMissing[K]) -> Evaluatable[V]:
-        if key not in self.lookup:
-            if self.default is MISSING:
-                raise SwitchError(self.dispatch, key, self.lookup)  # type: ignore [misc]
-            return self.default
-
-        return Evaluatable.ensure(self.lookup.get(key, self.default))  # type: ignore [arg-type]
-
-    def evaluate(self, options: Options) -> V:
-        key = self._dispatch(options)
-        return self._lookup(key).evaluate(options)
-
-    def validate(self, options: Options) -> None:
-        key = self._dispatch(options)
-        self._lookup(key).validate(options)
-
-    def keys(self, options: Options) -> Set[str]:
-        key = self._dispatch(options)
-        return (
-            self.dispatch.keys(options) if key in self.lookup else set()
-        ) | self._lookup(key).keys(options)
-
-    def explain(self, options: Optional[Options] = None) -> Set[str]:
-        try:
-            key = self._dispatch(options or {})
-            value = self._lookup(key)
-        except EvaluationError as e:
-            raise InsufficientInformationError(
-                f"Could not evaluate {self.dispatch}", self
-            ) from e
-
-        return (
-            self.dispatch.explain(options) if key in self.lookup else set()
-        ) | value.explain(options)
-
-    def __repr__(self) -> str:
-        if self.default is MISSING:
-            return f"switch({self.dispatch!r}, {self.lookup!r})"
-
-        return f"switch({self.dispatch!r}, {self.lookup!r}, {self.default!r})"
+    return (
+        dispatch.bind(_switch)
+        if default is MISSING
+        else coalesce(dispatch.bind(_switch), default)
+    )
 
 
-switch = Switch
+Switch = switch
 
 
 class CaseWhenError(EvaluationError):
