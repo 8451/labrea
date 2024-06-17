@@ -34,8 +34,9 @@ def test_overloaded():
     with pytest.raises(KeyNotFoundError):
         add.keys({'X': 1})
 
-    assert add.explain({'X': 1, 'Y': 2}) == {'A', 'X', 'Y'}
+    assert add.explain({'X': 1, 'Y': 2}) == {'X', 'Y'}
     assert add.explain({'A': 'dummy'}) == {'A'}
+    assert add.explain() == {'X', 'Y'}
 
 
 def test_repr():

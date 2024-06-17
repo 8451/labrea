@@ -9,7 +9,7 @@ def test_switch():
 
     assert s({'A': 'X'}) == 42
     assert s({'A': 'Y', 'Z': 43}) == 43
-    with pytest.raises(SwitchError):
+    with pytest.raises(KeyNotFoundError):
         s.evaluate({})
     with pytest.raises(KeyNotFoundError):
         s.evaluate({'A': 'Y'})
@@ -18,7 +18,7 @@ def test_switch():
 
     s.validate({'A': 'X'})
     s.validate({'A': 'Y', 'Z': 43})
-    with pytest.raises(SwitchError):
+    with pytest.raises(KeyNotFoundError):
         s.validate({})
     with pytest.raises(KeyNotFoundError):
         s.validate({'A': 'Y'})
@@ -27,7 +27,7 @@ def test_switch():
 
     assert s.keys({'A': 'X'}) == {'A'}
     assert s.keys({'A': 'Y', 'Z': 43}) == {'A', 'Z'}
-    with pytest.raises(SwitchError):
+    with pytest.raises(KeyNotFoundError):
         s.keys({})
     with pytest.raises(KeyNotFoundError):
         s.keys({'A': 'Y'})

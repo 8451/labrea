@@ -27,7 +27,7 @@ class Template(Evaluatable[str]):
     kwargs : Any
         The parameters to use when evaluating the template. Each parameter
         can be any Evaluatable. If a parameter is not an Evaluatable, it is
-        used as a constant value.
+        used as a constant key.
 
     Raises
     ------

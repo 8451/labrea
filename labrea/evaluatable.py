@@ -68,7 +68,7 @@ class Evaluatable(Generic[A], Cacheable, Explainable, Validatable, ABC):
         Returns
         -------
         A
-            The evaluated value.
+            The evaluated key.
 
         Raises
         ------
@@ -89,7 +89,7 @@ class Evaluatable(Generic[A], Cacheable, Explainable, Validatable, ABC):
         Returns
         -------
         A
-            The evaluated value.
+            The evaluated key.
 
         Raises
         ------
@@ -116,40 +116,40 @@ class Evaluatable(Generic[A], Cacheable, Explainable, Validatable, ABC):
 
     @staticmethod
     def unit(value: T) -> "Value[T]":
-        """Wrap a value in a Value object.
+        """Wrap a key in a Value object.
 
-        This method is used to wrap a value in a Value object. This is useful
-        when you want to treat a value as an Evaluatable.
+        This method is used to wrap a key in a Value object. This is useful
+        when you want to treat a key as an Evaluatable.
 
         Arguments
         ----------
         value : A
-            The value to wrap.
+            The key to wrap.
 
         Returns
         -------
         Value[A]
-            The wrapped value.
+            The wrapped key.
         """
         return Value(value)
 
     @staticmethod
     def ensure(value: "MaybeEvaluatable[T]") -> "Evaluatable[T]":
-        """Ensure that a value is an Evaluatable.
+        """Ensure that a key is an Evaluatable.
 
-        This method is used to ensure that a value is an Evaluatable. If the
-        value is already an Evaluatable, it is returned as is. If the value is
+        This method is used to ensure that a key is an Evaluatable. If the
+        key is already an Evaluatable, it is returned as is. If the key is
         not an Evaluatable, it is wrapped in a Value object.
 
         Arguments
         ----------
         value : MaybeEvaluatable[A]
-            The value to ensure is an Evaluatable.
+            The key to ensure is an Evaluatable.
 
         Returns
         -------
         Evaluatable[A]
-            The value as an Evaluatable.
+            The key as an Evaluatable.
         """
         if isinstance(value, Evaluatable):
             return value
@@ -166,15 +166,15 @@ MaybeEvaluatable = Union[Evaluatable[A], A]
 
 
 class Value(Evaluatable[A]):
-    """Simple wrapper for a plain value.
+    """Simple wrapper for a plain key.
 
-    This class is used to wrap a value that is not an Evaluatable and make it
+    This class is used to wrap a key that is not an Evaluatable and make it
     an Evaluatable.
 
     Arguments
     ----------
     value : A
-        The value to wrap.
+        The key to wrap.
     """
 
     value: A
@@ -185,7 +185,7 @@ class Value(Evaluatable[A]):
     def evaluate(self, options: Options) -> A:
         """Evaluate the object.
 
-        Returns the value that was wrapped. If possible, the value is deep
+        Returns the key that was wrapped. If possible, the key is deep
         copied.
         """
         try:
@@ -196,14 +196,14 @@ class Value(Evaluatable[A]):
     def validate(self, options: Options) -> None:
         """Validate the object.
 
-        This method does nothing, as the value can always be evaluated.
+        This method does nothing, as the key can always be evaluated.
         """
         pass
 
     def keys(self, options: Options) -> Set[str]:
         """Return the keys that this object depends on.
 
-        This method returns an empty set, as the value does not depend on any
+        This method returns an empty set, as the key does not depend on any
         keys.
         """
         return set()

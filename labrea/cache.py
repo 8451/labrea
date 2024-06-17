@@ -48,7 +48,7 @@ class CacheSetFailure(CacheFailure):
         self.value = value
 
         super().__init__(
-            f"Failed to add value {value} with fingerprint {fingerprint.hex()} in cache {cache}"
+            f"Failed to add key {value} with fingerprint {fingerprint.hex()} in cache {cache}"
         )
 
 
@@ -74,66 +74,66 @@ class Cache(Generic[A], ABC):
 
     @abstractmethod
     def get(self, fingerprint: bytes, options: Options) -> A:
-        """Get a value from the cache.
+        """Get a key from the cache.
 
         Arguments
         ---------
         fingerprint : bytes
-            The fingerprint of the value to get.
+            The fingerprint of the key to get.
         options : Options
             The options dictionary to evaluate against.
 
         Returns
         -------
         A
-            The value from the cache.
+            The key from the cache.
 
         Raises
         ------
         CacheGetFailure
-            If the value cannot be retrieved from the cache.
+            If the key cannot be retrieved from the cache.
         """
         raise NotImplementedError  # pragma: nocover
 
     @abstractmethod
     def set(self, fingerprint: bytes, options: Options, value: A) -> None:
-        """Set a value in the cache.
+        """Set a key in the cache.
 
         Arguments
         ---------
         fingerprint : bytes
-            The fingerprint of the value to set.
+            The fingerprint of the key to set.
         options : Options
             The options dictionary to evaluate against.
         value : A
-            The value to set in the cache.
+            The key to set in the cache.
 
         Raises
         ------
         CacheSetFailure
-            If the value cannot be set in the cache.
+            If the key cannot be set in the cache.
         """
         raise NotImplementedError  # pragma: nocover
 
     def exists(self, fingerprint: bytes, options: Options) -> bool:
-        """Check if a value exists in the cache.
+        """Check if a key exists in the cache.
 
         Arguments
         ---------
         fingerprint : bytes
-            The fingerprint of the value to check.
+            The fingerprint of the key to check.
         options : Options
             The options dictionary to evaluate against.
 
         Returns
         -------
         bool
-            Whether the value exists in the cache.
+            Whether the key exists in the cache.
 
         Raises
         ------
         CacheExistsFailure
-            If the existence of the value cannot be checked in the cache.
+            If the existence of the key cannot be checked in the cache.
         """
         try:
             self.get(fingerprint, options)

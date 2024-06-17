@@ -12,8 +12,12 @@ from typing import (
 )
 
 from ._missing import MISSING, MaybeMissing
-from .coalesce import coalesce
-from .evaluatable import Evaluatable, EvaluationError, MaybeEvaluatable
+from .evaluatable import (
+    Evaluatable,
+    EvaluationError,
+    InsufficientInformationError,
+    MaybeEvaluatable,
+)
 from .types import Options
 
 A = TypeVar("A")
@@ -23,7 +27,7 @@ V = TypeVar("V")
 
 
 class SwitchError(EvaluationError):
-    """An error raised when a switch statement encounters an invalid value."""
+    """An error raised when a switch statement encounters an invalid key."""
 
     def __init__(
         self,
@@ -38,55 +42,84 @@ class SwitchError(EvaluationError):
         )
 
 
-def switch(
-    dispatch: Evaluatable[K],
-    lookup: Mapping[K, MaybeEvaluatable[V]],
-    default: MaybeMissing[MaybeEvaluatable[V]] = MISSING,
-) -> Evaluatable[V]:
-    """Evaluates the given Evaluatable and returns the value associated with it in the lookup table.
+class Switch(Generic[K, V], Evaluatable[V]):
+    """A class representing a switch statement."""
 
-    If the value is not found in the lookup table, the default value is returned.
-    If a default value is not provided, a SwitchError is raised.
+    dispatch: Evaluatable[K]
+    lookup: Mapping[K, MaybeEvaluatable[V]]
+    default: MaybeMissing[Evaluatable[V]]
 
-    Arguments
-    ----------
-    dispatch : Evaluatable[K]
-        The evaluatable that provides the key.
-    lookup : Dict[K, MaybeEvaluatable[V]]
-        The lookup table.
-    default : MaybeEvaluatable[V], optional
-        The default value to return if the value is not found in the lookup table.
-
-    Returns
-    -------
-    Evaluatable[V]
-        The Evaluatable that evaluates to the value associated with the evaluated value in the
-        lookup table.
-
-    Raises
-    ------
-    SwitchError
-        If the value is not found in the lookup table and a default value is not provided.
-    """
-
-    def _switch(value: MaybeMissing[K]) -> Evaluatable[V]:
-        result: MaybeMissing[MaybeEvaluatable[V]] = (
-            lookup.get(value, default) if value is not MISSING else MISSING
+    def __init__(
+        self,
+        dispatch: MaybeEvaluatable[K],
+        lookup: Mapping[K, MaybeEvaluatable[V]],
+        default: MaybeMissing[MaybeEvaluatable[V]] = MISSING,
+    ) -> None:
+        self.dispatch = Evaluatable.ensure(dispatch)
+        self.lookup = lookup
+        self.default = (
+            Evaluatable.ensure(default) if default is not MISSING else default
         )
 
-        if result is MISSING:
-            raise SwitchError(dispatch, value, lookup)  # type: ignore [misc]
+    def _dispatch(self, options: Options) -> MaybeMissing[K]:
+        value: MaybeMissing[K]
+        try:
+            value = self.dispatch.evaluate(options)
+        except EvaluationError as e:
+            if self.default is MISSING:
+                raise e
+            else:
+                value = MISSING
 
-        return Evaluatable.ensure(result)
+        return value
 
-    return coalesce[MaybeMissing[K]](dispatch, MISSING).bind(_switch)
+    def _lookup(self, key: MaybeMissing[K]) -> Evaluatable[V]:
+        if key not in self.lookup:
+            if self.default is MISSING:
+                raise SwitchError(self.dispatch, key, self.lookup)  # type: ignore [misc]
+            return self.default
+
+        return Evaluatable.ensure(self.lookup.get(key, self.default))  # type: ignore [arg-type]
+
+    def evaluate(self, options: Options) -> V:
+        key = self._dispatch(options)
+        return self._lookup(key).evaluate(options)
+
+    def validate(self, options: Options) -> None:
+        key = self._dispatch(options)
+        self._lookup(key).validate(options)
+
+    def keys(self, options: Options) -> Set[str]:
+        key = self._dispatch(options)
+        return (
+            self.dispatch.keys(options) if key in self.lookup else set()
+        ) | self._lookup(key).keys(options)
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        try:
+            key = self._dispatch(options or {})
+            value = self._lookup(key)
+        except EvaluationError as e:
+            raise InsufficientInformationError(
+                f"Could not evaluate {self.dispatch}", self
+            ) from e
+
+        return (
+            self.dispatch.explain(options) if key in self.lookup else set()
+        ) | value.explain(options)
+
+    def __repr__(self) -> str:
+        if self.default is MISSING:
+            return f"switch({self.dispatch!r}, {self.lookup!r})"
+
+        return f"switch({self.dispatch!r}, {self.lookup!r}, {self.default!r})"
 
 
-Switch = switch
+switch = Switch
 
 
 class CaseWhenError(EvaluationError):
-    """An error raised when a case when statement encounters an invalid value."""
+    """An error raised when a case when statement encounters an invalid key."""
 
     def __init__(self, dispatch: Evaluatable[A], value: A):
         super().__init__(

@@ -1,36 +1,58 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Generic, Optional, Set, TypeVar
+from typing import Callable, Generic, List, Optional, Set, TypeVar
 
 from .evaluatable import Evaluatable
 from .types import Explainable, Options, Transformation, Validatable
 
-A = TypeVar("A", contravariant=True)
-B = TypeVar("B", covariant=True)
+A = TypeVar("A")
+B = TypeVar("B")
 
 
 class Effect(Transformation[A, B], Validatable, Explainable, ABC):
     @abstractmethod
     def __call__(self, value: A, options: Optional[Options] = None) -> B:
-        """Apply the effect to a value.
+        """Apply the effect to a key.
 
         Arguments
         ----------
         value : A
-            The value to apply the effect to.
+            The key to apply the effect to.
         options : Options
             The options dictionary to evaluate against.
 
         Returns
         -------
         A
-            The value after the effect has been applied.
+            The key after the effect has been applied.
 
         Raises
         ------
         EvaluationError
-            If the effect cannot be applied to the value.
+            If the effect cannot be applied to the key.
         """
         raise NotImplementedError  # pragma: nocover
+
+
+class ChainedEffect(Effect[A, A]):
+    effects: List[Effect[A, A]]
+
+    def __init__(self, *effects: Effect[A, A]):
+        self.effects = list(effects)
+
+    def __call__(self, value: A, options: Optional[Options] = None) -> A:
+        for effect in self.effects:
+            value = effect(value, options)
+        return value
+
+    def validate(self, options: Options) -> None:
+        for effect in self.effects:
+            effect.validate(options)
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return set().union(*(effect.explain(options) for effect in self.effects))
+
+    def __repr__(self) -> str:
+        return f"ChainedEffect({', '.join(map(repr, self.effects))})"
 
 
 class UnvalidatedEffect(Effect[A, B]):

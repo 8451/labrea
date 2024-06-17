@@ -31,12 +31,12 @@ class Option(Evaluatable[A]):
         self.__doc__ = doc
 
     def evaluate(self, options: Options) -> A:
-        """Retrieves the value from the options dictionary.
+        """Retrieves the key from the options dictionary.
 
-        If the key does not exist, the default value is returned. If no default
-        value is provided, an error is raised. If the default value is an
+        If the key does not exist, the default key is returned. If no default
+        key is provided, an error is raised. If the default key is an
         Evaluatable, it is evaluated using the options dictionary. If the
-        default value is not an Evaluatable, it is returned as-is.
+        default key is not an Evaluatable, it is returned as-is.
         """
         try:
             value = get_dotted_key(self.key, options)
@@ -49,9 +49,9 @@ class Option(Evaluatable[A]):
     def validate(self, options: Options) -> None:
         """Validates that the key exists in the options dictionary.
 
-        If the key does not exist, the default value is validated. If the
-        default value is an Evaluatable, it is validated using the options
-        dictionary. If the default value is not an Evaluatable, it is ignored.
+        If the key does not exist, the default key is validated. If the
+        default key is an Evaluatable, it is validated using the options
+        dictionary. If the default key is not an Evaluatable, it is ignored.
         """
         if dotted_key_exists(self.key, options):
             _ = self.keys(options)
