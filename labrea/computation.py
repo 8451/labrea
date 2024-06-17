@@ -48,6 +48,9 @@ class UnvalidatedEffect(Effect[A, B]):
     def explain(self, options: Optional[Options] = None) -> Set[str]:
         return set()
 
+    def __repr__(self) -> str:
+        return f"UnvalidatedEffect({self.func!r})"
+
 
 class Computation(Generic[A, B], Evaluatable[B]):
     evaluatable: Evaluatable[A]

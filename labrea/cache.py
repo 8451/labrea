@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Generic, Optional, Set, TypeVar
+from typing import Any, Callable, Dict, Generic, Optional, Set, TypeVar, Union, overload
 
 from . import runtime
 from .computation import Computation, Effect
@@ -113,7 +113,7 @@ class Cache(Generic[A], ABC):
         CacheSetFailure
             If the value cannot be set in the cache.
         """
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: nocover
 
     def exists(self, fingerprint: bytes, options: Options) -> bool:
         """Check if a value exists in the cache.
@@ -312,7 +312,7 @@ def disabled() -> runtime.Runtime:
     )
 
 
-class CachedComputation(Computation[A, A]):
+class Cached(Computation[A, A]):
     """A class representing a Computation that may be cached."""
 
     cache: Cache[A]
@@ -322,3 +322,23 @@ class CachedComputation(Computation[A, A]):
         super().__init__(
             CachedEvaluation(evaluatable, cache), SetCacheEffect(evaluatable, cache)
         )
+
+
+@overload
+def cached(__x: Evaluatable[A], cache: Optional[Cache[A]] = None) -> Cached[A]:
+    ...  # pragma: nocover
+
+
+@overload
+def cached(__x: Cache[A]) -> Callable[[Evaluatable[A]], Cached[A]]:
+    ...  # pragma: nocover
+
+
+def cached(
+    __x: Union[Cache[A], Evaluatable[A]],
+    cache: Optional[Cache[A]] = None,
+) -> Union[Callable[[Evaluatable[A]], Cached[A]], Cached[A]]:
+    if isinstance(__x, Cache):
+        return lambda evaluatable: Cached(evaluatable, __x)
+    else:
+        return Cached(__x, cache or MemoryCache())

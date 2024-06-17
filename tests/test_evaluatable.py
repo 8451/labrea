@@ -69,4 +69,4 @@ def test_fingerprint():
     assert value.fingerprint({'A': 1}) != option.fingerprint({'A': 1})
     assert option.fingerprint({'A': 1}) == option.fingerprint({'A': 1})
     assert option.fingerprint({'A': 1}) != option.fingerprint({'A': 2})
-    assert option.fingerprint({'A': 1}) == option.fingerprint({'A': 1, 'B': 2})
+    assert option.fingerprint({'A': 1}) == option.fingerprint({'A': 1, 'V': 2})

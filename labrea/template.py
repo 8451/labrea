@@ -39,11 +39,11 @@ class Template(Evaluatable[str]):
     -------------
     >>> from labrea import Template, dataset, Option
     >>> @dataset
-    ... def b_dataset(b: str = Option('B')) -> str:
+    ... def b_dataset(b: str = Option('V')) -> str:
     ...     return b
     >>>
     >>> t = Template('{A.X} {:b:}', b=b_dataset)
-    >>> t({'A': {'X': 'Hello'}, 'B': 'World!'})  # 'Hello World!'
+    >>> t({'A': {'X': 'Hello'}, 'V': 'World!'})  # 'Hello World!'
 
     """
 
@@ -125,16 +125,17 @@ class Template(Evaluatable[str]):
         for key in find_template_keys(self.template):
             if TEMPLATE_PARAM.match(key):
                 continue
-            try:
-                keys.update(Option(key).explain(options))
-            except KeyNotFoundError as e:
-                keys.add(e.key)
+
+            keys.update(Option(key).explain(options))
 
         return keys
 
     def __repr__(self) -> str:
-        return (
-            f"Template({self.template!r}, "
-            f"{', '.join(f'{key}={value!r}' for key, value in self.params.items())}"
-            f")"
-        )
+        if self.params:
+            return (
+                f"Template({self.template!r}, "
+                f"{', '.join(f'{key}={value!r}' for key, value in self.params.items())}"
+                f")"
+            )
+
+        return f"Template({self.template!r})"

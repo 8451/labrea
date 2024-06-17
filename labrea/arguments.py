@@ -16,12 +16,16 @@ class Arguments(Generic[P]):
         self.kwargs = kwargs
 
     def __repr__(self) -> str:
-        return (
-            f"Arguments("
-            f"{', '.join(map(repr, self.args))}, "
-            f"{', '.join(f'{key}={value!r}' for key, value in self.kwargs.items())}"
-            f")"
+        args_repr = ", ".join(map(repr, self.args))
+        kwargs_repr = ", ".join(
+            f"{key}={value!r}" for key, value in self.kwargs.items()
         )
+        return f"Arguments({', '.join(filter(bool, [args_repr, kwargs_repr]))})"
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Arguments):
+            return NotImplemented
+        return self.args == other.args and self.kwargs == other.kwargs
 
 
 class EvaluatableArgs(Generic[P], Evaluatable[P.args]):

@@ -1,9 +1,10 @@
 import threading
 from typing import Callable, Dict, Hashable, Iterable, Optional, ParamSpec, Set, TypeVar
 
+from ._missing import MISSING, MaybeMissing
 from .application import FunctionApplication
 from .conditional import switch
-from .evaluatable import Evaluatable
+from .evaluatable import Evaluatable, MaybeEvaluatable
 from .types import Options
 
 A = TypeVar("A", covariant=True)
@@ -11,19 +12,24 @@ P = ParamSpec("P")
 
 
 class Overloaded(Evaluatable[A]):
-    """A class representing multiple implementations of an evaluatable."""
+    """A class representing multiple implementations of an Evaluatable."""
 
     dispatch: Evaluatable[Hashable]
     lookup: Dict[Hashable, Evaluatable[A]]
-    switch: Evaluatable[A]
+    default: MaybeMissing[Evaluatable[A]]
     _lock: threading.Lock
 
     def __init__(
-        self, dispatch: Evaluatable[Hashable], lookup: Dict[Hashable, Evaluatable[A]]
+        self,
+        dispatch: Evaluatable[Hashable],
+        lookup: Dict[Hashable, Evaluatable[A]],
+        default: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
     ):
         self.dispatch = dispatch
         self.lookup = lookup
-        self.switch = switch(dispatch, lookup)
+        self.default = (
+            Evaluatable.ensure(default) if default is not MISSING else default
+        )
         self._lock = threading.Lock()
 
     def evaluate(self, options: Options) -> A:
@@ -39,12 +45,18 @@ class Overloaded(Evaluatable[A]):
         return self.switch.explain(options)
 
     def __repr__(self) -> str:
-        return f"Overloaded({self.dispatch!r}, {self.lookup!r})"
+        if self.default is MISSING:
+            return f"Overloaded({self.dispatch!r}, {self.lookup!r})"
+
+        return f"Overloaded({self.dispatch!r}, {self.lookup!r}, {self.default!r})"
 
     def register(self, key: Hashable, value: Evaluatable[A]) -> None:
         with self._lock:
             self.lookup = {**self.lookup, key: value}
-            self.switch = switch(self.dispatch, self.lookup)
+
+    @property
+    def switch(self) -> Evaluatable[A]:
+        return switch(self.dispatch, self.lookup, default=self.default)
 
     def overload(
         self,
@@ -66,3 +78,9 @@ class Overloaded(Evaluatable[A]):
             return overload
 
         return decorator
+
+
+def overloaded(
+    dispatch: Evaluatable[Hashable],
+) -> Callable[[Evaluatable[A]], Overloaded[A]]:
+    return lambda default: Overloaded(dispatch, {}, default)

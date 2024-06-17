@@ -27,6 +27,7 @@ class FunctionApplication(Generic[P, A], Evaluatable[A]):
 
         self._repr = (
             f"FunctionApplication("
+            f"{self.func.__name__}, "
             f"{', '.join(map(repr, args))}"
             f"{', '.join(f'{key}={value!r}' for key, value in kwargs.items())}"
             f")"

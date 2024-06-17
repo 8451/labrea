@@ -17,7 +17,7 @@ def test_basic():
 
 def test_multiple_provided():
     option = Option('A')
-    options = {'A': 42, 'B': 43}
+    options = {'A': 42, 'V': 43}
 
     assert option.evaluate(options) == 42
     option.validate(options)
@@ -27,7 +27,7 @@ def test_multiple_provided():
 
 def test_missing():
     option = Option('A')
-    options = {'B': 42}
+    options = {'V': 42}
 
     with pytest.raises(KeyNotFoundError) as excinfo:
         option.evaluate(options)
@@ -61,58 +61,58 @@ def test_default():
 
 
 def test_evaluatable_default():
-    option = Option('A', default=Option('B'))
-    options = {'B': 42}
+    option = Option('A', default=Option('V'))
+    options = {'V': 42}
 
     assert option.evaluate(options) == 42
     option.validate(options)
-    assert option.keys(options) == {'B'}
-    assert option.explain(options) == {'B'}
-    assert option.explain() == {'B'}
+    assert option.keys(options) == {'V'}
+    assert option.explain(options) == {'V'}
+    assert option.explain() == {'V'}
 
 
 def test_nested():
-    option = Option('A.B')
-    options = {'A': {'B': 42}}
+    option = Option('A.V')
+    options = {'A': {'V': 42}}
 
     assert option.evaluate(options) == 42
     option.validate(options)
-    assert option.keys(options) == {'A.B'}
-    assert option.explain(options) == {'A.B'}
+    assert option.keys(options) == {'A.V'}
+    assert option.explain(options) == {'A.V'}
 
 
 def test_nested_missing():
-    option = Option('A.B')
+    option = Option('A.V')
     options = {'A': {}}
 
     with pytest.raises(KeyNotFoundError) as excinfo:
         option.evaluate(options)
-        assert excinfo.value.key == 'A.B'
+        assert excinfo.value.key == 'A.V'
 
     with pytest.raises(KeyNotFoundError) as excinfo:
         option.validate(options)
-        assert excinfo.value.key == 'A.B'
+        assert excinfo.value.key == 'A.V'
 
     with pytest.raises(KeyNotFoundError) as excinfo:
         option.keys(options)
-        assert excinfo.value.key == 'A.B'
+        assert excinfo.value.key == 'A.V'
 
-    assert option.explain(options) == {'A.B'}
+    assert option.explain(options) == {'A.V'}
 
 
 def test_template_default():
-    option = Option('A', default='{B}.{C}')
+    option = Option('A', default='{V}.{C}')
     assert isinstance(option.default, Template)
 
 
 def test_confectioner_templating():
     option = Option('A')
-    present = {'A': '{B} {C}!', 'B': 'Hello', 'C': 'World'}
-    missing = {'A': '{B} {C}!', 'B': 'Hello'}
+    present = {'A': '{V} {C}!', 'V': 'Hello', 'C': 'World'}
+    missing = {'A': '{V} {C}!', 'V': 'Hello'}
 
     assert option.evaluate(present) == 'Hello World!'
     option.validate(present)
-    assert option.keys(present) == {'A', 'B', 'C'}
+    assert option.keys(present) == {'A', 'V', 'C'}
 
     with pytest.raises(KeyNotFoundError) as excinfo:
         option.evaluate(missing)
@@ -126,13 +126,13 @@ def test_confectioner_templating():
         option.keys(missing)
         assert excinfo.value.key == 'C'
 
-    assert option.explain(present) == {'A', 'B', 'C'}
-    assert option.explain(missing) == {'A', 'B', 'C'}
+    assert option.explain(present) == {'A', 'V', 'C'}
+    assert option.explain(missing) == {'A', 'V', 'C'}
     assert option.explain() == {'A'}
 
 
 def test_repr():
     assert repr(Option('A')) == "Option('A')"
     assert repr(Option('A', default=42)) == "Option('A', default=Value(42))"
-    assert repr(Option('A', default='{B}.{C}')) == f"Option('A', default={repr(Template('{B}.{C}'))})"
+    assert repr(Option('A', default='{V}.{C}')) == f"Option('A', default={repr(Template('{V}.{C}'))})"
     assert repr(Option('A', doc='Hello, World!')) == "Option('A')"

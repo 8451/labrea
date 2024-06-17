@@ -63,3 +63,9 @@ def test_confectioner_templating():
 
     assert template.explain(present) == {'A', 'B', 'C', 'D'}
     assert template.explain(missing) == {'A', 'B', 'C', 'D'}
+    assert template.explain() == {'A', 'B'}
+
+
+def test_repr():
+    assert repr(Template('{GREETING}, {:name:}!', name='World')) == "Template('{GREETING}, {:name:}!', name=Value('World'))"
+    assert repr(Template('{GREETING}')) == "Template('{GREETING}')"
