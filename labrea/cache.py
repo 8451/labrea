@@ -312,33 +312,28 @@ def disabled() -> runtime.Runtime:
     )
 
 
-class Cached(Computation[A, A]):
-    """A class representing a Computation that may be cached."""
-
-    cache: Cache[A]
-
-    def __init__(self, evaluatable: Evaluatable[A], cache: Cache[A]):
-        self.cache = cache
-        super().__init__(
-            CachedEvaluation(evaluatable, cache), SetCacheEffect(evaluatable, cache)
-        )
-
-
 @overload
-def cached(__x: Evaluatable[A], cache: Optional[Cache[A]] = None) -> Cached[A]:
+def cached(__x: Evaluatable[A], cache: Optional[Cache[A]] = None) -> Evaluatable[A]:
     ...  # pragma: nocover
 
 
 @overload
-def cached(__x: Cache[A]) -> Callable[[Evaluatable[A]], Cached[A]]:
+def cached(__x: Cache[A]) -> Callable[[Evaluatable[A]], Evaluatable[A]]:
     ...  # pragma: nocover
 
 
 def cached(
     __x: Union[Cache[A], Evaluatable[A]],
     cache: Optional[Cache[A]] = None,
-) -> Union[Callable[[Evaluatable[A]], Cached[A]], Cached[A]]:
+) -> Union[Callable[[Evaluatable[A]], Evaluatable[A]], Evaluatable[A]]:
     if isinstance(__x, Cache):
-        return lambda evaluatable: Cached(evaluatable, __x)
+        return lambda evaluatable: cached(evaluatable, __x)
     else:
-        return Cached(__x, cache or MemoryCache())
+        cache = cache or MemoryCache()
+        return CachedEvaluation(
+            Computation(
+                __x,
+                SetCacheEffect(__x, cache),
+            ),
+            cache,
+        )

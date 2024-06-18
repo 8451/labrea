@@ -6,7 +6,7 @@ from .arguments import (
     EvaluatableArguments,
     EvaluatableKwargs,
 )
-from .cache import Cached, cached
+from .cache import cached
 from .coalesce import Coalesce
 from .collections import (
     DatasetDict,
