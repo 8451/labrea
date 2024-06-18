@@ -1,5 +1,6 @@
 from typing import Optional, Set, TypeVar
 
+from confectioner import mix
 from confectioner.templating import dotted_key_exists, get_dotted_key, resolve
 
 from ._missing import MISSING, MaybeMissing
@@ -91,3 +92,38 @@ class Option(Evaluatable[A]):
             if self.default is not MISSING
             else f"Option({self.key!r})"
         )
+
+
+class WithOptions(Evaluatable[A]):
+    evaluatable: Evaluatable[A]
+    options: Options
+
+    def __init__(self, evaluatable: Evaluatable[A], options: Options) -> None:
+        self.evaluatable = evaluatable
+        self.options = options
+
+    def _options(self, options: Options) -> Options:
+        return mix(options, self.options)  # type: ignore
+
+    def evaluate(self, options: Options) -> A:
+        return self.evaluatable.evaluate(self._options(options))
+
+    def validate(self, options: Options) -> None:
+        self.evaluatable.validate(self._options(options))
+
+    def keys(self, options: Options) -> Set[str]:
+        return {
+            key
+            for key in self.evaluatable.keys(self._options(options))
+            if not dotted_key_exists(key, self.options)
+        }
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return {
+            key
+            for key in self.evaluatable.explain(self._options(options or {}))
+            if not dotted_key_exists(key, self.options)
+        }
+
+    def __repr__(self) -> str:
+        return f"WithOptions({self.evaluatable!r}, {self.options!r})"

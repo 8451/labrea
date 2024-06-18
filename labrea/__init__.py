@@ -30,7 +30,7 @@ from .evaluatable import (
     Value,
 )
 from .iterable import Iter
-from .option import Option
+from .option import Option, WithOptions
 from .overload import Overloaded, overloaded
 from .template import Template
 
@@ -69,5 +69,6 @@ __all__ = [
     "Overloaded",
     "overloaded",
     "Option",
+    "WithOptions",
     "Template",
 ]

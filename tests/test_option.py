@@ -1,5 +1,5 @@
 from labrea.evaluatable import KeyNotFoundError
-from labrea.option import Option
+from labrea.option import Option, WithOptions
 from labrea.template import Template
 import pytest
 
@@ -136,3 +136,19 @@ def test_repr():
     assert repr(Option('A', default=42)) == "Option('A', default=Value(42))"
     assert repr(Option('A', default='{V}.{C}')) == f"Option('A', default={repr(Template('{V}.{C}'))})"
     assert repr(Option('A', doc='Hello, World!')) == "Option('A')"
+
+
+def test_with_options():
+    w = WithOptions(Option('A'), {'A': 42})
+
+    assert w.evaluate({}) == 42
+    assert w.evaluate({'A': 43}) == 42
+
+    w.validate({})
+    w.validate({'A': 43})
+
+    assert w.keys({}) == set()
+    assert w.keys({'A': 43}) == set()
+
+    assert w.explain({}) == set()
+    assert w.explain({'A': 43}) == set()
