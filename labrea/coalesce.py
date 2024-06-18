@@ -42,7 +42,15 @@ class Coalesce(Evaluatable[A]):
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
         """Return the explanation for the first Evaluatable that can be evaluated."""
-        return self._delegate("explain", options or {})
+        options = options or {}
+        for member in self.members:
+            try:
+                member.validate(options)
+                return member.explain(options)
+            except EvaluationError:
+                continue
+
+        return self.members[-1].explain(options)
 
     def _delegate(self, method: str, options: Options) -> Any:
         """Delegate a method to the first Evaluatable that can be evaluated."""
