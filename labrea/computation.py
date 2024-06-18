@@ -90,7 +90,7 @@ class CallbackEffect(Effect[A, B]):
         return set()
 
     def __repr__(self) -> str:
-        return f"Callback({self.callback!r})"
+        return f"CallbackEffect({self.callback!r})"
 
 
 class Computation(Generic[A, B], Evaluatable[B]):
