@@ -12,8 +12,12 @@ from typing import (
 )
 
 from ._missing import MISSING, MaybeMissing
-from .coalesce import coalesce
-from .evaluatable import Evaluatable, EvaluationError, MaybeEvaluatable
+from .evaluatable import (
+    Evaluatable,
+    EvaluationError,
+    InsufficientInformationError,
+    MaybeEvaluatable,
+)
 from .types import Options
 
 A = TypeVar("A")
@@ -38,25 +42,95 @@ class SwitchError(EvaluationError):
         )
 
 
-def switch(
-    dispatch: Evaluatable[K],
-    lookup: Mapping[K, MaybeEvaluatable[V]],
-    default: MaybeMissing[MaybeEvaluatable[V]] = MISSING,
-) -> Evaluatable[V]:
-    def _switch(key: K) -> Evaluatable[V]:
-        if key not in lookup:
-            raise SwitchError(dispatch, key, lookup)
+class _DependsOn(Generic[A, B], Evaluatable[B]):
+    evaluatable: Evaluatable[B]
+    depends: Evaluatable[A]
 
-        return Evaluatable.ensure(lookup[key])
+    def __init__(
+        self, evaluatable: MaybeEvaluatable[B], depends: MaybeEvaluatable[A]
+    ) -> None:
+        self.evaluatable = Evaluatable.ensure(evaluatable)
+        self.depends = Evaluatable.ensure(depends)
 
-    return (
-        dispatch.bind(_switch)
-        if default is MISSING
-        else coalesce(dispatch.bind(_switch), default)
-    )
+    def evaluate(self, options: Options) -> B:
+        return self.evaluatable.evaluate(options)
+
+    def validate(self, options: Options) -> None:
+        self.evaluatable.validate(options)
+
+    def keys(self, options: Options) -> Set[str]:
+        return self.evaluatable.keys(options) | self.depends.keys(options)
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return self.evaluatable.explain(options) | self.depends.explain(options)
+
+    def __repr__(self) -> str:
+        return f"_DependsOn({self.evaluatable!r}, {self.depends!r})"
 
 
-Switch = switch
+class Switch(Generic[K, V], Evaluatable[V]):
+    dispatch: Evaluatable[K]
+    lookup: Mapping[K, Evaluatable[V]]
+    default: MaybeMissing[Evaluatable[V]]
+
+    def __init__(
+        self,
+        dispatch: Evaluatable[K],
+        lookup: Mapping[K, MaybeEvaluatable[V]],
+        default: MaybeMissing[MaybeEvaluatable[V]] = MISSING,
+    ) -> None:
+        self.dispatch = dispatch
+        self.lookup = {key: Evaluatable.ensure(value) for key, value in lookup.items()}
+        self.default = (
+            Evaluatable.ensure(default) if default is not MISSING else default
+        )
+
+    def _dispatch(self, options: Options) -> K:
+        return self.dispatch.evaluate(options)
+
+    def _lookup(self, options: Options) -> Evaluatable[V]:
+        try:
+            key = self._dispatch(options)
+        except EvaluationError as e:
+            if self.default is MISSING:
+                raise e
+            return self.default
+
+        if key not in self.lookup:
+            if self.default is MISSING:
+                raise SwitchError(self.dispatch, key, self.lookup)  # type: ignore  [arg-type]
+            return self.default
+
+        return _DependsOn(self.lookup[key], self.dispatch)  # type: ignore  [arg-type]
+
+    def evaluate(self, options: Options) -> V:
+        return self._lookup(options).evaluate(options)
+
+    def validate(self, options: Options) -> None:
+        self._lookup(options).validate(options)
+
+    def keys(self, options: Options) -> Set[str]:
+        return self._lookup(options).keys(options)
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        options = options or {}
+        try:
+            chosen = self._lookup(options)
+        except EvaluationError as e:
+            raise InsufficientInformationError(
+                "Could not determine the switch branch", self
+            ) from e
+
+        return chosen.explain(options)
+
+    def __repr__(self) -> str:
+        if self.default is MISSING:
+            return f"switch({self.dispatch!r}, {self.lookup!r})"
+
+        return f"switch({self.dispatch!r}, {self.lookup!r}, {self.default!r})"
+
+
+switch = Switch
 
 
 class CaseWhenError(EvaluationError):

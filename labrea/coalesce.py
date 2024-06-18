@@ -38,7 +38,17 @@ class Coalesce(Evaluatable[A]):
 
     def keys(self, options: Options) -> Set[str]:
         """Return the keys for the first Evaluatable that can be evaluated."""
-        return self._delegate("keys", options)
+        for i, member in enumerate(self.members):
+            try:
+                member.validate(options)
+                return member.keys(options)
+            except EvaluationError as e:
+                if i == len(self.members) - 1:
+                    raise e
+
+        return self.members[-1].keys(
+            options
+        )  # This is just to satisfy the type checker
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
         """Return the explanation for the first Evaluatable that can be evaluated."""
