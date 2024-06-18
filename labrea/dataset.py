@@ -147,6 +147,7 @@ class DatasetFactory(Generic[A]):
         cache: Optional[Cache[A]] = ...,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
         defaults: Optional[Dict[str, MaybeEvaluatable[A]]] = ...,
+        abstract: Optional[bool] = ...,
     ) -> Dataset[A]:
         ...  # pragma: no cover
 
@@ -159,6 +160,7 @@ class DatasetFactory(Generic[A]):
         cache: Optional[Cache[A]] = ...,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
         defaults: Optional[Dict[str, MaybeEvaluatable[A]]] = ...,
+        abstract: Optional[bool] = ...,
     ) -> "DatasetFactory[A]":
         ...  # pragma: no cover
 
@@ -172,6 +174,7 @@ class DatasetFactory(Generic[A]):
         cache: Optional[Cache[A]] = ...,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
         defaults: Optional[Dict[str, MaybeEvaluatable[A]]] = ...,
+        abstract: Optional[bool] = ...,
     ) -> "DatasetFactory[A]":
         ...  # pragma: no cover
 
@@ -184,6 +187,7 @@ class DatasetFactory(Generic[A]):
         cache: Optional[Cache[A]] = None,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = None,
         defaults: Optional[Dict[str, MaybeEvaluatable[A]]] = None,
+        abstract: Optional[bool] = None,
     ) -> Union["DatasetFactory", Dataset[A]]:
         _effects = OrderedDict(
             [
@@ -196,6 +200,7 @@ class DatasetFactory(Generic[A]):
             cache=cache,
             dispatch=dispatch,
             defaults=defaults,
+            abstract=abstract,
         )
 
         if definition is not None:
@@ -246,3 +251,4 @@ class DatasetFactory(Generic[A]):
 
 
 dataset: DatasetFactory = DatasetFactory(cache=MemoryCache())
+abstractdataset: DatasetFactory = dataset(abstract=True)

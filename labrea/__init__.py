@@ -20,6 +20,7 @@ from .collections import (
 )
 from .computation import Computation
 from .conditional import Switch, case, switch
+from .dataset import Dataset, abstractdataset, dataset
 from .evaluatable import (
     Evaluatable,
     EvaluationError,
@@ -58,6 +59,9 @@ __all__ = [
     "case",
     "Switch",
     "switch",
+    "Dataset",
+    "abstractdataset",
+    "dataset",
     "Evaluatable",
     "EvaluationError",
     "InsufficientInformationError",
