@@ -1,8 +1,18 @@
 import inspect
-from typing import Callable, Dict, Generic, Optional, ParamSpec, Set, TypeVar
+from typing import (
+    Callable,
+    Dict,
+    Generic,
+    Optional,
+    ParamSpec,
+    Set,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from .arguments import Arguments, arguments
-from .evaluatable import Evaluatable, Options
+from .evaluatable import Evaluatable, MaybeEvaluatable, Options
 
 P = ParamSpec("P")
 A = TypeVar("A", covariant=True)
@@ -49,16 +59,47 @@ class FunctionApplication(Generic[P, A], Evaluatable[A]):
     def __repr__(self) -> str:
         return self._repr
 
+    @overload
     @classmethod
-    def lift(cls, func: Callable[P, A]) -> "FunctionApplication[P, A]":
-        signature = inspect.signature(func)
-        kwargs: Dict[str, Evaluatable["P.kwargs"]] = {}
+    def lift(
+        cls,
+        __func: Callable[P, A],
+        /,
+        **kwargs: "MaybeEvaluatable[P.kwargs]",
+    ) -> "FunctionApplication[P, A]":
+        ...
+
+    @overload
+    @classmethod
+    def lift(
+        cls,
+        __func: None = None,
+        /,
+        **kwargs: "MaybeEvaluatable[P.kwargs]",
+    ) -> Callable[[Callable[P, A]], "FunctionApplication[P, A]"]:
+        ...
+
+    @classmethod
+    def lift(
+        cls,
+        __func: Optional[Callable[P, A]] = None,
+        /,
+        **kwargs: "MaybeEvaluatable[P.kwargs]",
+    ) -> Union[
+        "FunctionApplication[P, A]",
+        Callable[[Callable[P, A]], "FunctionApplication[P, A]"],
+    ]:
+        if __func is None:
+            return lambda f: cls.lift(f, **kwargs)
+
+        signature = inspect.signature(__func)
+        eval_kwargs: Dict[str, Evaluatable["P.kwargs"]] = {}
 
         for param in signature.parameters.values():
             if param.default is param.empty:
                 raise TypeError(
-                    f"Cannot lift function {func} with non-defaulted parameters"
+                    f"Cannot lift function {__func} with non-defaulted parameters"
                 )
-            kwargs[param.name] = Evaluatable.ensure(param.default)
+            eval_kwargs[param.name] = Evaluatable.ensure(param.default)
 
-        return FunctionApplication(func, **kwargs)
+        return FunctionApplication(__func, **eval_kwargs)

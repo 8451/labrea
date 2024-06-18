@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, Generic, Optional, Set, TypeVar, Union, overload
 
 from . import runtime
-from .computation import Computation, Effect
 from .evaluatable import Evaluatable
 from .runtime import Request
 from .types import Options
@@ -227,69 +226,6 @@ def exists_cache_handler(request: CacheExistsRequest) -> bool:
     return request.cache.exists(request.fingerprint, request.options)
 
 
-class CachedEvaluation(Evaluatable[A]):
-    """A class representing an Evaluatable that may be cached."""
-
-    evaluatable: Evaluatable[A]
-    cache: Cache[A]
-
-    def __init__(self, evaluatable: Evaluatable[A], cache: Cache[A]):
-        self.evaluatable = evaluatable
-        self.cache = cache
-
-    def evaluate(self, options: Options) -> A:
-        fingerprint = self.evaluatable.fingerprint(options)
-
-        if CacheExistsRequest(fingerprint, options, self.cache).run():
-            try:
-                return CacheGetRequest(fingerprint, options, self.cache).run()
-            except CacheGetFailure:
-                pass
-
-        return self.evaluatable.evaluate(options)
-
-    def validate(self, options: Options) -> None:
-        fingerprint = self.evaluatable.fingerprint(options)
-
-        if not CacheExistsRequest(fingerprint, options, self.cache).run():
-            self.evaluatable.validate(options)
-
-    def keys(self, options: Options) -> Set[str]:
-        return self.evaluatable.keys(options)
-
-    def explain(self, options: Optional[Options] = None) -> Set[str]:
-        return self.evaluatable.explain(options)
-
-    def __repr__(self) -> str:
-        return f"CachedEvaluation({self.evaluatable!r}, {self.cache!r})"
-
-
-class SetCacheEffect(Effect[A, A]):
-    """A class representing an Effect that caches a result."""
-
-    evaluatable: Evaluatable[A]
-    cache: Cache[A]
-
-    def __init__(self, evaluatable: Evaluatable[A], cache: Cache[A]):
-        self.evaluatable = evaluatable
-        self.cache = cache
-
-    def __call__(self, value: A, options: Optional[Options] = None) -> A:
-        options = options or {}
-
-        fingerprint = self.evaluatable.fingerprint(options)
-
-        cached = CacheSetRequest(fingerprint, options, value, self.cache).run()
-
-        return cached
-
-    def validate(self, options: Options) -> None:
-        pass
-
-    def explain(self, options: Optional[Options] = None) -> Set[str]:
-        return self.evaluatable.explain(options)
-
-
 def _disabled_set_cache_handler(request: CacheSetRequest[A]) -> A:
     return request.value
 
@@ -312,6 +248,45 @@ def disabled() -> runtime.Runtime:
     )
 
 
+class Cached(Evaluatable[A]):
+    """A class representing an Evaluatable that may be cached."""
+
+    evaluatable: Evaluatable[A]
+    cache: Cache[A]
+
+    def __init__(self, evaluatable: Evaluatable[A], cache: Cache[A]):
+        self.evaluatable = evaluatable
+        self.cache = cache
+
+    def evaluate(self, options: Options) -> A:
+        fingerprint = self.evaluatable.fingerprint(options)
+
+        if CacheExistsRequest(fingerprint, options, self.cache).run():
+            try:
+                return CacheGetRequest(fingerprint, options, self.cache).run()
+            except CacheGetFailure:
+                pass
+
+        value = self.evaluatable.evaluate(options)
+
+        return CacheSetRequest(fingerprint, options, value, self.cache).run()
+
+    def validate(self, options: Options) -> None:
+        fingerprint = self.evaluatable.fingerprint(options)
+
+        if not CacheExistsRequest(fingerprint, options, self.cache).run():
+            self.evaluatable.validate(options)
+
+    def keys(self, options: Options) -> Set[str]:
+        return self.evaluatable.keys(options)
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return self.evaluatable.explain(options)
+
+    def __repr__(self) -> str:
+        return f"CachedEvaluation({self.evaluatable!r}, {self.cache!r})"
+
+
 @overload
 def cached(__x: Evaluatable[A], cache: Optional[Cache[A]] = None) -> Evaluatable[A]:
     ...  # pragma: nocover
@@ -330,10 +305,4 @@ def cached(
         return lambda evaluatable: cached(evaluatable, __x)
     else:
         cache = cache or MemoryCache()
-        return CachedEvaluation(
-            Computation(
-                __x,
-                SetCacheEffect(__x, cache),
-            ),
-            cache,
-        )
+        return Cached(__x, cache)
