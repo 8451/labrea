@@ -42,6 +42,12 @@ def test_switch():
     with pytest.raises(InsufficientInformationError):
         assert s.explain({'A': 'Z'}) == {'A'}
 
+    assert repr(s) == "switch(Option('A'), {'X': Value(42), 'Y': Option('Z')})"
+    assert (
+        repr(switch(Option('A'), {'X': 42, 'Y': Option('Z')}, 43)) ==
+        "switch(Option('A'), {'X': Value(42), 'Y': Option('Z')}, Value(43))"
+    )
+
 
 def test_case_when():
     c = case(Option('A')).when(

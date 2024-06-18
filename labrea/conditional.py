@@ -65,7 +65,7 @@ class _DependsOn(Generic[A, B], Evaluatable[B]):
         return self.evaluatable.explain(options) | self.depends.explain(options)
 
     def __repr__(self) -> str:
-        return f"_DependsOn({self.evaluatable!r}, {self.depends!r})"
+        return f"_DependsOn({self.evaluatable!r}, {self.depends!r})"  # pragma: no cover
 
 
 class Switch(Generic[K, V], Evaluatable[V]):

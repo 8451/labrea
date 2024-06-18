@@ -76,7 +76,7 @@ class Dataset(Evaluatable[A]):
         if self.name is not None:
             return f"<Dataset {self.name}>"
 
-        return (
+        return (  # pragma: no cover
             f"Dataset("
             f"{self.overloads!r}, "
             f"{', '.join(map(repr, self.effects))}, "
@@ -97,8 +97,16 @@ class Dataset(Evaluatable[A]):
             default=self.overloads.default,
         )
 
-    def set_effect(self, name: str, effect: Effect[A, A]) -> None:
-        self.effects = OrderedDict([*self.effects.items(), (name, effect)])
+    def set_effect(self, name: str, effect: Union[Effect[A, A], Callback[A]]) -> None:
+        self.effects = OrderedDict(
+            [
+                *self.effects.items(),
+                (
+                    name,
+                    effect if isinstance(effect, Effect) else CallbackEffect(effect),
+                ),
+            ]
+        )
 
     add_effect = set_effect
 
