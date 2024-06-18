@@ -152,3 +152,5 @@ def test_with_options():
 
     assert w.explain({}) == set()
     assert w.explain({'A': 43}) == set()
+
+    assert repr(w) == "WithOptions(Option('A'), {'A': 42})"
