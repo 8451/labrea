@@ -74,6 +74,25 @@ class UnvalidatedEffect(Effect[A, B]):
         return f"UnvalidatedEffect({self.func!r})"
 
 
+class CallbackEffect(Effect[A, B]):
+    callback: Callable[[A, Options], B]
+
+    def __init__(self, callback: Callable[[A, Options], B]):
+        self.callback = callback
+
+    def __call__(self, value: A, options: Optional[Options] = None) -> B:
+        return self.callback(value, options or {})
+
+    def validate(self, options: Options) -> None:
+        pass
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return set()
+
+    def __repr__(self) -> str:
+        return f"Callback({self.callback!r})"
+
+
 class Computation(Generic[A, B], Evaluatable[B]):
     evaluatable: Evaluatable[A]
     effect: Effect[A, B]
