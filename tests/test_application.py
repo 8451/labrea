@@ -43,3 +43,16 @@ def test_lift():
     with pytest.raises(TypeError):
         FunctionApplication.lift(bad)
 
+    assert FunctionApplication.lift(bad, a=Option('A'), b=Option('B')).evaluate({'A': 1, 'B': 2}) == 3
+
+    @FunctionApplication.lift
+    def good_deco(a: float = Option('A'), b: float = Option('B')) -> float:
+        return a + b
+
+    assert good_deco.evaluate({'A': 1, 'B': 2}) == 3
+
+    @FunctionApplication.lift(a=Option('A'), b=Option('B'))
+    def good_deco_kwargs(a: float, b: float = Option('X')) -> float:
+        return a + b
+
+    assert good_deco_kwargs.evaluate({'A': 1, 'B': 2}) == 3

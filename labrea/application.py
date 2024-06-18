@@ -67,7 +67,7 @@ class FunctionApplication(Generic[P, A], Evaluatable[A]):
         /,
         **kwargs: "MaybeEvaluatable[P.kwargs]",
     ) -> "FunctionApplication[P, A]":
-        ...
+        ...  # pragma: no cover
 
     @overload
     @classmethod
@@ -77,7 +77,7 @@ class FunctionApplication(Generic[P, A], Evaluatable[A]):
         /,
         **kwargs: "MaybeEvaluatable[P.kwargs]",
     ) -> Callable[[Callable[P, A]], "FunctionApplication[P, A]"]:
-        ...
+        ...  # pragma: no cover
 
     @classmethod
     def lift(
@@ -96,10 +96,11 @@ class FunctionApplication(Generic[P, A], Evaluatable[A]):
         eval_kwargs: Dict[str, Evaluatable["P.kwargs"]] = {}
 
         for param in signature.parameters.values():
-            if param.default is param.empty:
+            default = kwargs.get(param.name, param.default)
+            if default is param.empty:
                 raise TypeError(
                     f"Cannot lift function {__func} with non-defaulted parameters"
                 )
-            eval_kwargs[param.name] = Evaluatable.ensure(param.default)
+            eval_kwargs[param.name] = Evaluatable.ensure(default)
 
         return FunctionApplication(__func, **eval_kwargs)
