@@ -100,6 +100,8 @@ class Dataset(Evaluatable[A]):
     def set_effect(self, name: str, effect: Effect[A, A]) -> None:
         self.effects = OrderedDict([*self.effects.items(), (name, effect)])
 
+    add_effect = set_effect
+
     def drop_effect(self, name: str) -> None:
         self.effects = OrderedDict(
             [(key, val) for key, val in self.effects.items() if key != name]
