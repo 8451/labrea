@@ -1,3 +1,4 @@
+import functools
 from dataclasses import dataclass, field, fields
 from typing import Iterable, Optional, Self, Set, Type, TypeVar
 
@@ -41,6 +42,7 @@ class _DatasetClassEvaluatable(Evaluatable[D]):
 
     def __init__(self, cls: Type[D]):
         self.datasetclass = cls
+        functools.update_wrapper(self, cls, updated=())
 
     def evaluate(self, options: Options) -> D:
         return self.datasetclass._labrea_evaluate(options)
@@ -55,7 +57,7 @@ class _DatasetClassEvaluatable(Evaluatable[D]):
         return self.datasetclass._labrea_explain(options)
 
     def __repr__(self):
-        return self.datasetclass.__qualname__
+        return f"<DatasetClass {self.datasetclass.__qualname__}>"
 
 
 def datasetclass(cls: Type[T]) -> Evaluatable[T]:
@@ -72,7 +74,8 @@ def datasetclass(cls: Type[T]) -> Evaluatable[T]:
 
     @dataclass
     class _DatasetClass(_DatasetClassMixin, dataclass(cls)):  # type: ignore
-        __qualname__ = cls.__qualname__
-        __name__ = cls.__name__
+        pass
+
+    functools.update_wrapper(_DatasetClass, cls, updated=())
 
     return _DatasetClassEvaluatable(_DatasetClass)  # type: ignore
