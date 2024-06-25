@@ -16,7 +16,7 @@ def test_overloaded():
     def dummy_add():
         return 0
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         @add.overload()
         def _():
             pass

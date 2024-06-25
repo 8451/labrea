@@ -1,5 +1,15 @@
 import threading
-from typing import Callable, Dict, Hashable, Iterable, Optional, ParamSpec, Set, TypeVar
+from typing import (
+    Callable,
+    Dict,
+    Hashable,
+    List,
+    Optional,
+    ParamSpec,
+    Set,
+    TypeVar,
+    Union,
+)
 
 from ._missing import MISSING, MaybeMissing
 from .application import FunctionApplication
@@ -60,15 +70,9 @@ class Overloaded(Evaluatable[A]):
 
     def overload(
         self,
-        alias: Optional[Hashable] = None,
-        aliases: Optional[Iterable[Hashable]] = None,
+        alias: Union[Hashable, List[Hashable]],
     ) -> Callable[[Callable[P, A]], FunctionApplication[P, A]]:
-        aliases = aliases or []
-        if alias is not None:
-            aliases = [alias, *aliases]
-
-        if not aliases:
-            raise ValueError("At least one alias must be provided")
+        aliases = alias if isinstance(alias, list) else [alias]
 
         def decorator(func: Callable[P, A]) -> FunctionApplication[P, A]:
             overload = FunctionApplication.lift(func)

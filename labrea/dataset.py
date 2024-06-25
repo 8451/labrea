@@ -6,7 +6,7 @@ from typing import (
     Dict,
     Generic,
     Hashable,
-    Iterable,
+    List,
     Mapping,
     Optional,
     ParamSpec,
@@ -80,10 +80,9 @@ class Dataset(Evaluatable[A]):
 
     def overload(
         self,
-        alias: Optional[Hashable] = None,
-        aliases: Optional[Iterable[Hashable]] = None,
+        alias: Union[Hashable, List[Hashable]],
     ) -> Callable[[Callable[P, A]], FunctionApplication[P, A]]:
-        return self.overloads.overload(alias, aliases)
+        return self.overloads.overload(alias)
 
     def set_dispatch(self, dispatch: Evaluatable[Hashable]) -> None:
         self.overloads = Overloaded(
