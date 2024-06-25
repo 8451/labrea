@@ -44,7 +44,7 @@ def test_explain():
 
 
 def test_repr():
-    assert repr(X) == 'X'
+    assert repr(X) == '<DatasetClass X>'
     assert repr(X({'A': 1, 'C': 3})) == 'X(a=1, b=True, c=\'3\')'
 
 
