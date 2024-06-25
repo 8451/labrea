@@ -1,3 +1,4 @@
+import functools
 import typing
 from collections import OrderedDict
 from typing import (
@@ -34,21 +35,13 @@ class Dataset(Evaluatable[A]):
     overloads: Overloaded[A]
     effects: EffectSet[A]
     cache: Cache[A]
-    name: Optional[str]
 
     def __init__(
-        self,
-        overloads: Overloaded[A],
-        effects: EffectSet[A],
-        cache: Cache[A],
-        name: Optional[str] = None,
-        doc: str = "",
+        self, overloads: Overloaded[A], effects: EffectSet[A], cache: Cache[A]
     ):
         self.overloads = overloads
         self.effects = effects
         self.cache = cache
-        self.name = name
-        self.__doc__ = doc
 
     @property
     def _composed(self) -> Evaluatable[A]:
@@ -73,8 +66,10 @@ class Dataset(Evaluatable[A]):
         return self._composed.explain(options)
 
     def __repr__(self) -> str:
-        if self.name is not None:
-            return f"<Dataset {self.name}>"
+        if hasattr(self, "__qualname__"):
+            return f"<Dataset {self.__qualname__}>"
+        if hasattr(self, "__name__"):
+            return f"<Dataset {self.__name__}>"
 
         return (  # pragma: no cover
             f"Dataset("
@@ -226,13 +221,11 @@ class DatasetFactory(Generic[A]):
                 raise ValueError("Abstract datasets must have a dispatch")
             overloads = Overloaded(self.dispatch, {})
 
-        return Dataset(
-            overloads,
-            effects=self.effects,
-            cache=self.cache,
-            name=getattr(definition, "__qualname__", None),
-            doc=getattr(definition, "__doc__", ""),
-        )
+        _dataset = Dataset(overloads, effects=self.effects, cache=self.cache)
+
+        functools.update_wrapper(_dataset, definition, updated=())
+
+        return _dataset
 
     def where(self, **defaults: MaybeEvaluatable[A]) -> "DatasetFactory":
         return self.update(defaults=defaults)
