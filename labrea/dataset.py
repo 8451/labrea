@@ -16,7 +16,7 @@ from typing import (
     overload,
 )
 
-from ._missing import MISSING
+from ._missing import MISSING, MaybeMissing
 from .application import FunctionApplication
 from .cache import Cache, MemoryCache, NoCache, cached
 from .computation import CallbackEffect, ChainedEffect, Computation, Effect
@@ -108,6 +108,14 @@ class Dataset(Evaluatable[A]):
         self.effects = OrderedDict(
             [(key, val) for key, val in self.effects.items() if key != name]
         )
+
+    @property
+    def default(self) -> MaybeMissing[Evaluatable[A]]:
+        return self.overloads.default
+
+    @property
+    def is_abstract(self) -> bool:
+        return self.overloads.default is MISSING
 
 
 class DatasetFactory(Generic[A]):
