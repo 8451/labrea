@@ -31,6 +31,7 @@ from .evaluatable import (
     Options,
     Value,
 )
+from .interface import implements, interface
 from .iterable import Iter
 from .option import Option, WithOptions
 from .overload import Overloaded, overloaded
@@ -45,7 +46,6 @@ __all__ = [
     "EvaluatableArgs",
     "EvaluatableArguments",
     "EvaluatableKwargs",
-    "Cached",
     "cached",
     "Coalesce",
     "evaluatable_dict",
@@ -71,6 +71,8 @@ __all__ = [
     "MaybeEvaluatable",
     "Options",
     "Value",
+    "interface",
+    "implements",
     "Iter",
     "Overloaded",
     "overloaded",
