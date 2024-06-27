@@ -1,5 +1,16 @@
 from types import FunctionType
-from typing import Any, Callable, Dict, Hashable, List, Tuple, Type, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Hashable,
+    List,
+    Protocol,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 
 from .application import FunctionApplication
 from .dataset import Dataset, abstractdataset, dataset
@@ -192,3 +203,8 @@ def _build_overloads(
         overloads[key] = overload
 
     return overloads
+
+
+class _ImplDecoProto(Protocol):
+    def __call__(self, alias: Hashable, *aliases: Hashable) -> Callable[[T], T]:
+        ...

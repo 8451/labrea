@@ -161,6 +161,10 @@ class Evaluatable(Generic[A], Cacheable, Explainable, Validatable, ABC):
     def bind(self, func: Callable[[A], "Evaluatable[B]"]) -> "Evaluatable[B]":
         return Bind(self, func)
 
+    @property
+    def result(self) -> A:
+        return self  # type: ignore
+
 
 MaybeEvaluatable = Union[Evaluatable[A], A]
 

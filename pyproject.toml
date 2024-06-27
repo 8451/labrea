@@ -75,6 +75,9 @@ testpaths = [
     "tests/"
 ]
 
+[tool.mypy]
+plugins = ["labrea.mypy.plugin"]
+
 [tool.black]
 line-length = 88
 include = '\.pyi?$'
