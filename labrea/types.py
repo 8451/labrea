@@ -75,7 +75,7 @@ class Cacheable(ABC):
 
     def fingerprint(self, options: Options) -> bytes:
         """Return a fingerprint, which is a unique identifier for a given evaluation."""
-        fingerprint = hashlib.blake2b(str(id(self)).encode(), digest_size=64)
+        fingerprint = hashlib.blake2b(digest_size=64)
 
         for key in sorted(self.keys(options)):
             fingerprint.update(key.encode())

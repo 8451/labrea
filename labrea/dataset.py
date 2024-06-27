@@ -124,7 +124,7 @@ class Dataset(Evaluatable[A]):
 
 class DatasetFactory(Generic[A]):
     effects: EffectSet[A]
-    cache: Cache[A]
+    cache: Optional[Cache[A]]
     dispatch: Evaluatable[Hashable]
     defaults: Dict[str, Evaluatable[A]]
     abstract: bool
@@ -132,7 +132,7 @@ class DatasetFactory(Generic[A]):
     def __init__(
         self,
         effects: Optional[EffectSet[A]] = None,
-        cache: Cache[A] = MemoryCache(),
+        cache: Optional[Cache[A]] = None,
         dispatch: Union[Evaluatable[Hashable], str, None] = None,
         defaults: Optional[Dict[str, MaybeEvaluatable[A]]] = None,
         abstract: bool = False,
@@ -232,7 +232,9 @@ class DatasetFactory(Generic[A]):
                 raise ValueError("Abstract datasets must have a dispatch")
             overloads = Overloaded(self.dispatch, {})
 
-        _dataset = Dataset(overloads, effects=self.effects, cache=self.cache)
+        _dataset = Dataset(
+            overloads, effects=self.effects, cache=self.cache or MemoryCache()
+        )
 
         functools.update_wrapper(_dataset, definition, updated=())
 
@@ -262,5 +264,5 @@ class DatasetFactory(Generic[A]):
         return self.update(cache=NoCache())
 
 
-dataset: DatasetFactory = DatasetFactory(cache=MemoryCache())
+dataset: DatasetFactory = DatasetFactory()
 abstractdataset: DatasetFactory = dataset(abstract=True)
