@@ -1,5 +1,5 @@
 from . import _version
-from .application import FunctionApplication
+from .application import FunctionApplication, PartialApplication
 from .arguments import (
     Arguments,
     EvaluatableArgs,
@@ -42,6 +42,7 @@ __version__ = _version.__version__
 
 __all__ = [
     "FunctionApplication",
+    "PartialApplication",
     "Arguments",
     "EvaluatableArgs",
     "EvaluatableArguments",
