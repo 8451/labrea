@@ -165,6 +165,11 @@ class Evaluatable(Generic[A], Cacheable, Explainable, Validatable, ABC):
     def result(self) -> A:
         return self  # type: ignore
 
+    def __rshift__(
+        self, other: "MaybeEvaluatable[Callable[[A], B]]"
+    ) -> "Evaluatable[B]":
+        return self.apply(other)
+
 
 MaybeEvaluatable = Union[Evaluatable[A], A]
 

@@ -27,14 +27,25 @@ def test_unit():
     assert Evaluatable.unit(1)() == 1
 
 
-@pytest.mark.parametrize('wrapper', [Value, lambda x: x])
-def test_apply(wrapper):
+@pytest.mark.parametrize(
+    'wrapper,method',
+    [
+        (wrapper, method)
+        for wrapper in (Value, lambda x: x)
+        for method in ('apply', 'rshift')
+    ]
+)
+def test_apply(wrapper, method):
     value = Value(42)
 
     def incr(x):
         return x + 1
 
-    apply = value.apply(wrapper(incr))
+    if method == 'apply':
+        apply = value.apply(wrapper(incr))
+    else:
+        apply = value >> wrapper(incr)
+
     assert apply.evaluate({}) == 43
     assert apply.validate({}) is None
     assert apply.keys({}) == set()
@@ -70,3 +81,8 @@ def test_fingerprint():
     assert option.fingerprint({'A': 1}) == option.fingerprint({'A': 1})
     assert option.fingerprint({'A': 1}) != option.fingerprint({'A': 2})
     assert option.fingerprint({'A': 1}) == option.fingerprint({'A': 1, 'V': 2})
+
+
+def test_result():
+    option = Option('A')
+    assert option.result is option
