@@ -59,4 +59,4 @@ def test_add():
     assert list(incr + repeat) == [incr, repeat]
     assert list(incr + repeat + decr) == [incr, repeat, PipelineStep(Value(decr))]
     assert list(incr_then_repeat + incr_then_repeat) == [incr, repeat, incr, repeat]
-    assert list(Pipeline() + incr) == [incr]
+    assert list(Pipeline() + incr) == list(incr + Pipeline()) == [incr]
