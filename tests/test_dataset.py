@@ -94,7 +94,7 @@ def test_nocache():
 def test_effect():
     store = None
 
-    def set_store(value, options):
+    def set_store(value):
         nonlocal store
         store = value
         return value

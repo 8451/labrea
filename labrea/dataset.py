@@ -28,7 +28,7 @@ from .types import Options
 A = TypeVar("A", covariant=True)
 P = ParamSpec("P")
 EffectSet = typing.OrderedDict[str, Effect[A, A]]
-Callback = Callable[[A, Options], A]
+Callback = MaybeEvaluatable[Callable[[A], A]]
 
 
 class Dataset(Evaluatable[A]):

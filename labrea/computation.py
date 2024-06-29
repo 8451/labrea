@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Callable, Generic, List, Optional, Set, TypeVar
 
-from .evaluatable import Evaluatable
+from .evaluatable import Evaluatable, MaybeEvaluatable
 from .types import Explainable, Options, Transformation, Validatable
 
 A = TypeVar("A")
@@ -55,39 +55,20 @@ class ChainedEffect(Effect[A, A]):
         return f"ChainedEffect({', '.join(map(repr, self.effects))})"
 
 
-class UnvalidatedEffect(Effect[A, B]):
-    func: Callable[[A], B]
-
-    def __init__(self, func: Callable[[A], B]):
-        self.func = func
-
-    def __call__(self, value: A, options: Optional[Options] = None) -> B:
-        return self.func(value)
-
-    def validate(self, options: Options) -> None:
-        pass
-
-    def explain(self, options: Optional[Options] = None) -> Set[str]:
-        return set()
-
-    def __repr__(self) -> str:
-        return f"UnvalidatedEffect({self.func!r})"
-
-
 class CallbackEffect(Effect[A, B]):
-    callback: Callable[[A, Options], B]
+    callback: Evaluatable[Callable[[A], B]]
 
-    def __init__(self, callback: Callable[[A, Options], B]):
-        self.callback = callback
+    def __init__(self, callback: MaybeEvaluatable[Callable[[A], B]]):
+        self.callback = Evaluatable.ensure(callback)
 
     def __call__(self, value: A, options: Optional[Options] = None) -> B:
-        return self.callback(value, options or {})
+        return self.callback(options)(value)
 
     def validate(self, options: Options) -> None:
-        pass
+        self.callback.validate(options)
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
-        return set()
+        return self.callback.explain(options)
 
     def __repr__(self) -> str:
         return f"CallbackEffect({self.callback!r})"
