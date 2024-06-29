@@ -35,6 +35,7 @@ from .interface import implements, interface
 from .iterable import Iter
 from .option import Option, WithOptions
 from .overload import Overloaded, overloaded
+from .pipeline import pipeline_step
 from .template import Template
 
 __version__ = _version.__version__
@@ -77,6 +78,7 @@ __all__ = [
     "Iter",
     "Overloaded",
     "overloaded",
+    "pipeline_step",
     "Option",
     "WithOptions",
     "Template",
