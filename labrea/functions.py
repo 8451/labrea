@@ -3,23 +3,54 @@ import functools
 from typing import Callable, Iterable, TypeVar
 
 from ._missing import MISSING, MaybeMissing
+from .application import FunctionApplication
+from .evaluatable import MaybeEvaluatable
+from .pipeline import PipelineStep
 
 A = TypeVar("A")
 B = TypeVar("B")
 
 
-def map(func: Callable[[A], B]) -> Callable[[Iterable[A]], Iterable[B]]:
-    return functools.partial(builtins.map, func)  # type: ignore
+def map(
+    func: MaybeEvaluatable[Callable[[A], B]]
+) -> PipelineStep[Iterable[A], Iterable[B]]:
+    return PipelineStep(
+        FunctionApplication(
+            functools.partial, builtins.map, func  # type: ignore [arg-type]
+        ),
+        f"map({func!r})",
+    )
 
 
-def filter(func: Callable[[A], bool]) -> Callable[[Iterable[A]], Iterable[A]]:
-    return functools.partial(builtins.filter, func)  # type: ignore
+def filter(
+    func: MaybeEvaluatable[Callable[[A], bool]]
+) -> PipelineStep[Iterable[A], Iterable[A]]:
+    return PipelineStep(
+        FunctionApplication(
+            functools.partial, builtins.filter, func  # type: ignore [arg-type]
+        ),
+        f"filter({func!r})",
+    )
+
+
+def _reduce(
+    func: Callable[[A, A], A], iterable: Iterable[A], initial: MaybeMissing[A]
+) -> A:
+    if initial is MISSING:
+        return functools.reduce(func, iterable)
+
+    return functools.reduce(func, iterable, initial)
 
 
 def reduce(
-    func: Callable[[A, A], A], initial: MaybeMissing[A] = MISSING
-) -> Callable[[Iterable[A]], A]:
-    if initial is MISSING:
-        return functools.partial(functools.reduce, func)
-
-    return lambda iterable: functools.reduce(func, iterable, initial)  # type: ignore
+    func: MaybeEvaluatable[Callable[[A, A], A]],
+    initial: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
+) -> PipelineStep[Iterable[A], A]:
+    return PipelineStep(
+        FunctionApplication(
+            functools.partial, _reduce, func, initial=initial  # type: ignore [arg-type]
+        ),
+        f"reduce({func!r})"
+        if initial is MISSING
+        else f"reduce({func!r}, initial={initial!r})",
+    )

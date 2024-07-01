@@ -31,8 +31,8 @@ class FunctionApplication(Generic[P, A], Evaluatable[A]):
         self,
         __func: Callable[P, A],
         /,
-        *args: Evaluatable[P.args],
-        **kwargs: Evaluatable[P.kwargs],
+        *args: "MaybeEvaluatable[P.args]",
+        **kwargs: "MaybeEvaluatable[P.kwargs]",
     ):
         self.func = __func
         self.arguments = arguments(*args, **kwargs)
