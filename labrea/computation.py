@@ -11,24 +11,24 @@ B = TypeVar("B")
 class Effect(Transformation[A, B], Validatable, Explainable, ABC):
     @abstractmethod
     def __call__(self, value: A, options: Optional[Options] = None) -> B:
-        """Apply the effect to a key.
+        """Apply the effect to a value.
 
         Arguments
         ----------
         value : A
-            The key to apply the effect to.
+            The value to apply the effect to.
         options : Options
             The options dictionary to evaluate against.
 
         Returns
         -------
         A
-            The key after the effect has been applied.
+            The value after the effect has been applied.
 
         Raises
         ------
         EvaluationError
-            If the effect cannot be applied to the key.
+            If the effect cannot be applied to the value.
         """
         raise NotImplementedError  # pragma: nocover
 
