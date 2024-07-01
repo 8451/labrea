@@ -48,6 +48,8 @@ def test_switch():
         "switch(Option('A'), {'X': Value(42), 'Y': Option('Z')}, Value(43))"
     )
 
+    assert switch('A', {'X': 1})({'A': 'X'}) == 1
+
 
 def test_case_when():
     c = case(Option('A')).when(

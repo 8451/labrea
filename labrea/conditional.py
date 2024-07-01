@@ -9,6 +9,7 @@ from typing import (
     Set,
     Tuple,
     TypeVar,
+    Union,
 )
 
 from ._missing import MISSING, MaybeMissing
@@ -18,6 +19,7 @@ from .evaluatable import (
     InsufficientInformationError,
     MaybeEvaluatable,
 )
+from .option import Option
 from .types import Options
 
 A = TypeVar("A")
@@ -75,11 +77,13 @@ class Switch(Generic[K, V], Evaluatable[V]):
 
     def __init__(
         self,
-        dispatch: Evaluatable[K],
+        dispatch: Union[str, Evaluatable[K]],
         lookup: Mapping[K, MaybeEvaluatable[V]],
         default: MaybeMissing[MaybeEvaluatable[V]] = MISSING,
     ) -> None:
-        self.dispatch = dispatch
+        self.dispatch = (
+            dispatch if isinstance(dispatch, Evaluatable) else Option(dispatch)
+        )
         self.lookup = {key: Evaluatable.ensure(value) for key, value in lookup.items()}
         self.default = (
             Evaluatable.ensure(default) if default is not MISSING else default
