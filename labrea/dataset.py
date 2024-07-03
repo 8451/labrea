@@ -66,7 +66,7 @@ class Dataset(Evaluatable[A]):
         return self._composed.explain(options)
 
     def __repr__(self) -> str:
-        kind = "AbstractDataset" if self.overloads.default is MISSING else "Dataset"
+        kind = "AbstractDataset" if self.is_abstract else "Dataset"
         if hasattr(self, "__qualname__"):
             return f"<{kind} {self.__qualname__}>"
         if hasattr(self, "__name__"):
