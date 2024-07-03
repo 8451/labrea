@@ -14,8 +14,8 @@ from typing import (
 
 from .application import FunctionApplication
 from .dataset import Dataset, abstractdataset, dataset
-from .evaluatable import Evaluatable, Value
 from .option import Option
+from .types import Evaluatable, Value
 
 T = TypeVar("T", bound=Type)
 

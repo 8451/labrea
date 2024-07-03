@@ -2,8 +2,7 @@ import functools
 from dataclasses import dataclass, field, fields
 from typing import Iterable, Optional, Self, Set, Type, TypeVar
 
-from .evaluatable import Evaluatable
-from .types import Options
+from .types import Evaluatable, Options
 
 T = TypeVar("T")
 D = TypeVar("D", bound="_DatasetClassMixin")

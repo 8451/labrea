@@ -1,13 +1,6 @@
-from . import _version
-from .application import FunctionApplication, PartialApplication
-from .arguments import (
-    Arguments,
-    EvaluatableArgs,
-    EvaluatableArguments,
-    EvaluatableKwargs,
-)
+from . import _version, exceptions, types
 from .cache import cached
-from .coalesce import Coalesce
+from .coalesce import Coalesce, coalesce
 from .collections import (
     DatasetDict,
     DatasetList,
@@ -20,66 +13,47 @@ from .collections import (
 )
 from .computation import Computation
 from .conditional import Switch, case, switch
-from .dataset import Dataset, abstractdataset, dataset
+from .dataset import abstractdataset, dataset
 from .datasetclass import datasetclass
-from .evaluatable import (
-    Evaluatable,
-    EvaluationError,
-    InsufficientInformationError,
-    KeyNotFoundError,
-    MaybeEvaluatable,
-    Options,
-    Value,
-)
 from .interface import implements, interface
-from .iterable import Iter
+from .iterable import Map
 from .option import Option, WithOptions
-from .overload import Overloaded, overloaded
+from .overload import Overloaded
 from .pipeline import pipeline_step
 from .template import Template
+from .types import Value
 
 __version__ = _version.__version__
 
 
 __all__ = [
-    "FunctionApplication",
-    "PartialApplication",
-    "Arguments",
-    "EvaluatableArgs",
-    "EvaluatableArguments",
-    "EvaluatableKwargs",
-    "cached",
     "Coalesce",
-    "evaluatable_dict",
-    "evaluatable_list",
-    "evaluatable_set",
-    "evaluatable_tuple",
+    "Computation",
     "DatasetDict",
     "DatasetList",
     "DatasetSet",
     "DatasetTuple",
-    "Computation",
-    "case",
-    "Switch",
-    "switch",
-    "Dataset",
-    "abstractdataset",
-    "dataset",
-    "datasetclass",
-    "Evaluatable",
-    "EvaluationError",
-    "InsufficientInformationError",
-    "KeyNotFoundError",
-    "MaybeEvaluatable",
-    "Options",
-    "Value",
-    "interface",
-    "implements",
-    "Iter",
-    "Overloaded",
-    "overloaded",
-    "pipeline_step",
+    "Map",
     "Option",
     "WithOptions",
+    "Overloaded",
+    "Switch",
     "Template",
+    "Value",
+    "abstractdataset",
+    "cached",
+    "case",
+    "coalesce",
+    "dataset",
+    "datasetclass",
+    "evaluatable_dict",
+    "evaluatable_list",
+    "evaluatable_set",
+    "evaluatable_tuple",
+    "exceptions",
+    "implements",
+    "interface",
+    "pipeline_step",
+    "switch",
+    "types",
 ]

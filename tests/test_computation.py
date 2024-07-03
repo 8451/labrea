@@ -1,7 +1,7 @@
 import pytest
 
 from labrea.computation import Computation, ChainedEffect, CallbackEffect
-from labrea.evaluatable import EvaluationError
+from labrea.exceptions import EvaluationError
 from labrea.option import Option
 from labrea.pipeline import pipeline_step
 

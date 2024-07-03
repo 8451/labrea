@@ -2,7 +2,7 @@ import pytest
 from typing import List
 
 from labrea import pipeline_step, Option, Value
-from labrea.evaluatable import EvaluationError
+from labrea.exceptions import EvaluationError
 from labrea.pipeline import Pipeline, PipelineStep
 
 

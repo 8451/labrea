@@ -1,6 +1,6 @@
 from labrea.coalesce import Coalesce
 from labrea.option import Option
-from labrea.evaluatable import KeyNotFoundError
+from labrea.exceptions import KeyNotFoundError
 import pytest
 
 

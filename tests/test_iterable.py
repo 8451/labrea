@@ -1,8 +1,8 @@
 import pytest
 
-from labrea.iterable import Iter, Iterate
+from labrea.iterable import Iter, Map
 from labrea.conditional import switch
-from labrea.evaluatable import EvaluationError, InsufficientInformationError
+from labrea.exceptions import EvaluationError, InsufficientInformationError
 from labrea.option import Option
 
 
@@ -25,7 +25,7 @@ def test_iter():
 
 
 def test_iterate():
-    i = Iterate(Option('A'), {'A': Option('B')})
+    i = Map(Option('A'), {'A': Option('B')})
 
     assert i.apply(list).evaluate({'B': [1, 2]}) == [({'A': 1}, 1), ({'A': 2}, 2)]
     assert i.values.apply(list).evaluate({'B': [1, 2]}) == [1, 2]
@@ -45,7 +45,7 @@ def test_iterate():
 
 
 def test_iterate_explain_insufficient_information():
-    i = Iterate(switch(Option('A'), {'X': 1}), {'A': Option('B')})
+    i = Map(switch(Option('A'), {'X': 1}), {'A': Option('B')})
 
     with pytest.raises(InsufficientInformationError):
         i.explain()

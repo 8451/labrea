@@ -1,7 +1,8 @@
 import pytest
 
 from labrea.application import FunctionApplication
-from labrea.evaluatable import KeyNotFoundError, Value
+from labrea import Value
+from labrea.exceptions import KeyNotFoundError
 from labrea.option import Option
 from labrea.overload import Overloaded, overloaded
 

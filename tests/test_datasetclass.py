@@ -1,7 +1,7 @@
 import pytest
 
 from labrea import datasetclass, Option
-from labrea.evaluatable import KeyNotFoundError
+from labrea.exceptions import KeyNotFoundError
 
 
 @datasetclass

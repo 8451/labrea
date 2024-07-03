@@ -1,7 +1,7 @@
 from typing import Any, List, Optional, Set, TypeVar
 
-from .evaluatable import Evaluatable, EvaluationError, MaybeEvaluatable
-from .types import Options
+from .exceptions import EvaluationError
+from .types import Evaluatable, MaybeEvaluatable, Options
 
 A = TypeVar("A", covariant=True)
 

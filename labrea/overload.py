@@ -14,8 +14,7 @@ from typing import (
 from ._missing import MISSING, MaybeMissing
 from .application import FunctionApplication
 from .conditional import switch
-from .evaluatable import Evaluatable, MaybeEvaluatable
-from .types import Options
+from .types import Evaluatable, MaybeEvaluatable, Options
 
 A = TypeVar("A", covariant=True)
 P = ParamSpec("P")

@@ -3,7 +3,7 @@ import pytest
 from labrea.interface import interface, implements
 from labrea.option import Option
 from labrea.dataset import dataset
-from labrea.evaluatable import EvaluationError
+from labrea.exceptions import EvaluationError
 
 
 @interface('DISPATCH')

@@ -1,6 +1,6 @@
+from labrea import Option
 from labrea.application import FunctionApplication, PartialApplication
-from labrea.option import Option
-from labrea.evaluatable import KeyNotFoundError
+from labrea.exceptions import KeyNotFoundError
 import pytest
 
 

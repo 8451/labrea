@@ -3,7 +3,7 @@ import uuid
 
 from labrea.computation import CallbackEffect
 from labrea.dataset import dataset, abstractdataset
-from labrea.evaluatable import EvaluationError
+from labrea.exceptions import EvaluationError
 from labrea.option import Option
 
 

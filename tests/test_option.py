@@ -1,4 +1,4 @@
-from labrea.evaluatable import KeyNotFoundError
+from labrea.exceptions import KeyNotFoundError
 from labrea.option import Option, WithOptions
 from labrea.template import Template
 import pytest

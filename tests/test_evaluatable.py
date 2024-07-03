@@ -1,6 +1,7 @@
 import pytest
 
-from labrea.evaluatable import Evaluatable, Value, EvaluationError, KeyNotFoundError
+from labrea.types import Evaluatable, Value
+from labrea.exceptions import EvaluationError, KeyNotFoundError
 from labrea.option import Option
 
 

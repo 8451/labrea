@@ -13,14 +13,9 @@ from typing import (
 )
 
 from ._missing import MISSING, MaybeMissing
-from .evaluatable import (
-    Evaluatable,
-    EvaluationError,
-    InsufficientInformationError,
-    MaybeEvaluatable,
-)
+from .exceptions import EvaluationError, InsufficientInformationError
 from .option import Option
-from .types import Options
+from .types import Evaluatable, MaybeEvaluatable, Options
 
 A = TypeVar("A")
 B = TypeVar("B")

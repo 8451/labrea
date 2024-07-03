@@ -15,11 +15,10 @@ from typing import (
 )
 
 from .application import PartialApplication
-from .evaluatable import Evaluatable, MaybeEvaluatable, Value
-from .types import Options, Transformation
+from .types import Evaluatable, MaybeEvaluatable, Options, Transformation, Value
 
 A = TypeVar("A")
-B = TypeVar("B")
+B = TypeVar("B", covariant=True)
 C = TypeVar("C")
 P = ParamSpec("P")
 

@@ -3,9 +3,9 @@ from typing import Dict, Iterable, Optional, Set, Tuple, TypeVar
 
 from confectioner.templating import set_dotted_key
 
-from .evaluatable import Evaluatable, EvaluationError, MaybeEvaluatable
+from .exceptions import EvaluationError
 from .option import WithOptions
-from .types import JSON, Options
+from .types import JSON, Evaluatable, MaybeEvaluatable, Options
 
 A = TypeVar("A", covariant=True)
 
@@ -43,7 +43,7 @@ class Iter(Evaluatable[Iterable[A]]):
         return f"Iter({', '.join(map(repr, self.evaluatables))})"
 
 
-class Iterate(Evaluatable[Iterable[Tuple[Dict[str, JSON], A]]]):
+class Map(Evaluatable[Iterable[Tuple[Dict[str, JSON], A]]]):
     """A class that represents the same evaluatable repeated over multiple options."""
 
     evaluatable: Evaluatable[A]

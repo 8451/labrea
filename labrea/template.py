@@ -5,7 +5,8 @@ from typing import Any, Dict, Optional, Set
 from confectioner import mix
 from confectioner.templating import find_template_keys, resolve
 
-from .evaluatable import Evaluatable, KeyNotFoundError, Options, Value
+from .exceptions import KeyNotFoundError
+from .types import Evaluatable, Options, Value
 
 TEMPLATE_PARAM = re.compile(r"^:[a-zA-Z_][a-zA-Z0-9_]*:$")
 

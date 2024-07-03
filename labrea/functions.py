@@ -4,8 +4,8 @@ from typing import Callable, Iterable, TypeVar
 
 from ._missing import MISSING, MaybeMissing
 from .application import FunctionApplication
-from .evaluatable import MaybeEvaluatable
 from .pipeline import PipelineStep
+from .types import MaybeEvaluatable
 
 A = TypeVar("A")
 B = TypeVar("B")

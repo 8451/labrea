@@ -20,10 +20,9 @@ from ._missing import MISSING, MaybeMissing
 from .application import FunctionApplication
 from .cache import Cache, MemoryCache, NoCache, cached
 from .computation import CallbackEffect, ChainedEffect, Computation, Effect
-from .evaluatable import Evaluatable, MaybeEvaluatable, Value
 from .option import Option
 from .overload import Overloaded
-from .types import Options
+from .types import Evaluatable, MaybeEvaluatable, Options, Value
 
 A = TypeVar("A", covariant=True)
 P = ParamSpec("P")

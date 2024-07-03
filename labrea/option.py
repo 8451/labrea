@@ -4,9 +4,9 @@ from confectioner import mix
 from confectioner.templating import dotted_key_exists, get_dotted_key, resolve
 
 from ._missing import MISSING, MaybeMissing
-from .evaluatable import Evaluatable, KeyNotFoundError, MaybeEvaluatable, Options
+from .exceptions import KeyNotFoundError
 from .template import Template
-from .types import JSON
+from .types import JSON, Evaluatable, MaybeEvaluatable, Options
 
 A = TypeVar("A", covariant=True, bound=JSON)
 

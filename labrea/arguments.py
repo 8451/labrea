@@ -1,6 +1,6 @@
 from typing import Dict, Generic, Optional, ParamSpec, Set, Tuple
 
-from .evaluatable import Evaluatable, MaybeEvaluatable, Options
+from .types import Evaluatable, MaybeEvaluatable, Options
 
 P = ParamSpec("P")
 

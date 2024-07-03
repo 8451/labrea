@@ -2,9 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, Generic, Optional, Set, TypeVar, Union, overload
 
 from . import runtime
-from .evaluatable import Evaluatable
-from .runtime import Request
-from .types import Options
+from .types import Evaluatable, Options
 
 A = TypeVar("A")
 
@@ -172,7 +170,7 @@ class MemoryCache(Cache[A]):
         return fingerprint in self._cache
 
 
-class CacheSetRequest(Request[A]):
+class CacheSetRequest(runtime.Request[A]):
     fingerprint: bytes
     options: Options
     value: A
@@ -185,7 +183,7 @@ class CacheSetRequest(Request[A]):
         self.cache = cache
 
 
-class CacheGetRequest(Request[A]):
+class CacheGetRequest(runtime.Request[A]):
     fingerprint: bytes
     options: Options
     cache: Cache[A]
@@ -196,7 +194,7 @@ class CacheGetRequest(Request[A]):
         self.cache = cache
 
 
-class CacheExistsRequest(Request[bool]):
+class CacheExistsRequest(runtime.Request[bool]):
     fingerprint: bytes
     options: Options
     cache: Cache

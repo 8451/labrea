@@ -1,5 +1,5 @@
 from labrea.conditional import switch, SwitchError, case, CaseWhenError
-from labrea.evaluatable import InsufficientInformationError, KeyNotFoundError
+from labrea.exceptions import KeyNotFoundError, InsufficientInformationError
 from labrea.option import Option
 import pytest
 

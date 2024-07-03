@@ -1,8 +1,14 @@
 from abc import ABC, abstractmethod
 from typing import Callable, Generic, List, Optional, Set, TypeVar
 
-from .evaluatable import Evaluatable, MaybeEvaluatable
-from .types import Explainable, Options, Transformation, Validatable
+from .types import (
+    Evaluatable,
+    Explainable,
+    MaybeEvaluatable,
+    Options,
+    Transformation,
+    Validatable,
+)
 
 A = TypeVar("A")
 B = TypeVar("B")

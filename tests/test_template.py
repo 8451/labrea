@@ -1,5 +1,5 @@
 from labrea.template import Template
-from labrea.evaluatable import KeyNotFoundError
+from labrea.exceptions import KeyNotFoundError
 import pytest
 
 

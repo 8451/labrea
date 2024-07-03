@@ -1,7 +1,7 @@
 from typing import Dict, Hashable, List, Tuple, TypeVar, Union
 
-from .evaluatable import Evaluatable, MaybeEvaluatable, Value
 from .iterable import Iter
+from .types import Evaluatable, MaybeEvaluatable, Value
 
 A = TypeVar("A")
 K = TypeVar("K", bound=Hashable)
