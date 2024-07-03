@@ -16,7 +16,7 @@ from typing import (
 
 from .application import PartialApplication
 from .evaluatable import Evaluatable, MaybeEvaluatable, Value
-from .types import Options
+from .types import Options, Transformation
 
 A = TypeVar("A")
 B = TypeVar("B")
@@ -24,7 +24,7 @@ C = TypeVar("C")
 P = ParamSpec("P")
 
 
-class PipelineStep(Evaluatable[Callable[[A], B]]):
+class PipelineStep(Evaluatable[Callable[[A], B]], Transformation[A, B]):
     step: Evaluatable[Callable[[A], B]]
     _name: Optional[str]
 
@@ -45,6 +45,9 @@ class PipelineStep(Evaluatable[Callable[[A], B]]):
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
         return self.step.explain(options)
+
+    def transform(self, value: A, options: Optional[Options] = None) -> B:
+        return self(options)(value)
 
     def __repr__(self) -> str:
         return f"<PipelineStep {self._name or repr(self.step)}>"
@@ -71,7 +74,9 @@ Identity: _Identity = _Identity()
 
 
 class Pipeline(
-    Evaluatable[Callable[[A], B]], Iterable[Evaluatable[Callable[[Any], Any]]]
+    Evaluatable[Callable[[A], B]],
+    Iterable[Evaluatable[Callable[[Any], Any]]],
+    Transformation[A, B],
 ):
     tail: PipelineStep[Any, B]
     rest: Optional["Pipeline[A, Any]"]
@@ -127,6 +132,9 @@ class Pipeline(
         return self.tail.explain(options) | (
             self.rest.explain(options) if self.rest else set()
         )
+
+    def transform(self, value: A, options: Optional[Options] = None) -> B:
+        return self(options)(value)
 
     def __repr__(self) -> str:
         if self.empty:

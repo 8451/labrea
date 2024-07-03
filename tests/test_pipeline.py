@@ -60,3 +60,9 @@ def test_add():
     assert list(incr + repeat + decr) == [incr, repeat, PipelineStep(Value(decr))]
     assert list(incr_then_repeat + incr_then_repeat) == [incr, repeat, incr, repeat]
     assert list(Pipeline() + incr) == list(incr + Pipeline()) == [incr]
+
+
+def test_transformation():
+    assert incr.transform(1) == 2
+    assert list(repeat.transform(1, {'N': 3})) == [1, 1, 1]
+    assert list(incr_then_repeat.transform(1, {'N': 3})) == [2, 2, 2]

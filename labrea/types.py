@@ -16,7 +16,7 @@ B = TypeVar("B", covariant=True)
 
 class Transformation(Protocol[A, B]):
     def transform(self, value: A, options: Optional[Options] = None) -> B:
-        ...  # pragma: nocover
+        raise NotImplementedError  # pragma: nocover
 
 
 class Validatable(ABC):
