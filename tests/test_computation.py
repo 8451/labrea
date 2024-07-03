@@ -12,7 +12,7 @@ def test_chained_effect():
 
     effect = ChainedEffect(CallbackEffect(incr), CallbackEffect(double))
 
-    assert effect(1) == 4
+    assert effect.transform(1) == 4
     effect.validate({})
     assert effect.explain() == set()
     assert repr(effect) == f"ChainedEffect(CallbackEffect(Value({incr!r})), CallbackEffect(Value({double!r})))"
@@ -25,13 +25,13 @@ def test_callback_effect():
 
     effect = CallbackEffect(add_a)
 
-    assert effect(1, {'A': 1}) == 2
+    assert effect.transform(1, {'A': 1}) == 2
     effect.validate({'A': 1})
     assert effect.explain() == {'A'}
     assert repr(effect) == f"CallbackEffect({add_a!r})"
 
     with pytest.raises(EvaluationError):
-        effect(1, {})
+        effect.transform(1, {})
     with pytest.raises(EvaluationError):
         effect.validate({})
 

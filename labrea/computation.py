@@ -10,7 +10,7 @@ B = TypeVar("B")
 
 class Effect(Transformation[A, B], Validatable, Explainable, ABC):
     @abstractmethod
-    def __call__(self, value: A, options: Optional[Options] = None) -> B:
+    def transform(self, value: A, options: Optional[Options] = None) -> B:
         """Apply the effect to a value.
 
         Arguments
@@ -39,9 +39,9 @@ class ChainedEffect(Effect[A, A]):
     def __init__(self, *effects: Effect[A, A]):
         self.effects = list(effects)
 
-    def __call__(self, value: A, options: Optional[Options] = None) -> A:
+    def transform(self, value: A, options: Optional[Options] = None) -> A:
         for effect in self.effects:
-            value = effect(value, options)
+            value = effect.transform(value, options)
         return value
 
     def validate(self, options: Options) -> None:
@@ -61,7 +61,7 @@ class CallbackEffect(Effect[A, B]):
     def __init__(self, callback: MaybeEvaluatable[Callable[[A], B]]):
         self.callback = Evaluatable.ensure(callback)
 
-    def __call__(self, value: A, options: Optional[Options] = None) -> B:
+    def transform(self, value: A, options: Optional[Options] = None) -> B:
         return self.callback(options)(value)
 
     def validate(self, options: Options) -> None:
@@ -84,7 +84,7 @@ class Computation(Generic[A, B], Evaluatable[B]):
 
     def evaluate(self, options: Options) -> B:
         value = self.evaluatable.evaluate(options)
-        return self.effect(value, options)
+        return self.effect.transform(value, options)
 
     def validate(self, options: Options) -> None:
         self.evaluatable.validate(options)

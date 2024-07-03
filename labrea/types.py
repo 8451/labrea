@@ -15,7 +15,7 @@ B = TypeVar("B", covariant=True)
 
 
 class Transformation(Protocol[A, B]):
-    def __call__(self, value: A, options: Optional[Options] = None) -> B:
+    def transform(self, value: A, options: Optional[Options] = None) -> B:
         ...  # pragma: nocover
 
 
