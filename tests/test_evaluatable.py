@@ -67,6 +67,14 @@ def test_bind():
     assert repr(bind) == f"Value(42).bind({repr(incr)})"
 
 
+def test_type_error():
+    with pytest.raises(TypeError):
+        Value(42).bind(42)
+
+    with pytest.raises(TypeError):
+        Value(42).apply(42)
+
+
 def test_error_str():
     assert str(EvaluationError('message', Value(1))) == "Originating in Value(1) | message"
     assert str(KeyNotFoundError('key', Value(1))) == "Originating in Value(1) | Key 'key' not found"

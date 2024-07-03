@@ -118,47 +118,52 @@ class Evaluatable(Generic[A], Cacheable, Explainable, Validatable, ABC):
     def unit(value: T) -> "Value[T]":
         """Wrap a key in a Value object.
 
-        This method is used to wrap a key in a Value object. This is useful
-        when you want to treat a key as an Evaluatable.
+        This method is used to wrap a value in a Value object. This is useful
+        when you want to treat a value as an Evaluatable.
 
         Arguments
         ----------
         value : A
-            The key to wrap.
+            The value to wrap.
 
         Returns
         -------
         Value[A]
-            The wrapped key.
+            The wrapped value.
         """
         return Value(value)
 
     @staticmethod
     def ensure(value: "MaybeEvaluatable[T]") -> "Evaluatable[T]":
-        """Ensure that a key is an Evaluatable.
+        """Ensure that a value is an Evaluatable.
 
-        This method is used to ensure that a key is an Evaluatable. If the
-        key is already an Evaluatable, it is returned as is. If the key is
+        This method is used to ensure that a value is an Evaluatable. If the
+        value is already an Evaluatable, it is returned as is. If the value is
         not an Evaluatable, it is wrapped in a Value object.
 
         Arguments
         ----------
         value : MaybeEvaluatable[A]
-            The key to ensure is an Evaluatable.
+            The value to ensure is an Evaluatable.
 
         Returns
         -------
         Evaluatable[A]
-            The key as an Evaluatable.
+            The value as an Evaluatable.
         """
         if isinstance(value, Evaluatable):
             return value
         return Value(value)
 
     def apply(self, func: "MaybeEvaluatable[Callable[[A], B]]") -> "Evaluatable[B]":
+        if not isinstance(func, Evaluatable) and not callable(func):
+            raise TypeError(f"Cannot apply object of type ({type(func)})")
+
         return Apply(self, self.ensure(func))
 
     def bind(self, func: Callable[[A], "Evaluatable[B]"]) -> "Evaluatable[B]":
+        if not callable(func):
+            raise TypeError(f"Cannot bind object of type ({type(func)})")
         return Bind(self, func)
 
     @property
