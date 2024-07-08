@@ -2,6 +2,7 @@ import functools
 import typing
 from collections import OrderedDict
 from typing import (
+    Any,
     Callable,
     Dict,
     Generic,
@@ -125,7 +126,7 @@ class DatasetFactory(Generic[A]):
     effects: EffectSet[A]
     cache: Optional[Cache[A]]
     dispatch: Evaluatable[Hashable]
-    defaults: Dict[str, Evaluatable[A]]
+    defaults: Dict[str, Evaluatable[Any]]
     abstract: bool
 
     def __init__(
@@ -133,7 +134,7 @@ class DatasetFactory(Generic[A]):
         effects: Optional[EffectSet[A]] = None,
         cache: Optional[Cache[A]] = None,
         dispatch: Union[Evaluatable[Hashable], str, None] = None,
-        defaults: Optional[Dict[str, MaybeEvaluatable[A]]] = None,
+        defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = None,
         abstract: bool = False,
     ):
         self.effects = effects or OrderedDict()
@@ -159,7 +160,7 @@ class DatasetFactory(Generic[A]):
         effects: Optional[Mapping[str, Union[Effect[A, A], Callback[A]]]] = ...,
         cache: Optional[Cache[A]] = ...,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
-        defaults: Optional[Dict[str, MaybeEvaluatable[A]]] = ...,
+        defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = ...,
         abstract: Optional[bool] = ...,
     ) -> Dataset[A]:
         ...  # pragma: no cover
@@ -172,7 +173,7 @@ class DatasetFactory(Generic[A]):
         effects: Optional[Mapping[str, Union[Effect[A, A], Callback[A]]]] = ...,
         cache: Optional[Cache[A]] = ...,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
-        defaults: Optional[Dict[str, MaybeEvaluatable[A]]] = ...,
+        defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = ...,
         abstract: Optional[bool] = ...,
     ) -> "DatasetFactory[A]":
         ...  # pragma: no cover
@@ -186,7 +187,7 @@ class DatasetFactory(Generic[A]):
         effects: Optional[Mapping[str, Union[Effect[A, A], Callback[A]]]] = ...,
         cache: Optional[Cache[A]] = ...,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
-        defaults: Optional[Dict[str, MaybeEvaluatable[A]]] = ...,
+        defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = ...,
         abstract: Optional[bool] = ...,
     ) -> "DatasetFactory[A]":
         ...  # pragma: no cover
@@ -199,7 +200,7 @@ class DatasetFactory(Generic[A]):
         effects: Optional[Mapping[str, Union[Effect[A, A], Callback[A]]]] = None,
         cache: Optional[Cache[A]] = None,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = None,
-        defaults: Optional[Dict[str, MaybeEvaluatable[A]]] = None,
+        defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = None,
         abstract: Optional[bool] = None,
     ) -> Union["DatasetFactory", Dataset[A]]:
         _effects = OrderedDict(
@@ -239,7 +240,7 @@ class DatasetFactory(Generic[A]):
 
         return _dataset
 
-    def where(self, **defaults: MaybeEvaluatable[A]) -> "DatasetFactory":
+    def where(self, **defaults: MaybeEvaluatable[Any]) -> "DatasetFactory":
         return self.update(defaults=defaults)
 
     def update(
@@ -247,7 +248,7 @@ class DatasetFactory(Generic[A]):
         effects: Optional[EffectSet[A]] = None,
         cache: Optional[Cache[A]] = None,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = None,
-        defaults: Optional[Dict[str, MaybeEvaluatable[A]]] = None,
+        defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = None,
         abstract: Optional[bool] = None,
     ) -> "DatasetFactory":
         return DatasetFactory(
