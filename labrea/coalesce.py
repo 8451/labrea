@@ -1,8 +1,9 @@
-from typing import List, Set, TypeVar, Union
+from typing import Any, List, Optional, Set, TypeVar
 
-from .types import Evaluatable, EvaluationError, JSONDict, ValidationError, Value
+from .exceptions import EvaluationError
+from .types import Evaluatable, MaybeEvaluatable, Options
 
-A = TypeVar("A")
+A = TypeVar("A", covariant=True)
 
 
 class Coalesce(Evaluatable[A]):
@@ -15,69 +16,53 @@ class Coalesce(Evaluatable[A]):
 
     members: List[Evaluatable[A]]
 
-    def __init__(self, __first, *__rest: Union[A, Evaluatable[A]]):
+    def __init__(self, __first: MaybeEvaluatable[A], *__rest: MaybeEvaluatable[A]):
         """Create a new Coalesce Evaluatable
 
         Parameters
         ----------
-        __first : Union[A, Evaluatable[A]]
+        __first : MaybeEvaluatable[A]
             The first Evaluatable to try to evaluate.
-        *__rest : Union[A, Evaluatable[A]]
+        *__rest : MaybeEvaluatable[A]
             The rest of the Evaluatables to try to evaluate.
         """
-        self.members = [
-            arg if isinstance(arg, Evaluatable) else Value(arg)
-            for arg in (__first, *__rest)
-        ]
+        self.members = [Evaluatable.ensure(arg) for arg in (__first, *__rest)]
 
-    def evaluate(self, options: JSONDict) -> A:
-        """Evaluate the first Evaluatable that can be evaluated
+    def evaluate(self, options: Options) -> A:
+        """Evaluate the first Evaluatable that can be evaluated"""
+        return self._delegate("evaluate", options)
 
-        See Also
-        --------
-        labrea.types.Evaluatable.evaluate
-        """
+    def validate(self, options: Options) -> None:
+        """Determines if any of the Evaluatables can be validated."""
+        return self._delegate("validate", options)
+
+    def keys(self, options: Options) -> Set[str]:
+        """Return the keys for the first Evaluatable that can be evaluated."""
+        return self._delegate("keys", options)
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        """Return the explanation for the first Evaluatable that can be evaluated."""
+        try:
+            return self._delegate("explain", options)
+        except EvaluationError:
+            return self.members[-1].explain(options)
+
+    def _delegate(self, method: str, options: Optional[Options] = None) -> Any:
+        """Delegate a method to the first Evaluatable that can be evaluated."""
+        options = options or {}
+        err: Optional[EvaluationError] = None
+
         for member in self.members:
             try:
                 member.validate(options)
-                return member.evaluate(options)
-            except (ValidationError, EvaluationError):
-                continue
+                return getattr(member, method)(options)
+            except EvaluationError as e:
+                err = e
 
-        raise EvaluationError("No members of Coalesce returned a result")
+        raise err  # type: ignore
 
-    def validate(self, options: JSONDict) -> None:
-        """Attempt to validate each Evaluatable in order
+    def __repr__(self) -> str:
+        return f"Coalesce({', '.join(map(repr, self.members))})"
 
-        If none can be validated, raises a ValidationError.
 
-        See Also
-        --------
-        labrea.types.Validatable.validate
-        """
-        for member in self.members:
-            try:
-                member.validate(options)
-                return
-            except ValidationError:
-                continue
-
-        self.members[0].validate(options)
-
-    def keys(self, options: JSONDict) -> Set[str]:
-        """Return the keys for the first Evaluatable that can be validated
-
-        If none can be validated, returns an empty set.
-
-        See Also
-        --------
-        labrea.types.Validatable.keys
-        """
-        for member in self.members:
-            try:
-                member.validate(options)
-                return member.keys(options)
-            except ValidationError:
-                continue
-
-        return set()
+coalesce = Coalesce

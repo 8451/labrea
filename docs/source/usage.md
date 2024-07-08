@@ -235,11 +235,11 @@ from labrea import Option
 
 config = {
     'A': 'a',
-    'B': 'b'
+    'V': 'b'
 }
 
 Option('X', 1)(config)          ## 1
-Option('Y', '{A}/{B}')(config)  ## 'a/b'
+Option('Y', '{A}/{V}')(config)  ## 'a/b'
 ```
 
 ### Templates
@@ -254,7 +254,7 @@ from labrea import dataset, Option, Template
 
 @dataset
 def b_dataset(
-        b: str = Option('B')
+        b: str = Option('V')
 ) -> str:
     return b
 
@@ -263,7 +263,7 @@ template = Template(
     b=b_dataset
 )
 
-template({'A': 'Hello', 'B': 'World!'})  ## 'Hello World!'
+template({'A': 'Hello', 'V': 'World!'})  ## 'Hello World!'
 ```
 
 ### Switches
@@ -341,20 +341,20 @@ the first one that can evaluate.
 ```python
 from labrea import Coalesce, Option
 
-x = Coalesce(Option('A'), Option('B'), Option('C'))
+x = Coalesce(Option('A'), Option('V'), Option('C'))
 
 x({'A': 1}) == 1
-x({'B': 2}) == 2
+x({'V': 2}) == 2
 x({'C': 3}) == 3
-x({'A': 1, 'B': 2}) == 1
-x({'B': 2, 'C': 3}) == 2
+x({'A': 1, 'V': 2}) == 1
+x({'V': 2, 'C': 3}) == 2
 x({})  ## EvaluationError
 
 
-y = Coalesce(Option('A'), Option('B'), None)
+y = Coalesce(Option('A'), Option('V'), None)
 y({'A': 1}) == 1
-y({'B': 2}) == 2
-y({'A': 1, 'B': 2}) == 1
+y({'V': 2}) == 2
+y({'A': 1, 'V': 2}) == 1
 y({}) is None
 ```
 

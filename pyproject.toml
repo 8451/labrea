@@ -26,9 +26,8 @@ classifiers = [
     "Programming Language :: Python",
 ]
 dependencies = [
-    "typing_extensions>=4.0; python_version<\"3.10\"",
+    "typing_extensions>=4.0; python_version<\"3.11\"",
     "confectioner>=1.0,<2.0",
-    "functional-pypelines>=1.0,<2.0",
 ]
 dynamic = ["version"]
 
@@ -74,6 +73,9 @@ dev = [
 testpaths = [
     "tests/"
 ]
+
+[tool.mypy]
+plugins = ["labrea.mypy.plugin"]
 
 [tool.black]
 line-length = 88

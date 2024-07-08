@@ -1,6 +1,6 @@
 # Labrea
 
-![](https://img.shields.io/badge/version-1.4.0-blue.svg)
+![](https://img.shields.io/badge/version-2.0.0-blue.svg)
 [![lifecycle](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.tidyverse.org/lifecycle/#stable)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/labrea.svg?label=PyPI%20downloads)](https://pypi.org/project/labrea/)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
@@ -25,8 +25,8 @@ pip install git+https://github.com/8451/labrea@develop
 ## Usage
 See our usage guide [here](docs/source/usage.md).
 
-Labrea exposes a `dataset` decorator that allows you to define datasets and their dependencies in a declarative manner. 
-Dependencies can either be other datasets or `Option`s, which are values that can be passed in at runtime via a 
+Labrea exposes a `dataset` decorator that allows you to define datasets and their dependencies in a declarative manner.
+Dependencies can either be other datasets or `Option`s, which are values that can be passed in at runtime via a
 dictionary.
 
 ```python
@@ -46,7 +46,7 @@ def transactions(path: str = Option('PATHS.SALES')) -> pd.DataFrame:
 
 @dataset
 def sales_by_region(
-        stores_: pd.DataFrame = stores, 
+        stores_: pd.DataFrame = stores,
         transactions_: pd.DataFrame = transactions
 ) -> pd.DataFrame:
     """Merge stores to transactions, sum sales by region"""
