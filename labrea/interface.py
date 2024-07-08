@@ -38,8 +38,14 @@ def interface(dispatch: Union[Evaluatable[Hashable], str]) -> Callable[[T], "T"]
 
 
 def implements(
-    *interfaces: "Interface", aliases: Tuple[Hashable, ...] = ()
+    *interfaces: "Interface", alias: Union[Hashable, List[Hashable], None] = None
 ) -> Callable[[T], T]:
+    if alias is None:
+        raise ValueError(
+            "The @implements decorator requires at least one alias to be provided."
+        )
+    aliases = tuple(alias) if isinstance(alias, list) else (alias,)
+
     def wrapper(cls):
         return Implementation(
             cls.__name__, cls.__bases__, dict(cls.__dict__), interfaces, aliases
@@ -103,7 +109,7 @@ class Interface(type):
 
         super().__setattr__(key, value)
 
-    def implementation(cls, alias: Hashable, *aliases: Hashable) -> Callable[[T], T]:
+    def implementation(cls, alias: Union[Hashable, List[Hashable]]) -> Callable[[T], T]:
         if isinstance(alias, type):
             raise TypeError(
                 f"@{cls.__name__}.implementation requires that at least one alias be provided, "
@@ -112,7 +118,7 @@ class Interface(type):
                 f'@{cls.__name__}.implementation("ALIAS"))?'
             )
 
-        return implements(cls, aliases=(alias, *aliases))
+        return implements(cls, alias=alias)
 
     def __repr__(self):
         return f"<Interface {self.__module__}.{self.__qualname__}>"

@@ -81,7 +81,7 @@ def test_override():
 
 
 def test_multi_implementation():
-    @implements(MyInterface, MyInterface2, aliases=('MULTI',))
+    @implements(MyInterface, MyInterface2, alias='MULTI')
     class Multi:
         a = 'a'
 
