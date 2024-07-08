@@ -8,7 +8,7 @@ on:
   workflow_call:
     inputs:
       pre-release-version:
-        description: 'Suffix to append to the version number for pre-releases'
+        description: 'Version to set wheel to for pre-release'
         required: false
         default: ''
 

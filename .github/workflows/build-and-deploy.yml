@@ -22,7 +22,7 @@ on:
   workflow_dispatch:
     inputs:
       pre-release-version:
-        description: 'Suffix to append to the version number for pre-releases'
+        description: 'Version to set wheel to for pre-release'
         required: false
         default: ''
 
@@ -34,7 +34,7 @@ jobs:
   build:
     uses: ./.github/workflows/build.yml
     needs: test
-    inputs:
+    with:
       pre-release-version: ${{ inputs.pre-release-version || '' }}
 
   publish:
