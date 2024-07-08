@@ -1,6 +1,8 @@
 from typing import List
 import uuid
 
+import pytest
+
 from labrea.application import FunctionApplication
 from labrea.cache import cached, NoCache
 from labrea.option import Option
@@ -38,15 +40,20 @@ def test_cached_decorator():
         return [uuid.uuid4() for _ in range(n)]
 
 
-def test_disable_cache():
+@pytest.mark.parametrize('method', ['ctx', 'options'])
+def test_disable_cache(method):
     uuid4 = cached(FunctionApplication(uuid.uuid4))
 
     a = uuid4()
     b = uuid4()
 
-    with labrea.cache.disabled():
-        c = uuid4()
-        d = uuid4()
+    if method == 'ctx':
+        with labrea.cache.disabled():
+            c = uuid4()
+            d = uuid4()
+    else:
+        c = uuid4({'LABREA': {'CACHE': {'DISABLED': True}}})
+        d = uuid4({'LABREA': {'CACHE': {'DISABLED': True}}})
 
     e = uuid4()
 

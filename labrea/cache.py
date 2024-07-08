@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, Generic, Optional, Set, TypeVar, Union, overload
 
 from . import runtime
+from .option import Option
 from .types import Evaluatable, Options
 
 A = TypeVar("A")
@@ -205,8 +206,17 @@ class CacheExistsRequest(runtime.Request[bool]):
         self.cache = cache
 
 
+def _cache_disabled(
+    request: Union[CacheSetRequest, CacheGetRequest, CacheExistsRequest]
+) -> bool:
+    return Option("LABREA.CACHE.DISABLED", False)(request.options)
+
+
 @CacheSetRequest.handle
 def set_cache_handler(request: CacheSetRequest[A]) -> A:
+    if _cache_disabled(request):
+        return _disabled_set_cache_handler(request)
+
     request.cache.set(request.evaluatable, request.options, request.value)
     try:
         return request.cache.get(request.evaluatable, request.options)
@@ -216,11 +226,17 @@ def set_cache_handler(request: CacheSetRequest[A]) -> A:
 
 @CacheGetRequest.handle
 def get_cache_handler(request: CacheGetRequest[A]) -> A:
+    if _cache_disabled(request):
+        return _disabled_get_cache_handler(request)
+
     return request.cache.get(request.evaluatable, request.options)
 
 
 @CacheExistsRequest.handle
 def exists_cache_handler(request: CacheExistsRequest) -> bool:
+    if _cache_disabled(request):
+        return _disabled_exists_cache_handler(request)
+
     return request.cache.exists(request.evaluatable, request.options)
 
 
