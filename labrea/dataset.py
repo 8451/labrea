@@ -21,7 +21,7 @@ from ._missing import MISSING, MaybeMissing
 from .application import FunctionApplication
 from .cache import Cache, MemoryCache, NoCache, cached
 from .computation import CallbackEffect, ChainedEffect, Computation, Effect
-from .option import Option
+from .option import Option, WithOptions
 from .overload import Overloaded
 from .types import Evaluatable, MaybeEvaluatable, Options, Value
 
@@ -35,22 +35,31 @@ class Dataset(Evaluatable[A]):
     overloads: Overloaded[A]
     effects: EffectSet[A]
     cache: Cache[A]
+    options: Options
 
     def __init__(
-        self, overloads: Overloaded[A], effects: EffectSet[A], cache: Cache[A]
+        self,
+        overloads: Overloaded[A],
+        effects: EffectSet[A],
+        cache: Cache[A],
+        options: Options,
     ):
         self.overloads = overloads
         self.effects = effects
         self.cache = cache
+        self.options = options
 
     @property
     def _composed(self) -> Evaluatable[A]:
-        return cached(
-            Computation(
-                self.overloads,
-                ChainedEffect(*self.effects.values()),
+        return WithOptions(
+            cached(
+                Computation(
+                    self.overloads,
+                    ChainedEffect(*self.effects.values()),
+                ),
+                self.cache,
             ),
-            self.cache,
+            self.options,
         )
 
     def evaluate(self, options: Options) -> A:
@@ -127,6 +136,7 @@ class DatasetFactory(Generic[A]):
     cache: Optional[Cache[A]]
     dispatch: Evaluatable[Hashable]
     defaults: Dict[str, Evaluatable[Any]]
+    options: Options
     abstract: bool
 
     def __init__(
@@ -136,6 +146,7 @@ class DatasetFactory(Generic[A]):
         dispatch: Union[Evaluatable[Hashable], str, None] = None,
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = None,
         abstract: bool = False,
+        options: Optional[Options] = None,
     ):
         self.effects = effects or OrderedDict()
         self.cache = cache
@@ -143,6 +154,7 @@ class DatasetFactory(Generic[A]):
             key: Evaluatable.ensure(val) for key, val in (defaults or {}).items()
         }
         self.abstract = abstract
+        self.options = options or {}
 
         if dispatch is None:
             self.dispatch = Value(MISSING)
@@ -162,6 +174,7 @@ class DatasetFactory(Generic[A]):
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = ...,
         abstract: Optional[bool] = ...,
+        options: Optional[Options] = ...,
     ) -> Dataset[A]:
         ...  # pragma: no cover
 
@@ -175,6 +188,7 @@ class DatasetFactory(Generic[A]):
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = ...,
         abstract: Optional[bool] = ...,
+        options: Optional[Options] = ...,
     ) -> "DatasetFactory[A]":
         ...  # pragma: no cover
 
@@ -189,6 +203,7 @@ class DatasetFactory(Generic[A]):
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = ...,
         abstract: Optional[bool] = ...,
+        options: Optional[Options] = ...,
     ) -> "DatasetFactory[A]":
         ...  # pragma: no cover
 
@@ -202,6 +217,7 @@ class DatasetFactory(Generic[A]):
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = None,
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = None,
         abstract: Optional[bool] = None,
+        options: Optional[Options] = None,
     ) -> Union["DatasetFactory", Dataset[A]]:
         _effects = OrderedDict(
             [
@@ -215,6 +231,7 @@ class DatasetFactory(Generic[A]):
             dispatch=dispatch,
             defaults=defaults,
             abstract=abstract,
+            options=options,
         )
 
         if definition is not None:
@@ -233,7 +250,10 @@ class DatasetFactory(Generic[A]):
             overloads = Overloaded(self.dispatch, {})
 
         _dataset = Dataset(
-            overloads, effects=self.effects, cache=self.cache or MemoryCache()
+            overloads,
+            effects=self.effects,
+            cache=self.cache or MemoryCache(),
+            options=self.options,
         )
 
         functools.update_wrapper(_dataset, definition, updated=())
@@ -250,6 +270,7 @@ class DatasetFactory(Generic[A]):
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = None,
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = None,
         abstract: Optional[bool] = None,
+        options: Optional[Options] = None,
     ) -> "DatasetFactory":
         return DatasetFactory(
             effects=OrderedDict([*self.effects.items(), *(effects or {}).items()]),
@@ -257,6 +278,7 @@ class DatasetFactory(Generic[A]):
             dispatch=dispatch or self.dispatch,
             defaults={**self.defaults, **(defaults or {})},
             abstract=abstract if abstract is not None else self.abstract,
+            options=options or self.options,
         )
 
     @property

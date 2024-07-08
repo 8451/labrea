@@ -161,3 +161,34 @@ def test_where():
     add.validate({'X': 1, 'Y': 2})
     assert add.keys({'X': 1, 'Y': 2}) == {'X', 'Y'}
     assert add.explain() == {'X', 'Y'}
+
+
+def test_default_options():
+    @dataset(options={'A': 1})
+    def x(a: int = Option('A'), b: int = Option('B')) -> int:
+        return a + b
+
+    assert x({'B': 2}) == x({'A': 2, 'B': 2}) == 3
+    x.validate({'B': 2})
+    assert x.keys({'B': 2}) == {'B'}
+    assert x.explain() == {'B'}
+
+    with pytest.raises(EvaluationError):
+        x()
+    with pytest.raises(EvaluationError):
+        x.validate({})
+    with pytest.raises(EvaluationError):
+        x.keys({})
+
+
+def test_default():
+    @dataset(dispatch='X')
+    def x() -> str:
+        return 'x'
+
+    @x.overload('Y')
+    def y() -> str:
+        return 'y'
+
+    assert x.default({'X': 'Y'}) == 'x'
+

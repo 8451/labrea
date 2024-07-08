@@ -9,6 +9,7 @@ from .template import Template
 from .types import JSON, Evaluatable, MaybeEvaluatable, Options
 
 A = TypeVar("A", covariant=True, bound=JSON)
+B = TypeVar("B", covariant=True)
 
 
 class Option(Evaluatable[A]):
@@ -94,18 +95,18 @@ class Option(Evaluatable[A]):
         )
 
 
-class WithOptions(Evaluatable[A]):
-    evaluatable: Evaluatable[A]
+class WithOptions(Evaluatable[B]):
+    evaluatable: Evaluatable[B]
     options: Options
 
-    def __init__(self, evaluatable: Evaluatable[A], options: Options) -> None:
+    def __init__(self, evaluatable: Evaluatable[B], options: Options) -> None:
         self.evaluatable = evaluatable
         self.options = options
 
     def _options(self, options: Options) -> Options:
         return mix(options, self.options)  # type: ignore
 
-    def evaluate(self, options: Options) -> A:
+    def evaluate(self, options: Options) -> B:
         return self.evaluatable.evaluate(self._options(options))
 
     def validate(self, options: Options) -> None:
