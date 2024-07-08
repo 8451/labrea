@@ -133,7 +133,7 @@ class Dataset(Evaluatable[A]):
 
 class DatasetFactory(Generic[A]):
     effects: EffectSet[A]
-    cache: Optional[Cache[A]]
+    cache: Union[Cache[A], Callable[..., Cache[A]], None]
     dispatch: Evaluatable[Hashable]
     defaults: Dict[str, Evaluatable[Any]]
     options: Options
@@ -142,7 +142,7 @@ class DatasetFactory(Generic[A]):
     def __init__(
         self,
         effects: Optional[EffectSet[A]] = None,
-        cache: Optional[Cache[A]] = None,
+        cache: Union[Cache[A], Callable[..., Cache[A]], None] = None,
         dispatch: Union[Evaluatable[Hashable], str, None] = None,
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = None,
         abstract: bool = False,
@@ -170,7 +170,7 @@ class DatasetFactory(Generic[A]):
         /,
         *,
         effects: Optional[Mapping[str, Union[Effect[A, A], Callback[A]]]] = ...,
-        cache: Optional[Cache[A]] = ...,
+        cache: Union[Cache[A], Callable[..., Cache[A]], None] = ...,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = ...,
         abstract: Optional[bool] = ...,
@@ -184,7 +184,7 @@ class DatasetFactory(Generic[A]):
         /,
         *,
         effects: Optional[Mapping[str, Union[Effect[A, A], Callback[A]]]] = ...,
-        cache: Optional[Cache[A]] = ...,
+        cache: Union[Cache[A], Callable[..., Cache[A]], None] = ...,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = ...,
         abstract: Optional[bool] = ...,
@@ -199,7 +199,7 @@ class DatasetFactory(Generic[A]):
         /,
         *,
         effects: Optional[Mapping[str, Union[Effect[A, A], Callback[A]]]] = ...,
-        cache: Optional[Cache[A]] = ...,
+        cache: Union[Cache[A], Callable[..., Cache[A]], None] = ...,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = ...,
         abstract: Optional[bool] = ...,
@@ -213,7 +213,7 @@ class DatasetFactory(Generic[A]):
         /,
         *,
         effects: Optional[Mapping[str, Union[Effect[A, A], Callback[A]]]] = None,
-        cache: Optional[Cache[A]] = None,
+        cache: Union[Cache[A], Callable[..., Cache[A]], None] = None,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = None,
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = None,
         abstract: Optional[bool] = None,
@@ -249,10 +249,20 @@ class DatasetFactory(Generic[A]):
                 raise ValueError("Abstract datasets must have a dispatch")
             overloads = Overloaded(self.dispatch, {})
 
+        cache: Cache
+        if self.cache is None:
+            cache = MemoryCache()
+        elif callable(self.cache):
+            cache = self.cache()
+        elif isinstance(self.cache, Cache):
+            cache = self.cache
+        else:
+            raise TypeError(f"Invalid cache: {self.cache}")
+
         _dataset = Dataset(
             overloads,
             effects=self.effects,
-            cache=self.cache or MemoryCache(),
+            cache=cache,
             options=self.options,
         )
 
@@ -266,7 +276,7 @@ class DatasetFactory(Generic[A]):
     def update(
         self,
         effects: Optional[EffectSet[A]] = None,
-        cache: Optional[Cache[A]] = None,
+        cache: Union[Cache[A], Callable[..., Cache[A]], None] = None,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = None,
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = None,
         abstract: Optional[bool] = None,
