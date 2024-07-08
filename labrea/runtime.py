@@ -1,15 +1,12 @@
+import sys
+
+if sys.version_info < (3, 11):
+    from typing_extensions import Self
+else:
+    from typing import Self
+
 import threading
-from typing import (
-    Callable,
-    Dict,
-    Generic,
-    Mapping,
-    Optional,
-    Self,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import Callable, Dict, Generic, Mapping, Optional, Type, TypeVar, Union
 
 from .types import Options
 
