@@ -1,4 +1,11 @@
-from typing import Dict, Generic, Optional, ParamSpec, Set, Tuple
+import sys
+
+if sys.version_info < (3, 10):
+    from typing_extensions import ParamSpec
+else:
+    from typing import ParamSpec
+
+from typing import Dict, Generic, Optional, Set, Tuple
 
 from .types import Evaluatable, MaybeEvaluatable, Options
 
@@ -28,15 +35,15 @@ class Arguments(Generic[P]):
         return self.args == other.args and self.kwargs == other.kwargs
 
 
-class EvaluatableArgs(Generic[P], Evaluatable[P.args]):
+class EvaluatableArgs(Generic[P], Evaluatable["P.args"]):
     """A class representing a set of arguments that can be evaluated."""
 
     args: Tuple[Evaluatable, ...]
 
-    def __init__(self, *args: Evaluatable[P.args]):
+    def __init__(self, *args: Evaluatable["P.args"]):
         self.args = args
 
-    def evaluate(self, options: Options) -> P.args:
+    def evaluate(self, options: Options) -> "P.args":
         return tuple(arg.evaluate(options) for arg in self.args)  # type: ignore
 
     def validate(self, options: Options) -> None:
@@ -53,15 +60,15 @@ class EvaluatableArgs(Generic[P], Evaluatable[P.args]):
         return f"EvaluatableArgs({', '.join(map(repr, self.args))})"
 
 
-class EvaluatableKwargs(Generic[P], Evaluatable[P.kwargs]):
+class EvaluatableKwargs(Generic[P], Evaluatable["P.kwargs"]):
     """A class representing a set of keyword arguments that can be evaluated."""
 
     kwargs: Dict[str, Evaluatable]
 
-    def __init__(self, **kwargs: Evaluatable[P.kwargs]):
+    def __init__(self, **kwargs: Evaluatable["P.kwargs"]):
         self.kwargs = kwargs
 
-    def evaluate(self, options: Options) -> P.kwargs:
+    def evaluate(self, options: Options) -> "P.kwargs":
         return {key: value.evaluate(options) for key, value in self.kwargs.items()}  # type: ignore
 
     def validate(self, options: Options) -> None:
@@ -88,7 +95,7 @@ class EvaluatableArguments(Evaluatable[Arguments[P]]):
     args: EvaluatableArgs[P]
     kwargs: EvaluatableKwargs[P]
 
-    def __init__(self, *args: Evaluatable[P.args], **kwargs: Evaluatable[P.kwargs]):
+    def __init__(self, *args: Evaluatable["P.args"], **kwargs: Evaluatable["P.kwargs"]):
         self.args = EvaluatableArgs(*args)
         self.kwargs = EvaluatableKwargs(**kwargs)
 

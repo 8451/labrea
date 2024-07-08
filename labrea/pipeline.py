@@ -1,12 +1,17 @@
+import sys
+
+if sys.version_info < (3, 10):
+    from typing_extensions import Concatenate, ParamSpec
+else:
+    from typing import Concatenate, ParamSpec
+
 from typing import (
     Any,
     Callable,
-    Concatenate,
     Generic,
     Iterable,
     Iterator,
     Optional,
-    ParamSpec,
     Set,
     TypeVar,
     Union,

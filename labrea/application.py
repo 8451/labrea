@@ -1,16 +1,12 @@
+import sys
+
+if sys.version_info < (3, 10):
+    from typing_extensions import Concatenate, ParamSpec
+else:
+    from typing import Concatenate, ParamSpec
+
 import inspect
-from typing import (
-    Callable,
-    Concatenate,
-    Dict,
-    Generic,
-    Optional,
-    ParamSpec,
-    Set,
-    TypeVar,
-    Union,
-    overload,
-)
+from typing import Callable, Dict, Generic, Optional, Set, TypeVar, Union, overload
 
 from .arguments import Arguments, arguments
 from .types import Evaluatable, MaybeEvaluatable, Options
@@ -117,8 +113,8 @@ class PartialApplication(Generic[X, P, A], Evaluatable[Callable[[X], A]]):
         self,
         __func: Callable[Concatenate[X, P], A],
         /,
-        *args: Evaluatable[P.args],
-        **kwargs: Evaluatable[P.kwargs],
+        *args: Evaluatable["P.args"],
+        **kwargs: Evaluatable["P.kwargs"],
     ):
         self.func = __func
         self.arguments = arguments(*args, **kwargs)

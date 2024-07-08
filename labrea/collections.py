@@ -1,4 +1,4 @@
-from typing import Dict, Hashable, List, Tuple, TypeVar, Union
+from typing import Dict, Hashable, List, Set, Tuple, TypeVar, Union
 
 from .iterable import Iter
 from .types import Evaluatable, MaybeEvaluatable, Value
@@ -16,7 +16,7 @@ def evaluatable_tuple(*evaluatables: MaybeEvaluatable[A]) -> Evaluatable[Tuple[A
     return Iter(*evaluatables).apply(tuple)
 
 
-def evaluatable_set(*evaluatables: MaybeEvaluatable[K]) -> Evaluatable[set[K]]:
+def evaluatable_set(*evaluatables: MaybeEvaluatable[K]) -> Evaluatable[Set[K]]:
     return Iter(*evaluatables).apply(set)
 
 

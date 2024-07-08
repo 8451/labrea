@@ -1,15 +1,12 @@
+import sys
+
+if sys.version_info < (3, 10):
+    from typing_extensions import ParamSpec
+else:
+    from typing import ParamSpec
+
 import threading
-from typing import (
-    Callable,
-    Dict,
-    Hashable,
-    List,
-    Optional,
-    ParamSpec,
-    Set,
-    TypeVar,
-    Union,
-)
+from typing import Callable, Dict, Hashable, List, Optional, Set, TypeVar, Union
 
 from ._missing import MISSING, MaybeMissing
 from .application import FunctionApplication
