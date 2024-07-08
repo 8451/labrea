@@ -1,9 +1,10 @@
-from typing import Optional, Set, TypeVar
+from typing import Callable, Optional, Set, TypeVar
 
 from confectioner import mix
 from confectioner.templating import dotted_key_exists, get_dotted_key, resolve
 
 from ._missing import MISSING, MaybeMissing
+from .application import FunctionApplication
 from .exceptions import KeyNotFoundError
 from .template import Template
 from .types import JSON, Evaluatable, MaybeEvaluatable, Options
@@ -20,15 +21,18 @@ class Option(Evaluatable[A]):
         self,
         key: str,
         default: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
+        default_factory: MaybeMissing[Callable[[], A]] = MISSING,
         doc: str = "",
     ) -> None:
         self.key = key
-        if default is MISSING:
-            self.default = default
-        elif isinstance(default, str):
+        if isinstance(default, str):
             self.default = Template(default)  # type: ignore [assignment]
-        else:
+        elif default is not MISSING:
             self.default = Evaluatable.ensure(default)
+        elif default_factory is not MISSING:
+            self.default = FunctionApplication(default_factory)
+        else:
+            self.default = MISSING
 
         self.__doc__ = doc
 

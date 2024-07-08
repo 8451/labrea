@@ -60,6 +60,22 @@ def test_default():
     assert option.explain(provided) == {'A'}
 
 
+def test_default_factory():
+    option = Option('A', default_factory=lambda: 42)
+    missing = {}
+    provided = {'A': 43}
+
+    assert option.evaluate(missing) == 42
+    option.validate(missing)
+    assert option.keys(missing) == set()
+    assert option.explain(missing) == set()
+
+    assert option.evaluate(provided) == 43
+    option.validate(provided)
+    assert option.keys(provided) == {'A'}
+    assert option.explain(provided) == {'A'}
+
+
 def test_evaluatable_default():
     option = Option('A', default=Option('V'))
     options = {'V': 42}
