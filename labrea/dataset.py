@@ -128,6 +128,13 @@ class Dataset(Evaluatable[A]):
             [(key, val) for key, val in self.effects.items() if key != name]
         )
 
+    def set_cache(self, cache: Union[Cache[A], Callable[..., Cache[A]]]) -> None:
+        cache = cache if isinstance(cache, Cache) else cache()
+        if not isinstance(cache, Cache):
+            raise TypeError(f"Invalid cache: {cache}")
+
+        self.cache = cache
+
     @property
     def default(self) -> MaybeMissing[Evaluatable[A]]:
         return self.overloads.default
