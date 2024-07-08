@@ -20,6 +20,11 @@ on:
       - main
       - develop
   workflow_dispatch:
+    inputs:
+      pre-release-version:
+        description: 'Suffix to append to the version number for pre-releases'
+        required: false
+        default: ''
 
 
 jobs:
@@ -29,6 +34,8 @@ jobs:
   build:
     uses: ./.github/workflows/build.yml
     needs: test
+    inputs:
+      pre-release-version: ${{ inputs.pre-release-version || '' }}
 
   publish:
     uses: ./.github/workflows/publish.yml
@@ -36,5 +43,5 @@ jobs:
       id-token: write
     with:
       # release if this is a published release, test-release otherwise
-      environment: ${{ github.event.release && 'release' || 'test-release' }}
+      environment: ${{ (github.event.release || inputs.pre-release-version) && 'release' || 'test-release' }}
     needs: build
