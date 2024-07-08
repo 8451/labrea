@@ -11,6 +11,7 @@ on:
         description: 'Version to set wheel to for pre-release'
         required: false
         default: ''
+        type: string
 
 jobs:
   build:
