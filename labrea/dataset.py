@@ -38,6 +38,7 @@ class Dataset(Evaluatable[A]):
     effects: List[Effect[A]]
     cache: Cache[A]
     options: Options
+    _effects_disabled: bool
 
     def __init__(
         self,
@@ -50,6 +51,7 @@ class Dataset(Evaluatable[A]):
         self.effects = effects.copy()
         self.cache = cache
         self.options = options
+        self._effects_disabled = False
 
     @property
     def _composed(self) -> Evaluatable[A]:
@@ -58,7 +60,9 @@ class Dataset(Evaluatable[A]):
                 Computation(
                     self.overloads,
                     ChainedEffect(*self.effects),
-                ),
+                )
+                if not self._effects_disabled
+                else self.overloads,
                 self.cache,
             ),
             self.options,
@@ -118,6 +122,12 @@ class Dataset(Evaluatable[A]):
             self.effects.append(effect)
         else:
             self.effects.append(CallbackEffect(effect))
+
+    def disable_effects(self) -> None:
+        self._effects_disabled = True
+
+    def enable_effects(self) -> None:
+        self._effects_disabled = False
 
     @property
     def default(self) -> MaybeMissing[Evaluatable[A]]:

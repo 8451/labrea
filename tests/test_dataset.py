@@ -110,6 +110,9 @@ def test_effect():
     def uuid4() -> uuid.UUID:
         return uuid.uuid4()
 
+    result = uuid4()
+    assert store == result
+
     @dataset.nocache
     def uuid4() -> uuid.UUID:
         return uuid.uuid4()
@@ -120,6 +123,21 @@ def test_effect():
 
     result = uuid4()
     assert store == result
+
+    @dataset.nocache(effects=[set_store])
+    def uuid4() -> uuid.UUID:
+        return uuid.uuid4()
+
+    result1 = uuid4()
+    assert store == result1
+
+    uuid4.disable_effects()
+    result2 = uuid4()
+    assert store != result2
+
+    uuid4.enable_effects()
+    result3 = uuid4()
+    assert store == result3
 
 
 def test_set_dispatch():
