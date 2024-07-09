@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Generic, List, Optional, Set, TypeVar
+from typing import Callable, List, Optional, Set, TypeVar
 
 from .types import (
     Evaluatable,
@@ -11,12 +11,11 @@ from .types import (
 )
 
 A = TypeVar("A")
-B = TypeVar("B")
 
 
-class Effect(Transformation[A, B], Validatable, Explainable, ABC):
+class Effect(Transformation[A, None], Validatable, Explainable, ABC):
     @abstractmethod
-    def transform(self, value: A, options: Optional[Options] = None) -> B:
+    def transform(self, value: A, options: Optional[Options] = None) -> None:
         """Apply the effect to a value.
 
         Arguments
@@ -39,16 +38,15 @@ class Effect(Transformation[A, B], Validatable, Explainable, ABC):
         raise NotImplementedError  # pragma: nocover
 
 
-class ChainedEffect(Effect[A, A]):
-    effects: List[Effect[A, A]]
+class ChainedEffect(Effect[A]):
+    effects: List[Effect[A]]
 
-    def __init__(self, *effects: Effect[A, A]):
+    def __init__(self, *effects: Effect[A]):
         self.effects = list(effects)
 
-    def transform(self, value: A, options: Optional[Options] = None) -> A:
+    def transform(self, value: A, options: Optional[Options] = None) -> None:
         for effect in self.effects:
-            value = effect.transform(value, options)
-        return value
+            effect.transform(value, options)
 
     def validate(self, options: Options) -> None:
         for effect in self.effects:
@@ -61,13 +59,13 @@ class ChainedEffect(Effect[A, A]):
         return f"ChainedEffect({', '.join(map(repr, self.effects))})"
 
 
-class CallbackEffect(Effect[A, B]):
-    callback: Evaluatable[Callable[[A], B]]
+class CallbackEffect(Effect[A]):
+    callback: Evaluatable[Callable[[A], None]]
 
-    def __init__(self, callback: MaybeEvaluatable[Callable[[A], B]]):
+    def __init__(self, callback: MaybeEvaluatable[Callable[[A], None]]):
         self.callback = Evaluatable.ensure(callback)
 
-    def transform(self, value: A, options: Optional[Options] = None) -> B:
+    def transform(self, value: A, options: Optional[Options] = None) -> None:
         return self.callback(options)(value)
 
     def validate(self, options: Options) -> None:
@@ -80,17 +78,18 @@ class CallbackEffect(Effect[A, B]):
         return f"CallbackEffect({self.callback!r})"
 
 
-class Computation(Generic[A, B], Evaluatable[B]):
+class Computation(Evaluatable[A]):
     evaluatable: Evaluatable[A]
-    effect: Effect[A, B]
+    effect: Effect[A]
 
-    def __init__(self, evaluatable: Evaluatable[A], effect: Effect[A, B]):
+    def __init__(self, evaluatable: Evaluatable[A], effect: Effect[A]):
         self.evaluatable = evaluatable
         self.effect = effect
 
-    def evaluate(self, options: Options) -> B:
+    def evaluate(self, options: Options) -> A:
         value = self.evaluatable.evaluate(options)
-        return self.effect.transform(value, options)
+        self.effect.transform(value, options)
+        return value
 
     def validate(self, options: Options) -> None:
         self.evaluatable.validate(options)

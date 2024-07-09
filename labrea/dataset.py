@@ -6,8 +6,6 @@ else:
     from typing import ParamSpec
 
 import functools
-import typing
-from collections import OrderedDict
 from typing import (
     Any,
     Callable,
@@ -15,7 +13,6 @@ from typing import (
     Generic,
     Hashable,
     List,
-    Mapping,
     Optional,
     Set,
     TypeVar,
@@ -33,25 +30,24 @@ from .types import Evaluatable, MaybeEvaluatable, Options, Value
 
 A = TypeVar("A", covariant=True)
 P = ParamSpec("P")
-EffectSet = typing.OrderedDict[str, Effect[A, A]]
-Callback = MaybeEvaluatable[Callable[[A], A]]
+Callback = MaybeEvaluatable[Callable[[A], None]]
 
 
 class Dataset(Evaluatable[A]):
     overloads: Overloaded[A]
-    effects: EffectSet[A]
+    effects: List[Effect[A]]
     cache: Cache[A]
     options: Options
 
     def __init__(
         self,
         overloads: Overloaded[A],
-        effects: EffectSet[A],
+        effects: List[Effect[A]],
         cache: Cache[A],
         options: Options,
     ):
         self.overloads = overloads
-        self.effects = effects
+        self.effects = effects.copy()
         self.cache = cache
         self.options = options
 
@@ -61,7 +57,7 @@ class Dataset(Evaluatable[A]):
             cached(
                 Computation(
                     self.overloads,
-                    ChainedEffect(*self.effects.values()),
+                    ChainedEffect(*self.effects),
                 ),
                 self.cache,
             ),
@@ -110,30 +106,18 @@ class Dataset(Evaluatable[A]):
             default=self.overloads.default,
         )
 
-    def set_effect(self, name: str, effect: Union[Effect[A, A], Callback[A]]) -> None:
-        self.effects = OrderedDict(
-            [
-                *self.effects.items(),
-                (
-                    name,
-                    effect if isinstance(effect, Effect) else CallbackEffect(effect),
-                ),
-            ]
-        )
-
-    add_effect = set_effect
-
-    def drop_effect(self, name: str) -> None:
-        self.effects = OrderedDict(
-            [(key, val) for key, val in self.effects.items() if key != name]
-        )
-
     def set_cache(self, cache: Union[Cache[A], Callable[..., Cache[A]]]) -> None:
         cache = cache if isinstance(cache, Cache) else cache()
         if not isinstance(cache, Cache):
             raise TypeError(f"Invalid cache: {cache}")
 
         self.cache = cache
+
+    def add_effect(self, effect: Union[Effect[A], Callback[A]]) -> None:
+        if isinstance(effect, Effect):
+            self.effects.append(effect)
+        else:
+            self.effects.append(CallbackEffect(effect))
 
     @property
     def default(self) -> MaybeMissing[Evaluatable[A]]:
@@ -145,7 +129,7 @@ class Dataset(Evaluatable[A]):
 
 
 class DatasetFactory(Generic[A]):
-    effects: EffectSet[A]
+    effects: List[Effect[A]]
     cache: Union[Cache[A], Callable[..., Cache[A]], None]
     dispatch: Evaluatable[Hashable]
     defaults: Dict[str, Evaluatable[Any]]
@@ -154,14 +138,14 @@ class DatasetFactory(Generic[A]):
 
     def __init__(
         self,
-        effects: Optional[EffectSet[A]] = None,
+        effects: Optional[List[Effect[A]]] = None,
         cache: Union[Cache[A], Callable[..., Cache[A]], None] = None,
         dispatch: Union[Evaluatable[Hashable], str, None] = None,
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = None,
         abstract: bool = False,
         options: Optional[Options] = None,
     ):
-        self.effects = effects or OrderedDict()
+        self.effects = effects or []
         self.cache = cache
         self.defaults = {
             key: Evaluatable.ensure(val) for key, val in (defaults or {}).items()
@@ -182,7 +166,7 @@ class DatasetFactory(Generic[A]):
         definition: Callable[..., A],
         /,
         *,
-        effects: Optional[Mapping[str, Union[Effect[A, A], Callback[A]]]] = ...,
+        effects: Optional[List[Union[Effect[A], Callback[A]]]] = ...,
         cache: Union[Cache[A], Callable[..., Cache[A]], None] = ...,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = ...,
@@ -196,7 +180,7 @@ class DatasetFactory(Generic[A]):
         self,
         /,
         *,
-        effects: Optional[Mapping[str, Union[Effect[A, A], Callback[A]]]] = ...,
+        effects: Optional[List[Union[Effect[A], Callback[A]]]] = ...,
         cache: Union[Cache[A], Callable[..., Cache[A]], None] = ...,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = ...,
@@ -211,7 +195,7 @@ class DatasetFactory(Generic[A]):
         definition: None,
         /,
         *,
-        effects: Optional[Mapping[str, Union[Effect[A, A], Callback[A]]]] = ...,
+        effects: Optional[List[Union[Effect[A,], Callback[A]]]] = ...,
         cache: Union[Cache[A], Callable[..., Cache[A]], None] = ...,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = ...,
@@ -225,19 +209,17 @@ class DatasetFactory(Generic[A]):
         definition: Optional[Callable[..., A]] = None,
         /,
         *,
-        effects: Optional[Mapping[str, Union[Effect[A, A], Callback[A]]]] = None,
+        effects: Optional[List[Union[Effect[A], Callback[A]]]] = None,
         cache: Union[Cache[A], Callable[..., Cache[A]], None] = None,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = None,
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = None,
         abstract: Optional[bool] = None,
         options: Optional[Options] = None,
     ) -> Union["DatasetFactory", Dataset[A]]:
-        _effects = OrderedDict(
-            [
-                (key, effect if isinstance(effect, Effect) else CallbackEffect(effect))
-                for key, effect in (effects or {}).items()
-            ]
-        )
+        _effects = [
+            effect if isinstance(effect, Effect) else CallbackEffect(effect)
+            for effect in (effects or [])
+        ]
         factory = self.update(
             effects=_effects,
             cache=cache,
@@ -288,7 +270,7 @@ class DatasetFactory(Generic[A]):
 
     def update(
         self,
-        effects: Optional[EffectSet[A]] = None,
+        effects: Optional[List[Effect[A]]] = None,
         cache: Union[Cache[A], Callable[..., Cache[A]], None] = None,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = None,
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = None,
@@ -296,7 +278,7 @@ class DatasetFactory(Generic[A]):
         options: Optional[Options] = None,
     ) -> "DatasetFactory":
         return DatasetFactory(
-            effects=OrderedDict([*self.effects.items(), *(effects or {}).items()]),
+            effects=[*self.effects, *(effects or [])],
             cache=cache or self.cache,
             dispatch=dispatch or self.dispatch,
             defaults={**self.defaults, **(defaults or {})},

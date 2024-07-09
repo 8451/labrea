@@ -99,14 +99,14 @@ def test_effect():
         store = value
         return value
 
-    @dataset.nocache(effects={'store': CallbackEffect(set_store)})
+    @dataset.nocache(effects=[CallbackEffect(set_store)])
     def uuid4() -> uuid.UUID:
         return uuid.uuid4()
 
     result = uuid4()
     assert store == result
 
-    @dataset.nocache(effects={'store': set_store})
+    @dataset.nocache(effects=[set_store])
     def uuid4() -> uuid.UUID:
         return uuid.uuid4()
 
@@ -114,26 +114,12 @@ def test_effect():
     def uuid4() -> uuid.UUID:
         return uuid.uuid4()
 
-    uuid4.add_effect('store', CallbackEffect(set_store))
+    uuid4.add_effect(CallbackEffect(set_store))
     result = uuid4()
     assert store == result
 
     result = uuid4()
     assert store == result
-
-    @dataset.nocache
-    def uuid4() -> uuid.UUID:
-        return uuid.uuid4()
-
-    uuid4.set_effect('store', set_store)
-    result = uuid4()
-    assert store == result
-
-    uuid4.drop_effect('store')
-    result = uuid4()
-    assert store != result
-
-    uuid4.drop_effect('store')
 
 
 def test_set_dispatch():
