@@ -3,6 +3,8 @@ import uuid
 
 import pytest
 
+from confectioner.templating import set_dotted_key
+
 from labrea.application import FunctionApplication
 from labrea.cache import cached, NoCache
 from labrea.option import Option
@@ -40,7 +42,7 @@ def test_cached_decorator():
         return [uuid.uuid4() for _ in range(n)]
 
 
-@pytest.mark.parametrize('method', ['ctx', 'options'])
+@pytest.mark.parametrize('method', ['ctx', 'LABREA.CACHE.DISABLED', 'LABREA.CACHE.DISABLE'])
 def test_disable_cache(method):
     uuid4 = cached(FunctionApplication(uuid.uuid4))
 
@@ -52,8 +54,10 @@ def test_disable_cache(method):
             c = uuid4()
             d = uuid4()
     else:
-        c = uuid4({'LABREA': {'CACHE': {'DISABLED': True}}})
-        d = uuid4({'LABREA': {'CACHE': {'DISABLED': True}}})
+        options = {}
+        set_dotted_key(method, True, options)
+        c = uuid4(options)
+        d = uuid4(options)
 
     e = uuid4()
 

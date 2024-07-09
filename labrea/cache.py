@@ -209,7 +209,9 @@ class CacheExistsRequest(runtime.Request[bool]):
 def _cache_disabled(
     request: Union[CacheSetRequest, CacheGetRequest, CacheExistsRequest]
 ) -> bool:
-    return Option("LABREA.CACHE.DISABLED", False)(request.options)
+    return Option("LABREA.CACHE.DISABLED", Option("LABREA.CACHE.DISABLE", False))(
+        request.options
+    )
 
 
 @CacheSetRequest.handle
