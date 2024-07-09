@@ -139,6 +139,9 @@ def test_effect():
     result3 = uuid4()
     assert store == result3
 
+    result4 = uuid4({'LABREA': {'EFFECTS': {'DISABLED': True}}})
+    assert store != result4
+
 
 def test_set_dispatch():
     @dataset

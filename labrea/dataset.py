@@ -55,14 +55,21 @@ class Dataset(Evaluatable[A]):
 
     @property
     def _composed(self) -> Evaluatable[A]:
+        computation = Computation(
+            self.overloads,
+            ChainedEffect(*self.effects),
+        )
         return WithOptions(
             cached(
-                Computation(
-                    self.overloads,
-                    ChainedEffect(*self.effects),
-                )
-                if not self._effects_disabled
-                else self.overloads,
+                Overloaded(
+                    Option("LABREA.EFFECTS.DISABLED", default=False),
+                    {
+                        True: self.overloads,
+                        False: (
+                            self.overloads if self._effects_disabled else computation
+                        ),
+                    },
+                ),
                 self.cache,
             ),
             self.options,
