@@ -1,8 +1,9 @@
 from typing import Callable, Optional
 
 from mypy.plugin import ClassDefContext, Plugin
-from mypy.plugins.common import add_attribute_to_class  # type: ignore
+from mypy.plugins.common import Instance, add_attribute_to_class  # type: ignore
 
+DATASETCLASS_DECORATOR_FULLNAME = "labrea.datasetclass.datasetclass"
 INTERFACE_DECORATOR_FULLNAME = "labrea.interface.interface"
 IMPLEMENTATION_DECO_TYPE_FULLNAME = "labrea.interface._ImplDecoProto"
 EVALUATABLE_TYPE_FULLNAME = "labrea.evaluatable.Evaluatable"
@@ -14,6 +15,8 @@ class LabreaPlugin(Plugin):
     ) -> Optional[Callable[[ClassDefContext], bool]]:
         if fullname == INTERFACE_DECORATOR_FULLNAME:
             return self.interface_callback
+        if fullname == DATASETCLASS_DECORATOR_FULLNAME:
+            return self.datasetclass_callback
 
         return None
 
@@ -41,6 +44,13 @@ class LabreaPlugin(Plugin):
             ),
         )
 
+        return True
+
+    @staticmethod
+    def datasetclass_callback(ctx: ClassDefContext):
+        add_attribute_to_class(
+            api=ctx.api, cls=ctx.cls, name="result", typ=Instance(ctx.cls.info, [])
+        )
         return True
 
 
