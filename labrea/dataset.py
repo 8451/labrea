@@ -61,15 +61,7 @@ class Dataset(Evaluatable[A]):
         )
         return WithOptions(
             cached(
-                Overloaded(
-                    Option("LABREA.EFFECTS.DISABLED", default=False),
-                    {
-                        True: self.overloads,
-                        False: (
-                            self.overloads if self._effects_disabled else computation
-                        ),
-                    },
-                ),
+                self.overloads if self._effects_disabled else computation,
                 self.cache,
             ),
             self.options,

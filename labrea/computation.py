@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Callable, List, Optional, Set, TypeVar
 
+from .option import Option
 from .types import (
     Evaluatable,
     Explainable,
@@ -11,6 +12,8 @@ from .types import (
 )
 
 A = TypeVar("A")
+
+_EFFECTS_DISABLED = Option("LABREA.EFFECTS.DISABLED", False)
 
 
 class Effect(Transformation[A, None], Validatable, Explainable, ABC):
@@ -88,18 +91,27 @@ class Computation(Evaluatable[A]):
 
     def evaluate(self, options: Options) -> A:
         value = self.evaluatable.evaluate(options)
-        self.effect.transform(value, options)
+
+        if not _EFFECTS_DISABLED(options):
+            self.effect.transform(value, options)
+
         return value
 
     def validate(self, options: Options) -> None:
         self.evaluatable.validate(options)
-        self.effect.validate(options)
+
+        if not _EFFECTS_DISABLED(options):
+            self.effect.validate(options)
 
     def keys(self, options: Options) -> Set[str]:
         return self.evaluatable.keys(options)
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
-        return self.evaluatable.explain(options) | self.effect.explain(options)
+        return (
+            self.evaluatable.explain(options)
+            if _EFFECTS_DISABLED(options)
+            else self.evaluatable.explain(options) | self.effect.explain(options)
+        )
 
     def __repr__(self) -> str:
         return f"Computation({self.evaluatable!r}, {self.effect!r})"
