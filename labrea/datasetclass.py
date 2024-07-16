@@ -1,87 +1,141 @@
-import sys
-
-if sys.version_info < (3, 11):
-    from typing_extensions import Self
-else:
-    from typing import Self
-
 import functools
-from dataclasses import dataclass, field, fields
-from typing import Iterable, Optional, Set, Type, TypeVar
+import operator
+from types import new_class
+from typing import Any, Dict, Optional, Set, Type, TypeVar
 
-from .types import Evaluatable, Options
+from confectioner.templating import set_dotted_key
 
-T = TypeVar("T")
-D = TypeVar("D", bound="_DatasetClassMixin")
+from .types import Evaluatable, Options, Value
 
-
-class _DatasetClassMixin:
-    @classmethod
-    def _labrea_evaluate(cls, options: Options) -> Self:
-        self = cls()
-        for key, value in self.__dict__.items():
-            if not key.startswith("__") and isinstance(value, Evaluatable):
-                setattr(self, key, value.evaluate(options))
-
-        return self
-
-    @classmethod
-    def _labrea_validate(cls, options: Options) -> None:
-        for fld in cls._labrea_fields():
-            fld.validate(options)
-
-    @classmethod
-    def _labrea_keys(cls, options: Options) -> Set[str]:
-        return set().union(*(fld.keys(options) for fld in cls._labrea_fields()))
-
-    @classmethod
-    def _labrea_explain(cls, options: Optional[Options] = None) -> Set[str]:
-        return set().union(*(fld.explain(options) for fld in cls._labrea_fields()))
-
-    @classmethod
-    def _labrea_fields(cls) -> Iterable[Evaluatable]:
-        return (fld.default_factory() for fld in fields(cls))  # type: ignore
+A = TypeVar("A")
 
 
-class _DatasetClassEvaluatable(Evaluatable[D]):
-    datasetclass: Type[D]
+class DatasetClassMeta(type, Evaluatable[A]):
+    def __init__(cls, *args, **kwargs):
+        annotations = functools.reduce(
+            operator.or_,
+            (
+                getattr(base, "__annotations__", {})
+                for base in reversed(cls.__bases__)
+                if base is not DatasetClass
+            ),
+        )
 
-    def __init__(self, cls: Type[D]):
-        self.datasetclass = cls
-        functools.update_wrapper(self, cls, updated=())
+        for key in annotations.keys():
+            try:
+                val = getattr(cls, key)
+            except AttributeError:
+                raise ValueError(
+                    f"Annotation {key} on class {cls.__name__} has "
+                    f"no default value."
+                )
 
-    def evaluate(self, options: Options) -> D:
-        return self.datasetclass._labrea_evaluate(options)
+            if not isinstance(val, Evaluatable):
+                setattr(cls, key, Value(val))
 
-    def validate(self, options: Options) -> None:
-        self.datasetclass._labrea_validate(options)
+        super().__init__(*args, **kwargs)
 
-    def keys(self, options: Options) -> Set[str]:
-        return self.datasetclass._labrea_keys(options)
+    def evaluate(cls, options: Options) -> A:
+        return cls(options)
 
-    def explain(self, options: Optional[Options] = None) -> Set[str]:
-        return self.datasetclass._labrea_explain(options)
+    def validate(cls, options: Options) -> None:
+        for key in dir(cls):
+            dependency = getattr(cls, key, None)
+            if isinstance(dependency, Evaluatable) and not key.startswith("__"):
+                dependency.validate(options)
+
+    def keys(cls, options: Options) -> Set[str]:
+        return {
+            key
+            for name in dir(cls)
+            if (
+                isinstance(getattr(cls, name), Evaluatable)
+                and not name.startswith("__")
+            )
+            for key in getattr(cls, name).keys(options)
+        }
+
+    def explain(cls, options: Optional[Options] = None) -> Set[str]:
+        return {
+            key
+            for name in dir(cls)
+            if (
+                isinstance(getattr(cls, name), Evaluatable)
+                and not name.startswith("__")
+            )
+            for key in getattr(cls, name).explain(options)
+        }
+
+    def __subclasses__(cls=None):
+        return []
+
+    @property
+    def result(cls) -> A:
+        return cls  # type: ignore
 
     def __repr__(self):
-        return f"<DatasetClass {self.datasetclass.__qualname__}>"
+        return f"<DatasetClass {self.__name__}>"
 
 
-def datasetclass(cls: Type[T]) -> Evaluatable[T]:
-    for key in getattr(cls, "__annotations__", {}):
-        try:
-            default = getattr(cls, key)
-        except AttributeError as e:
-            raise ValueError(f"Missing default value for field: {key}") from e
+class DatasetClass:
+    _repr_options: Dict[str, Any]
 
-        def _default_factory(x):
-            return lambda: Evaluatable.ensure(x)
+    def __init__(self, options: Optional[Options] = None):
+        options = options or {}
 
-        setattr(cls, key, field(default_factory=_default_factory(default)))
+        key: str
+        val: Any
+        for key in dir(self.__class__):
+            val = getattr(self, key)
+            if isinstance(val, Evaluatable) and not key.startswith("__"):
+                setattr(self, key, val.evaluate(options))
 
-    @dataclass
-    class _DatasetClass(_DatasetClassMixin, dataclass(cls)):  # type: ignore
-        pass
+        self._repr_options = {}
+        for key in sorted(self.__class__.keys(options)):  # type: ignore [attr-defined]
+            value = options.get(key)
+            set_dotted_key(key, value, self._repr_options)
 
-    functools.update_wrapper(_DatasetClass, cls, updated=())
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self._repr_options!r})"
 
-    return _DatasetClassEvaluatable(_DatasetClass)  # type: ignore
+    def __eq__(self, other):
+        return (
+            isinstance(other, self.__class__)
+            and self._repr_options == other._repr_options
+        )
+
+
+def datasetclass(c: Type[A]) -> DatasetClassMeta[A]:
+    """Create a new DatasetClass from a class definition.
+
+    DatasetClasses are classes that when instatiated, evaluate their
+    members using the options dict provided to the constructor. This
+    allows for the definition of complex data structures that can be
+    evaluated at runtime.
+
+    Any members of the class that are not Evaluatables are wrapped in
+    :class:`labrea.datasetclasses.Field` instances.
+
+    Example Usage
+    -------------
+    >>> from labrea import dataset, datasetclass, Option
+    >>> @dataset
+    ... def my_dataset(a: str = Option('A')) -> str:
+    ...     return a
+    >>>
+    >>> @datasetclass
+    ... class MyDatasetClass:
+    ...     a: str = my_dataset
+    ...     b: int = Option('B')
+    ...     c: bool = True
+    ...
+    >>> inst = MyDatasetClass({'A': 'Hello World!', 'B': 1})
+    >>> print(inst.a, inst.b, inst.c)  # Hello World! 1 True
+    """
+    dataset_class = new_class(
+        c.__name__, (c, DatasetClass), kwds={"metaclass": DatasetClassMeta}
+    )
+
+    functools.update_wrapper(dataset_class, c, updated=())
+
+    return dataset_class  # type: ignore
