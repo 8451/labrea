@@ -97,6 +97,14 @@ class Dataset(Evaluatable[A]):
         self,
         alias: Union[Hashable, List[Hashable]],
     ) -> Callable[[Callable[P, A]], FunctionApplication[P, A]]:
+        if self.overloads.dispatch == Value(MISSING):
+            raise ValueError(
+                "Cannot add overloads to a dataset without a dispatch. Add a dispatch by using "
+                "@dataset(dispatch=...) in the dataset definition. If you are trying to overload "
+                "a dataset that you do not own (i.e. from a third-party library), you can use "
+                "my_dataset.set_dispatch(dispatch) to set the dispatch manually."
+            )
+
         return self.overloads.overload(alias)
 
     def register(self, key: Hashable, value: Evaluatable[A]) -> None:

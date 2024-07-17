@@ -48,6 +48,17 @@ def test_overloads():
     assert combine.explain({'X': 'Z'}) == {'A', 'B'}
 
 
+def test_overload_no_dispatch():
+    @dataset
+    def x():
+        pass
+
+    with pytest.raises(ValueError):
+        @x.overload('A')
+        def y():
+            pass
+
+
 def test_abstract():
     with pytest.raises(ValueError):
         @abstractdataset
@@ -148,11 +159,11 @@ def test_set_dispatch():
     def x() -> int:
         return 1
 
+    x.set_dispatch(Option('A'))
+
     @x.overload('A')
     def y() -> int:
         return 2
-
-    x.set_dispatch(Option('A'))
 
     assert x() == 1
     assert x.evaluate({'A': 'A'}) == 2
