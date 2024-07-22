@@ -126,33 +126,25 @@ class WithOptions(Evaluatable[B]):
         self.evaluatable.validate(self._options(options))
 
     def keys(self, options: Options) -> Set[str]:
-        if self.force:
-            return {
-                key
-                for key in self.evaluatable.keys(self._options(options))
-                if not dotted_key_exists(key, self.options)
-            }
-        else:
-            return {
-                key
-                for key in self.evaluatable.keys(self._options(options))
-                if dotted_key_exists(key, options)
-            }
+        return {
+            key
+            for key in self.evaluatable.keys(self._options(options))
+            if not (
+                dotted_key_exists(key, self.options)
+                and (self.force or not dotted_key_exists(key, options))
+            )
+        }
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
         options = options or {}
-        if self.force:
-            return {
-                key
-                for key in self.evaluatable.explain(self._options(options))
-                if not dotted_key_exists(key, self.options)
-            }
-        else:
-            return {
-                key
-                for key in self.evaluatable.explain(self._options(options))
-                if dotted_key_exists(key, options)
-            }
+        return {
+            key
+            for key in self.evaluatable.explain(self._options(options))
+            if not (
+                dotted_key_exists(key, self.options)
+                and (self.force or not dotted_key_exists(key, options))
+            )
+        }
 
     def __repr__(self) -> str:
         return (
