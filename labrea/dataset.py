@@ -148,7 +148,7 @@ class Dataset(Evaluatable[A]):
         return Dataset(
             self.overloads,
             self.effects,
-            self.cache.new(),
+            self.cache,
             mix(self.options, options),  # type: ignore
             self.default_options,
         )
@@ -157,7 +157,7 @@ class Dataset(Evaluatable[A]):
         return Dataset(
             self.overloads,
             self.effects,
-            self.cache.new(),
+            self.cache,
             self.options,
             mix(self.default_options, options),  # type: ignore
         )
