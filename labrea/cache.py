@@ -1,3 +1,10 @@
+import sys
+
+if sys.version_info < (3, 11):
+    from typing_extensions import Self
+else:
+    from typing import Self
+
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, Generic, Optional, Set, TypeVar, Union, overload
 
@@ -137,6 +144,19 @@ class Cache(Generic[A], ABC):
         except CacheGetFailure:
             return False
 
+    @abstractmethod
+    def new(self) -> Self:
+        """Create a new cache.
+
+        Should return a new cache with any necessary initialization.
+
+        Returns
+        -------
+        Cache
+            A new cache.
+        """
+        raise NotImplementedError
+
 
 class NoCache(Cache[Any]):
     """A class representing a cache that does not store any values."""
@@ -146,6 +166,9 @@ class NoCache(Cache[Any]):
 
     def set(self, evaluatable: Evaluatable, options: Options, value: Any) -> None:
         pass
+
+    def new(self) -> "NoCache":
+        return self
 
 
 class MemoryCache(Cache[A]):
@@ -167,6 +190,9 @@ class MemoryCache(Cache[A]):
 
     def exists(self, evaluatable: Evaluatable, options: Options) -> bool:
         return evaluatable.fingerprint(options) in self._cache
+
+    def new(self) -> "MemoryCache":
+        return MemoryCache()
 
 
 class CacheSetRequest(runtime.Request[A]):
