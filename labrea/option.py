@@ -1,4 +1,3 @@
-import functools
 from typing import Callable, Optional, Set, TypeVar
 
 from confectioner import mix
@@ -154,4 +153,5 @@ class WithOptions(Evaluatable[B]):
         )
 
 
-WithDefaultOptions = functools.partial(WithOptions, force=False)
+def WithDefaultOptions(evaluatable: Evaluatable[B], options: Options) -> WithOptions[B]:
+    return WithOptions(evaluatable, options, force=False)

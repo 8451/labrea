@@ -181,7 +181,7 @@ def test_where():
     assert add.explain() == {'X', 'Y'}
 
 
-def test_default_options():
+def test_force_options():
     @dataset(options={'A': 1})
     def x(a: int = Option('A'), b: int = Option('B')) -> int:
         return a + b
@@ -190,6 +190,29 @@ def test_default_options():
     x.validate({'B': 2})
     assert x.keys({'B': 2}) == {'B'}
     assert x.explain() == {'B'}
+
+    with pytest.raises(EvaluationError):
+        x()
+    with pytest.raises(EvaluationError):
+        x.validate({})
+    with pytest.raises(EvaluationError):
+        x.keys({})
+
+
+def test_default_options():
+    @dataset(default_options={'A': 1})
+    def x(a: int = Option('A'), b: int = Option('B')) -> int:
+        return a + b
+
+    assert x({'B': 2}) == 3
+    x.validate({'B': 2})
+    assert x.keys({'B': 2}) == {'B'}
+    assert x.explain() == {'B'}
+
+    assert x({'A': 2, 'B': 2}) == 4
+    x.validate({'A': 2, 'B': 2})
+    assert x.keys({'A': 2, 'B': 2}) == {'A', 'B'}
+    assert x.explain({'A': 2}) == {'A', 'B'}
 
     with pytest.raises(EvaluationError):
         x()
@@ -209,4 +232,31 @@ def test_default():
         return 'y'
 
     assert x.default({'X': 'Y'}) == 'x'
+
+
+def test_with_options():
+    @dataset
+    def x(a: int = Option('A'), b: int = Option('B')) -> int:
+        return a + b
+
+    x1 = x.with_options({'A': 1})
+    x2 = x.with_options({'A': 2})
+
+    assert isinstance(x1, type(x))
+
+    assert x1({'B': 2}) == 3
+    assert x2({'B': 2}) == 4
+
+
+def test_with_default_options():
+    @dataset
+    def x(a: int = Option('A'), b: int = Option('B')) -> int:
+        return a + b
+
+    x1 = x.with_default_options({'A': 1})
+
+    assert isinstance(x1, type(x))
+
+    assert x1({'B': 2}) == 3
+    assert x1({'A': 2, 'B': 2}) == 4
 

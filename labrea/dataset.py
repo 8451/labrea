@@ -20,11 +20,13 @@ from typing import (
     overload,
 )
 
+from confectioner import mix
+
 from ._missing import MISSING, MaybeMissing
 from .application import FunctionApplication
 from .cache import Cache, MemoryCache, NoCache, cached
 from .computation import CallbackEffect, ChainedEffect, Computation, Effect
-from .option import Option, WithOptions
+from .option import Option, WithDefaultOptions, WithOptions
 from .overload import Overloaded
 from .types import Evaluatable, MaybeEvaluatable, Options, Value
 
@@ -38,6 +40,7 @@ class Dataset(Evaluatable[A]):
     effects: List[Effect[A]]
     cache: Cache[A]
     options: Options
+    default_options: Options
     _effects_disabled: bool
 
     def __init__(
@@ -46,11 +49,13 @@ class Dataset(Evaluatable[A]):
         effects: List[Effect[A]],
         cache: Cache[A],
         options: Options,
+        default_options: Options,
     ):
         self.overloads = overloads
         self.effects = effects.copy()
         self.cache = cache
         self.options = options
+        self.default_options = default_options
         self._effects_disabled = False
 
     @property
@@ -59,12 +64,15 @@ class Dataset(Evaluatable[A]):
             self.overloads,
             ChainedEffect(*self.effects),
         )
-        return WithOptions(
-            cached(
-                self.overloads if self._effects_disabled else computation,
-                self.cache,
+        return WithDefaultOptions(
+            WithOptions(
+                cached(
+                    self.overloads if self._effects_disabled else computation,
+                    self.cache,
+                ),
+                self.options,
             ),
-            self.options,
+            self.default_options,
         )
 
     def evaluate(self, options: Options) -> A:
@@ -136,6 +144,24 @@ class Dataset(Evaluatable[A]):
     def enable_effects(self) -> None:
         self._effects_disabled = False
 
+    def with_options(self, options: Options) -> "Dataset[A]":
+        return Dataset(
+            self.overloads,
+            self.effects,
+            self.cache.new(),
+            mix(self.options, options),  # type: ignore
+            self.default_options,
+        )
+
+    def with_default_options(self, options: Options) -> "Dataset[A]":
+        return Dataset(
+            self.overloads,
+            self.effects,
+            self.cache.new(),
+            self.options,
+            mix(self.default_options, options),  # type: ignore
+        )
+
     @property
     def default(self) -> MaybeMissing[Evaluatable[A]]:
         return self.overloads.default
@@ -151,6 +177,7 @@ class DatasetFactory(Generic[A]):
     dispatch: Evaluatable[Hashable]
     defaults: Dict[str, Evaluatable[Any]]
     options: Options
+    defaut_options: Options
     abstract: bool
 
     def __init__(
@@ -161,6 +188,7 @@ class DatasetFactory(Generic[A]):
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = None,
         abstract: bool = False,
         options: Optional[Options] = None,
+        default_options: Optional[Options] = None,
     ):
         self.effects = effects or []
         self.cache = cache
@@ -169,6 +197,7 @@ class DatasetFactory(Generic[A]):
         }
         self.abstract = abstract
         self.options = options or {}
+        self.default_options = default_options or {}
 
         if dispatch is None:
             self.dispatch = Value(MISSING)
@@ -189,6 +218,7 @@ class DatasetFactory(Generic[A]):
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = ...,
         abstract: Optional[bool] = ...,
         options: Optional[Options] = ...,
+        default_options: Optional[Options] = ...,
     ) -> Dataset[A]:
         ...  # pragma: no cover
 
@@ -203,6 +233,7 @@ class DatasetFactory(Generic[A]):
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = ...,
         abstract: Optional[bool] = ...,
         options: Optional[Options] = ...,
+        default_options: Optional[Options] = ...,
     ) -> "DatasetFactory[A]":
         ...  # pragma: no cover
 
@@ -218,6 +249,7 @@ class DatasetFactory(Generic[A]):
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = ...,
         abstract: Optional[bool] = ...,
         options: Optional[Options] = ...,
+        default_options: Optional[Options] = ...,
     ) -> "DatasetFactory[A]":
         ...  # pragma: no cover
 
@@ -232,6 +264,7 @@ class DatasetFactory(Generic[A]):
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = None,
         abstract: Optional[bool] = None,
         options: Optional[Options] = None,
+        default_options: Optional[Options] = None,
     ) -> Union["DatasetFactory", Dataset[A]]:
         _effects = [
             effect if isinstance(effect, Effect) else CallbackEffect(effect)
@@ -244,6 +277,7 @@ class DatasetFactory(Generic[A]):
             defaults=defaults,
             abstract=abstract,
             options=options,
+            default_options=default_options,
         )
 
         if definition is not None:
@@ -276,6 +310,7 @@ class DatasetFactory(Generic[A]):
             effects=self.effects,
             cache=cache,
             options=self.options,
+            default_options=self.default_options,
         )
 
         functools.update_wrapper(_dataset, definition, updated=())
@@ -293,6 +328,7 @@ class DatasetFactory(Generic[A]):
         defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = None,
         abstract: Optional[bool] = None,
         options: Optional[Options] = None,
+        default_options: Optional[Options] = None,
     ) -> "DatasetFactory":
         return DatasetFactory(
             effects=[*self.effects, *(effects or [])],
@@ -301,6 +337,7 @@ class DatasetFactory(Generic[A]):
             defaults={**self.defaults, **(defaults or {})},
             abstract=abstract if abstract is not None else self.abstract,
             options=options or self.options,
+            default_options=default_options or self.default_options,
         )
 
     @property
