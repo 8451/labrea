@@ -1,5 +1,5 @@
 from labrea.exceptions import KeyNotFoundError
-from labrea.option import Option, WithOptions
+from labrea.option import Option, WithOptions, WithDefaultOptions
 from labrea.template import Template
 import pytest
 
@@ -170,3 +170,21 @@ def test_with_options():
     assert w.explain({'A': 43}) == set()
 
     assert repr(w) == "WithOptions(Option('A'), {'A': 42})"
+
+
+def test_with_default_options():
+    w = WithDefaultOptions(Option('A'), {'A': 42})
+
+    assert w.evaluate({}) == 42
+    assert w.evaluate({'A': 43}) == 43
+
+    w.validate({})
+    w.validate({'A': 43})
+
+    assert w.keys({}) == set()
+    assert w.keys({'A': 43}) == {'A'}
+
+    assert w.explain({}) == set()
+    assert w.explain({'A': 43}) == {'A'}
+
+    assert repr(w) == "WithDefaultOptions(Option('A'), {'A': 42})"

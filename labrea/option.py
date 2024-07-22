@@ -1,3 +1,4 @@
+import functools
 from typing import Callable, Optional, Set, TypeVar
 
 from confectioner import mix
@@ -102,13 +103,21 @@ class Option(Evaluatable[A]):
 class WithOptions(Evaluatable[B]):
     evaluatable: Evaluatable[B]
     options: Options
+    force: bool
 
-    def __init__(self, evaluatable: Evaluatable[B], options: Options) -> None:
+    def __init__(
+        self, evaluatable: Evaluatable[B], options: Options, force: bool = True
+    ) -> None:
         self.evaluatable = evaluatable
         self.options = options
+        self.force = force
 
     def _options(self, options: Options) -> Options:
-        return mix(options, self.options)  # type: ignore
+        return (
+            mix(options, self.options)  # type: ignore
+            if self.force
+            else mix(self.options, options)  # type: ignore
+        )
 
     def evaluate(self, options: Options) -> B:
         return self.evaluatable.evaluate(self._options(options))
@@ -117,18 +126,40 @@ class WithOptions(Evaluatable[B]):
         self.evaluatable.validate(self._options(options))
 
     def keys(self, options: Options) -> Set[str]:
-        return {
-            key
-            for key in self.evaluatable.keys(self._options(options))
-            if not dotted_key_exists(key, self.options)
-        }
+        if self.force:
+            return {
+                key
+                for key in self.evaluatable.keys(self._options(options))
+                if not dotted_key_exists(key, self.options)
+            }
+        else:
+            return {
+                key
+                for key in self.evaluatable.keys(self._options(options))
+                if dotted_key_exists(key, options)
+            }
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
-        return {
-            key
-            for key in self.evaluatable.explain(self._options(options or {}))
-            if not dotted_key_exists(key, self.options)
-        }
+        options = options or {}
+        if self.force:
+            return {
+                key
+                for key in self.evaluatable.explain(self._options(options))
+                if not dotted_key_exists(key, self.options)
+            }
+        else:
+            return {
+                key
+                for key in self.evaluatable.explain(self._options(options))
+                if dotted_key_exists(key, options)
+            }
 
     def __repr__(self) -> str:
-        return f"WithOptions({self.evaluatable!r}, {self.options!r})"
+        return (
+            f"WithOptions({self.evaluatable!r}, {self.options!r})"
+            if self.force
+            else f"WithDefaultOptions({self.evaluatable!r}, {self.options!r})"
+        )
+
+
+WithDefaultOptions = functools.partial(WithOptions, force=False)
