@@ -21,6 +21,54 @@ T = TypeVar("T", bound=Type)
 
 
 def interface(dispatch: Union[Evaluatable[Hashable], str]) -> Callable[[T], "T"]:
+    """A decorator that creates an interface from a class.
+
+    An interface is a class that defines a set of members that must be implemented
+    by its implementations. The interface is defined by the members of the class,
+    which are abstract datasets. The interface must have a dispatch, which is an
+    evaluatable that returns a key that is used to determine which implementation.
+
+    Downstream datasets can use interface members as if they were normal datasets.
+    This allows developers to define a set of related datasets that must be implemented
+    for a particular use case, enabling polymorphism and dependency injection.
+
+    Arguments
+    ----------
+    dispatch : Evaluatable[Hashable] or str
+        The evaluatable that determines which implementation to use. This can be
+        an evaluatable (like an Option) or a string representing an Option.
+
+    Returns
+    -------
+    Callable[[T], T]
+        A decorator that creates an interface from a class.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import interface, abstractdataset, dataset, Option
+    >>> @interface("DISPATCH.KEY")
+    ... class MyInterface:
+    ...     a: float  # Implicit member
+    ...
+    ...     # Explicit member
+    ...     @abstractdataset
+    ...     def b() -> str:
+    ...         pass
+    ...
+    ...     # Member with default implementation
+    ...     @dataset
+    ...     def c() -> str:
+    ...         return 'C'
+    ...
+    ...     # Member with default implementation, not using @dataset
+    ...     d: str = Option('D')
+    >>>
+    >>> @dataset
+    ... def a_squared(a: float = MyInterface.a) -> float:
+    ...     return a ** 2
+    >>>
+    """
     if isinstance(dispatch, type):
         raise TypeError(
             "@interface requires that an Evaluatable (or str representing an Option) be provided "
@@ -40,6 +88,38 @@ def interface(dispatch: Union[Evaluatable[Hashable], str]) -> Callable[[T], "T"]
 def implements(
     *interfaces: "Interface", alias: Union[Hashable, List[Hashable], None] = None
 ) -> Callable[[T], T]:
+    """Decorator used for implementing one or more interfaces at once.
+
+    Arguments
+    ---------
+    *interfaces : Interface
+        The interfaces to implement.
+    alias : Union[Hashable, List[Hashable], None]
+        The alias or aliases to register the implementation under.
+        Keyword-only argument; required.
+
+    Returns
+    -------
+    Callable[[T], T]
+        A decorator that creates an implementation from a class.
+
+
+    Example Usage
+    -------------
+    >>> @implements(Interface1, Interface2, alias="ALIAS")
+    ... class MyImplementation:
+    ...     # Static value member
+    ...     a: str = 'A'
+    ...     # Non-dataset Evaluatable member
+    ...     b: str = Option('B')
+    ...     # Explicit dataset member
+    ...     @dataset
+    ...     def c() -> str:
+    ...         return 'C'
+    ...     # Implicit dataset member
+    ...     def d() -> str:
+    ...         return 'D'
+    """
     if alias is None:
         raise ValueError(
             "The @implements decorator requires at least one alias to be provided."
@@ -55,6 +135,23 @@ def implements(
 
 
 class Interface(type):
+    """Metaclass for interfaces.
+
+    Interfaces are classes that define a set of members that must be implemented by
+    its implementations. The interface is defined by the members of the class, which
+    are abstract datasets. The interface must have a dispatch, which is an evaluatable
+    that returns a key that is used to determine which implementation to use.
+
+    Members of an interface are defined by the class attributes and annotations. Members
+    can be defined implicitly using a type annotation, or explicitly using the
+    :code:`@abstractdataset` decorator. Members can also have a default implementation.
+    Usually this is done by using the :code:`@dataset` decorator, but any class attribute
+    that is an Evaluatable can be used as a default implementation.
+
+    Normally, rather than using this metaclass directly, the :code:`@interface` decorator
+    should be used to create an interface.
+    """
+
     _dispatch: Evaluatable[Hashable]
     _members: Dict[str, Dataset]
 
@@ -110,6 +207,15 @@ class Interface(type):
         super().__setattr__(key, value)
 
     def implementation(cls, alias: Union[Hashable, List[Hashable]]) -> Callable[[T], T]:
+        """Decorator for implementing a single interface.
+
+        This is shorthand for using the :code:`@implements` decorator with a single interface.
+
+        Arguments
+        ---------
+        alias : Union[Hashable, List[Hashable]]
+            The alias or aliases to register the implementation under.
+        """
         if isinstance(alias, type):
             raise TypeError(
                 f"@{cls.__name__}.implementation requires that at least one alias be provided, "
@@ -125,6 +231,18 @@ class Interface(type):
 
 
 class Implementation(type):
+    """Metaclass for interface implementations.
+
+    Implementations are classes that implement one or more interfaces. Implementations
+    are defined by the members of the class, which are datasets or other Evaluatables.
+    When the implementation is created, the members are added as overloads to the
+    corresponding members of the interfaces. If a member is not implemented, an error
+    is raised.
+
+    Normally, rather than using this metaclass directly, the :code:`@implements` decorator
+    or the :code:`@MyInterface.implementation` decorator should be used.
+    """
+
     _interfaces: Tuple[Interface, ...]
 
     def __new__(
@@ -162,6 +280,7 @@ class Implementation(type):
                 for member in member_list:
                     for alias in aliases:
                         member.register(alias, overload)
+                setattr(cls, key, overload)
 
     def __repr__(self):
         return (
