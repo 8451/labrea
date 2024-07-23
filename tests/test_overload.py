@@ -4,40 +4,38 @@ from labrea.application import FunctionApplication
 from labrea import Value
 from labrea.exceptions import KeyNotFoundError
 from labrea.option import Option
-from labrea.overload import Overloaded, overloaded
+from labrea.overload import Overloaded
 
 
 def test_overloaded():
-    @overloaded(Option('A'))
     @FunctionApplication.lift
     def add(x: int = Option('X'), y: int = Option('Y')) -> int:
         return x + y
 
-    @add.overload('dummy')
+    overloads = Overloaded(Option('A'), {}, default=add)
+
+    @FunctionApplication.lift
     def dummy_add():
         return 0
 
-    with pytest.raises(TypeError):
-        @add.overload()
-        def _():
-            pass
+    overloads.register('dummy', dummy_add)
 
-    assert add.evaluate({'X': 1, 'Y': 2}) == 3
-    assert add.evaluate({'A': 'dummy'}) == 0
+    assert overloads.evaluate({'X': 1, 'Y': 2}) == 3
+    assert overloads.evaluate({'A': 'dummy'}) == 0
 
-    add.validate({'X': 1, 'Y': 2})
-    add.validate({'A': 'dummy'})
+    overloads.validate({'X': 1, 'Y': 2})
+    overloads.validate({'A': 'dummy'})
     with pytest.raises(KeyNotFoundError):
-        add.validate({'X': 1})
+        overloads.validate({'X': 1})
 
-    assert add.keys({'X': 1, 'Y': 2}) == {'X', 'Y'}
-    assert add.keys({'A': 'dummy'}) == {'A'}
+    assert overloads.keys({'X': 1, 'Y': 2}) == {'X', 'Y'}
+    assert overloads.keys({'A': 'dummy'}) == {'A'}
     with pytest.raises(KeyNotFoundError):
-        add.keys({'X': 1})
+        overloads.keys({'X': 1})
 
-    assert add.explain({'X': 1, 'Y': 2}) == {'X', 'Y'}
-    assert add.explain({'A': 'dummy'}) == {'A'}
-    assert add.explain() == {'X', 'Y'}
+    assert overloads.explain({'X': 1, 'Y': 2}) == {'X', 'Y'}
+    assert overloads.explain({'A': 'dummy'}) == {'A'}
+    assert overloads.explain() == {'X', 'Y'}
 
 
 def test_repr():
