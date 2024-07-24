@@ -1,10 +1,13 @@
+import logging
 import pytest
 import uuid
 
 from labrea.computation import CallbackEffect
 from labrea.dataset import dataset, abstractdataset
 from labrea.exceptions import EvaluationError
+from labrea.logging import LogRequest
 from labrea.option import Option
+import labrea.runtime
 
 
 def test_dataset():
@@ -260,3 +263,16 @@ def test_with_default_options():
     assert x1({'B': 2}) == 3
     assert x1({'A': 2, 'B': 2}) == 4
 
+
+def test_logging():
+    @dataset
+    def x() -> int:
+        return 1
+
+    def test_logging_handler(request: LogRequest) -> None:
+        assert request.level == logging.INFO
+        assert request.name == x.__module__
+        assert request.msg == f'Labrea: Evaluating {x.__qualname__}'
+
+    with labrea.runtime.handle(LogRequest, test_logging_handler):
+        x()

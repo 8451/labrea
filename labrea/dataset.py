@@ -6,6 +6,7 @@ else:
     from typing import ParamSpec
 
 import functools
+import logging
 from typing import (
     Any,
     Callable,
@@ -26,6 +27,7 @@ from ._missing import MISSING, MaybeMissing
 from .application import FunctionApplication
 from .cache import Cache, MemoryCache, NoCache, cached
 from .computation import CallbackEffect, ChainedEffect, Computation, Effect
+from .logging import Logged
 from .option import Option, WithDefaultOptions, WithOptions
 from .overload import Overloaded
 from .types import Evaluatable, MaybeEvaluatable, Options, Value
@@ -99,7 +101,18 @@ class Dataset(Evaluatable[A]):
         return WithDefaultOptions(
             WithOptions(
                 cached(
-                    self.overloads if self._effects_disabled else computation,
+                    Logged(
+                        self.overloads if self._effects_disabled else computation,
+                        level=logging.INFO,
+                        name=self.__module__,
+                        msg=(
+                            f"Labrea: Evaluating {self.__qualname__}"
+                            if hasattr(self, "__qualname__")
+                            else f"Labrea: Evaluating {self.__name__}"
+                            if hasattr(self, "__name__")
+                            else "Labrea: Evaluating {self!r}"
+                        ),
+                    ),
                     self.cache,
                 ),
                 self.options,
