@@ -1,4 +1,12 @@
+<picture align="center">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/source/static/logo_white.png">
+  <img alt="Labrea Logo" src="docs/source/static/logo.png">
+</picture>
+
+-----------------
+
 # Labrea
+A framework for declarative, functional dataset definitions.
 
 ![](https://img.shields.io/badge/version-2.0.0-blue.svg)
 [![lifecycle](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.tidyverse.org/lifecycle/#stable)
@@ -6,8 +14,6 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![Coverage](https://raw.githubusercontent.com/8451/labrea/meta/coverage/coverage.svg)](https://github.com/8451/labrea/tree/meta/coverage)
 [![docs](https://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat)](https://8451.github.io/labrea)
-
-A framework for declarative, functional dataset definitions.
 
 ## Installation
 Labrea is available for install via pip.
