@@ -10,7 +10,6 @@ from typing import (
     Optional,
     Protocol,
     Set,
-    TypeAlias,
     TypeVar,
     Union,
     overload,
@@ -22,7 +21,7 @@ from .exceptions import EvaluationError, InsufficientInformationError
 
 JSONScalar = Union[str, int, float, bool, None]
 JSON = Union[JSONScalar, Mapping[str, "JSON"], List["JSON"]]
-Options: TypeAlias = Mapping[str, JSON]
+Options = Mapping[str, JSON]
 
 
 A = TypeVar("A", covariant=True)
