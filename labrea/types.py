@@ -13,6 +13,7 @@ from typing import (
     TypeAlias,
     TypeVar,
     Union,
+    overload,
 )
 
 from confectioner.templating import get_dotted_key
@@ -230,6 +231,16 @@ class Evaluatable(Generic[A], Cacheable, Explainable, Validatable, ABC):
             The wrapped value.
         """
         return Value(value)
+
+    @overload
+    @staticmethod
+    def ensure(value: "Evaluatable[T]") -> "Evaluatable[T]":
+        ...
+
+    @overload
+    @staticmethod
+    def ensure(value: T) -> "Evaluatable[T]":
+        ...
 
     @staticmethod
     def ensure(value: "MaybeEvaluatable[T]") -> "Evaluatable[T]":

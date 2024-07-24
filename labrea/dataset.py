@@ -383,7 +383,7 @@ class DatasetFactory(Generic[A]):
         effects: Optional[List[Effect[A]]] = None,
         cache: Union[Cache[A], Callable[..., Cache[A]], None] = None,
         dispatch: Union[Evaluatable[Hashable], str, None] = None,
-        defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = None,
+        defaults: Optional[Dict[str, Any]] = None,
         abstract: bool = False,
         options: Optional[Options] = None,
         default_options: Optional[Options] = None,
@@ -413,7 +413,7 @@ class DatasetFactory(Generic[A]):
         effects: Optional[List[Union[Effect[A], Callback[A]]]] = ...,
         cache: Union[Cache[A], Callable[..., Cache[A]], None] = ...,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
-        defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = ...,
+        defaults: Optional[Dict[str, Any]] = ...,
         abstract: Optional[bool] = ...,
         options: Optional[Options] = ...,
         default_options: Optional[Options] = ...,
@@ -428,7 +428,7 @@ class DatasetFactory(Generic[A]):
         effects: Optional[List[Union[Effect[A], Callback[A]]]] = ...,
         cache: Union[Cache[A], Callable[..., Cache[A]], None] = ...,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
-        defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = ...,
+        defaults: Optional[Dict[str, Any]] = ...,
         abstract: Optional[bool] = ...,
         options: Optional[Options] = ...,
         default_options: Optional[Options] = ...,
@@ -444,7 +444,7 @@ class DatasetFactory(Generic[A]):
         effects: Optional[List[Union[Effect[A,], Callback[A]]]] = ...,
         cache: Union[Cache[A], Callable[..., Cache[A]], None] = ...,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
-        defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = ...,
+        defaults: Optional[Dict[str, Any]] = ...,
         abstract: Optional[bool] = ...,
         options: Optional[Options] = ...,
         default_options: Optional[Options] = ...,
@@ -459,7 +459,7 @@ class DatasetFactory(Generic[A]):
         effects: Optional[List[Union[Effect[A], Callback[A]]]] = None,
         cache: Union[Cache[A], Callable[..., Cache[A]], None] = None,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = None,
-        defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = None,
+        defaults: Optional[Dict[str, Any]] = None,
         abstract: Optional[bool] = None,
         options: Optional[Options] = None,
         default_options: Optional[Options] = None,
@@ -515,7 +515,7 @@ class DatasetFactory(Generic[A]):
 
         return _dataset
 
-    def where(self, **defaults: MaybeEvaluatable[Any]) -> "DatasetFactory":
+    def where(self, **defaults: Any) -> "DatasetFactory":
         return self.update(defaults=defaults)
 
     def update(
@@ -523,7 +523,7 @@ class DatasetFactory(Generic[A]):
         effects: Optional[List[Effect[A]]] = None,
         cache: Union[Cache[A], Callable[..., Cache[A]], None] = None,
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = None,
-        defaults: Optional[Dict[str, MaybeEvaluatable[Any]]] = None,
+        defaults: Optional[Dict[str, Any]] = None,
         abstract: Optional[bool] = None,
         options: Optional[Options] = None,
         default_options: Optional[Options] = None,

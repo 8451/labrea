@@ -1,15 +1,18 @@
 import functools
 from typing import (
+    Any,
     Callable,
     Generic,
     Hashable,
     Mapping,
+    Never,
     Optional,
     Sequence,
     Set,
     Tuple,
     TypeVar,
     Union,
+    overload,
 )
 
 from ._missing import MISSING, MaybeMissing
@@ -19,7 +22,7 @@ from .types import Evaluatable, MaybeEvaluatable, Options
 
 A = TypeVar("A")
 B = TypeVar("B")
-K = TypeVar("K", bound=Hashable)
+C = TypeVar("C")
 V = TypeVar("V")
 
 
@@ -28,9 +31,9 @@ class SwitchError(EvaluationError):
 
     def __init__(
         self,
-        dispatch: Evaluatable[K],
-        value: K,
-        lookup: Mapping[K, MaybeEvaluatable[V]],
+        dispatch: Evaluatable[Hashable],
+        value: Hashable,
+        lookup: Mapping[Hashable, Any],
     ):
         super().__init__(
             f"Evaluated to {value}, "
@@ -65,7 +68,7 @@ class _DependsOn(Generic[A, B], Evaluatable[B]):
         return f"_DependsOn({self.evaluatable!r}, {self.depends!r})"  # pragma: no cover
 
 
-class Switch(Generic[K, V], Evaluatable[V]):
+class Switch(Evaluatable[V]):
     """A class representing a switch statement.
 
     This class takes a dispatch evaluatable and a mapping of keys to evaluatables.
@@ -79,9 +82,9 @@ class Switch(Generic[K, V], Evaluatable[V]):
 
     Arguments
     ---------
-    dispatch : Union[str, Evaluatable[K]]
+    dispatch : Union[str, Evaluatable[Hashable]]
         The dispatch evaluatable. This is used to determine which branch to take.
-    lookup : Mapping[K, MaybeEvaluatable[V]]
+    lookup : Mapping[Hashable, MaybeEvaluatable[V]]
         A mapping of keys to evaluatables. The key is determined by the dispatch.
         Values can also be plain values.
     default : MaybeMissing[MaybeEvaluatable[V]], optional
@@ -103,14 +106,14 @@ class Switch(Generic[K, V], Evaluatable[V]):
     'Default'
     """
 
-    dispatch: Evaluatable[K]
-    lookup: Mapping[K, Evaluatable[V]]
+    dispatch: Evaluatable[Hashable]
+    lookup: Mapping[Hashable, Evaluatable[V]]
     default: MaybeMissing[Evaluatable[V]]
 
     def __init__(
         self,
-        dispatch: Union[str, Evaluatable[K]],
-        lookup: Mapping[K, MaybeEvaluatable[V]],
+        dispatch: Union[str, Evaluatable[Hashable]],
+        lookup: Mapping[Hashable, Evaluatable[V]],
         default: MaybeMissing[MaybeEvaluatable[V]] = MISSING,
     ) -> None:
         self.dispatch = (
@@ -121,7 +124,7 @@ class Switch(Generic[K, V], Evaluatable[V]):
             Evaluatable.ensure(default) if default is not MISSING else default
         )
 
-    def _dispatch(self, options: Options) -> K:
+    def _dispatch(self, options: Options) -> Hashable:
         return self.dispatch.evaluate(options)
 
     def _lookup(self, options: Options) -> Evaluatable[V]:
@@ -202,20 +205,13 @@ class CaseWhen(Generic[A, B], Evaluatable[B]):
 
     def __init__(
         self,
-        dispatch: MaybeEvaluatable[A],
-        cases: Sequence[
-            Tuple[MaybeEvaluatable[Callable[[A], bool]], MaybeEvaluatable[B]]
-        ],
-        default: MaybeMissing[MaybeEvaluatable[B]] = MISSING,
+        dispatch: Evaluatable[A],
+        cases: Sequence[Tuple[Evaluatable[Callable[[A], bool]], Evaluatable[B]]],
+        default: MaybeMissing[Evaluatable[B]] = MISSING,
     ) -> None:
-        self.dispatch = Evaluatable.ensure(dispatch)
-        self.cases = [
-            (Evaluatable.ensure(condition), Evaluatable.ensure(result))
-            for condition, result in cases
-        ]
-        self.default = (
-            Evaluatable.ensure(default) if default is not MISSING else default
-        )
+        self.dispatch = dispatch
+        self.cases = [(condition, result) for condition, result in cases]
+        self.default = default
 
     def _evaluate(self, value: A, options: Options) -> Evaluatable[B]:
         for condition, result in self.cases:
@@ -246,11 +242,27 @@ class CaseWhen(Generic[A, B], Evaluatable[B]):
         """Return the option keys required by the case when statement."""
         return self._bound(options or {}).explain(options)
 
+    @overload
     def when(
         self,
         condition: MaybeEvaluatable[Callable[[A], bool]],
-        result: MaybeEvaluatable[B],
-    ) -> "CaseWhen[A, B]":
+        result: Evaluatable[C],
+    ) -> "CaseWhen[A, Union[B, C]]":
+        ...
+
+    @overload
+    def when(
+        self,
+        condition: MaybeEvaluatable[Callable[[A], bool]],
+        result: C,
+    ) -> "CaseWhen[A, Union[B, C]]":
+        ...
+
+    def when(
+        self,
+        condition: MaybeEvaluatable[Callable[[A], bool]],
+        result: MaybeEvaluatable[C],
+    ) -> "CaseWhen[A, Union[B, C]]":
         """Add a case to the case when statement. Returns a new instance.
 
         Arguments
@@ -260,9 +272,21 @@ class CaseWhen(Generic[A, B], Evaluatable[B]):
         result : MaybeEvaluatable[B]
             The result to return if the condition is matched.
         """
-        return CaseWhen(self.dispatch, [*self.cases, (condition, result)], self.default)
+        return CaseWhen(
+            self.dispatch,
+            [*self.cases, (Evaluatable.ensure(condition), Evaluatable.ensure(result))],
+            self.default,
+        )
 
-    def otherwise(self, default: MaybeEvaluatable[B]) -> "CaseWhen[A, B]":
+    @overload
+    def otherwise(self, default: Evaluatable[C]) -> "CaseWhen[A, Union[B, C]]":
+        ...
+
+    @overload
+    def otherwise(self, default: C) -> "CaseWhen[A, Union[B, C]]":
+        ...
+
+    def otherwise(self, default: MaybeEvaluatable[C]) -> "CaseWhen[A, Union[B, C]]":
         """Add a default value to the case when statement. Returns a new instance.
 
         Arguments
@@ -270,7 +294,7 @@ class CaseWhen(Generic[A, B], Evaluatable[B]):
         default : MaybeEvaluatable[B]
             The default value to return if no case is matched.
         """
-        return CaseWhen(self.dispatch, self.cases, default)
+        return CaseWhen(self.dispatch, self.cases, Evaluatable.ensure(default))
 
     def __repr__(self) -> str:
         _base = f"case({self.dispatch!r})"
@@ -283,7 +307,17 @@ class CaseWhen(Generic[A, B], Evaluatable[B]):
         return f"{_base}.{_cases}{_default}"
 
 
-def case(dispatch: MaybeEvaluatable[A]) -> CaseWhen[A, B]:
+@overload
+def case(dispatch: Evaluatable[A]) -> CaseWhen[A, Never]:
+    ...
+
+
+@overload
+def case(dispatch: A) -> CaseWhen[A, Never]:
+    ...
+
+
+def case(dispatch: MaybeEvaluatable[A]) -> CaseWhen[A, Never]:
     """Create a case when statement.
 
     This is the preferred method for creating a case when statement.
@@ -319,4 +353,4 @@ def case(dispatch: MaybeEvaluatable[A]) -> CaseWhen[A, B]:
     >>> c({'A': 0, 'X': 'Negative', 'Y': 'Positive', 'Z': 'Zero'})
     'Zero'
     """
-    return CaseWhen(dispatch, [])
+    return CaseWhen(Evaluatable.ensure(dispatch), [])

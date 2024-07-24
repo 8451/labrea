@@ -25,7 +25,7 @@ def evaluatable_list(*evaluatables: Evaluatable[A]) -> Evaluatable[List[A]]:
 
     Arguments
     ---------
-    *evaluatables : MaybeEvaluatable[A]
+    *evaluatables : Evaluatable[A]
         The objects to evaluate.
     """
     return Iter(*evaluatables).apply(list)
@@ -124,7 +124,7 @@ def evaluatable_tuple(*evaluatables: Evaluatable[A]) -> Evaluatable[Tuple[A, ...
 
     Arguments
     ---------
-    *evaluatables : MaybeEvaluatable[A]
+    *evaluatables : Evaluatable[A]
         The objects to evaluate.
     """
     return Iter(*evaluatables).apply(tuple)
@@ -139,7 +139,7 @@ def evaluatable_set(*evaluatables: Evaluatable[K]) -> Evaluatable[Set[K]]:
 
     Arguments
     ---------
-    *evaluatables : MaybeEvaluatable[K]
+    *evaluatables : Evaluatable[K]
         The objects to evaluate.
     """
     return Iter(*evaluatables).apply(set)
@@ -154,7 +154,7 @@ def evaluatable_dict(contents: Dict[K, Evaluatable[V]]) -> Evaluatable[Dict[K, V
 
     Arguments
     ---------
-    contents : Dict[K, MaybeEvaluatable[V]]
+    contents : Dict[K, Evaluatable[V]]
         The objects to evaluate.
     """
     pairs = (Iter[Union[K, V]](Value(key), val) for key, val in contents.items())

@@ -14,7 +14,6 @@ from typing import (
     Optional,
     Set,
     TypeVar,
-    Union,
     cast,
     overload,
 )
@@ -82,9 +81,7 @@ class PipelineStep(Evaluatable[Callable[[A], B]], Transformation[A, B]):
     def __repr__(self) -> str:
         return f"<PipelineStep {self._name or repr(self.step)}>"
 
-    def __add__(
-        self, other: Union["Pipeline[B, C]", "PipelineStep[B, C]"]
-    ) -> "Pipeline[A, C]":
+    def __add__(self, other: MaybeEvaluatable[Callable[[B], C]]) -> "Pipeline[A, C]":
         base: Pipeline[A, B] = Pipeline(self)
         return base + other
 
