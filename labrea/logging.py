@@ -75,7 +75,7 @@ class LogEffect(Effect):
     def validate(self, options: Options) -> None:
         pass
 
-    def explain(self, options: Optional[Options] = None) -> set[str]:
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
         return set()
 
 
@@ -115,7 +115,7 @@ class Logged(Evaluatable[A]):
     def validate(self, options: Options) -> None:
         self.evaluatable.validate(options)
 
-    def keys(self, options: Options) -> set[str]:
+    def keys(self, options: Options) -> Set[str]:
         return self.evaluatable.keys(options)
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
