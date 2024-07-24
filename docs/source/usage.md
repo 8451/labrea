@@ -574,7 +574,8 @@ for value in mapped.values({'X_LIST': [1, 2, 3], 'Y': 10}):
 ### In-Line Transformations
 Sometimes you want to perform a transformation on a dataset (or other object) that is not worth creating 
 a new dataset for. A common example is an Option that you want to parse as a date. You can use the
-`>>` operator (or the equivalent `.apply()` method) to perform this transformation in-line.
+`>>` operator (or the equivalent `.apply()` method) to perform this transformation in-line. The `>>`
+operator is shared by all Labrea objects.
 
 ```python
 from labrea import Option
@@ -591,7 +592,7 @@ you want to write code that performs some transformation on an arbitrary input, 
 to perform a series of these transformations in an arbitrary order. To accomplish this, Labrea exposes
 a `Pipeline` class, where each step is created using the `@pipeline_step` decorator. 
 
-Pipeline look similar to datasets, but their first argument is always the input to the pipeline, and
+Pipelines look similar to datasets, but their first argument is always the input to the pipeline, and
 should not have a default value. To combine pipeline steps into a pipeline, use the `+` operator. Pipelines
 can be evaluated like a dataset, and it will return a function of 1 variable. If you want to run the pipeline
 on a value, use the `.transform(input, options)` method.
@@ -720,7 +721,7 @@ from labrea import dataset, Option, Template
 
 @dataset
 def b_dataset(
-        b: str = Option('V')
+        b: str = Option('B')
 ) -> str:
     return b
 
@@ -729,7 +730,7 @@ template = Template(
     b=b_dataset
 )
 
-template({'A': 'Hello', 'V': 'World!'})  ## 'Hello World!'
+template({'A': 'Hello', 'B': 'World!'})  ## 'Hello World!'
 ```
 
 ### Dataset Classes
@@ -767,17 +768,7 @@ def distinct_regions(data: pd.DataFrame = input_data) -> Set[str]:
     return set(data['region_id'])
 
 
-@datasetclass
-class MyClass:
-    data: pd.DataFrame = input_data
-    stores: Set[str] = distinct_stores
-    region: Set[str] = distinct_regions
-    
-    def lookup_store(self, store_id: str):
-        if store_id not in self.stores:
-            return None
-        
-        return self.data[self.data['store_id'] == store_id]
+gi
 
 options = {
     'INPUT.PATH': '/path/to/input.xlsx',
