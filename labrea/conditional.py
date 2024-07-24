@@ -1,3 +1,10 @@
+import sys
+
+if sys.version_info < (3, 11):
+    from typing import NoReturn as Never
+else:
+    from typing import Never
+
 import functools
 from typing import (
     Any,
@@ -5,7 +12,6 @@ from typing import (
     Generic,
     Hashable,
     Mapping,
-    Never,
     Optional,
     Sequence,
     Set,
