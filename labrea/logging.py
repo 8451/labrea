@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, TypeVar
+from typing import Optional, Set, TypeVar
 
 from . import runtime
 from .computation import Effect
@@ -118,7 +118,7 @@ class Logged(Evaluatable[A]):
     def keys(self, options: Options) -> set[str]:
         return self.evaluatable.keys(options)
 
-    def explain(self, options: Optional[Options] = None) -> set[str]:
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
         return self.evaluatable.explain(options)
 
     def __repr__(self) -> str:
