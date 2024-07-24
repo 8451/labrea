@@ -17,7 +17,17 @@ X = TypeVar("X")
 
 
 class FunctionApplication(Generic[P, A], Evaluatable[A]):
-    """A class representing the application of a function to a set of arguments."""
+    """A class representing the application of a function to a set of arguments.
+
+    Arguments
+    ---------
+    __func : Callable[P, A]
+        The function to apply.
+    *args : MaybeEvaluatable[P.args]
+        The positional arguments to evaluate.
+    **kwargs : MaybeEvaluatable[P.kwargs]
+        The keyword arguments to evaluate.
+    """
 
     func: Callable[P, A]
     arguments: Evaluatable[Arguments[P]]

@@ -40,12 +40,12 @@ class Template(Evaluatable[str]):
     -------------
     >>> from labrea import Template, dataset, Option
     >>> @dataset
-    ... def b_dataset(b: str = Option('V')) -> str:
+    ... def b_dataset(b: str = Option('B')) -> str:
     ...     return b
     >>>
     >>> t = Template('{A.X} {:b:}', b=b_dataset)
-    >>> t({'A': {'X': 'Hello'}, 'V': 'World!'})  # 'Hello World!'
-
+    >>> t({'A': {'X': 'Hello'}, 'B': 'World!'})
+    'Hello World!'
     """
 
     template: str

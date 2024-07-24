@@ -10,14 +10,16 @@ from .types import Evaluatable, Options, Value
 A = TypeVar("A")
 
 
-class DatasetClassMeta(type, Evaluatable[A]):
+class _DatasetClassMeta(type, Evaluatable[A]):
+    """Metaclass for DatasetClass objects."""
+
     def __init__(cls, *args, **kwargs):
         annotations = functools.reduce(
             operator.or_,
             (
                 getattr(base, "__annotations__", {})
                 for base in reversed(cls.__bases__)
-                if base is not DatasetClass
+                if base is not _DatasetClassMixin
             ),
         )
 
@@ -77,7 +79,9 @@ class DatasetClassMeta(type, Evaluatable[A]):
         return f"<DatasetClass {self.__name__}>"
 
 
-class DatasetClass:
+class _DatasetClassMixin:
+    """Mixin for DatasetClass objects."""
+
     _repr_options: Dict[str, Any]
 
     def __init__(self, options: Optional[Options] = None):
@@ -105,7 +109,7 @@ class DatasetClass:
         )
 
 
-def datasetclass(c: Type[A]) -> DatasetClassMeta[A]:
+def datasetclass(c: Type[A]) -> _DatasetClassMeta[A]:
     """Create a new DatasetClass from a class definition.
 
     DatasetClasses are classes that when instatiated, evaluate their
@@ -114,7 +118,7 @@ def datasetclass(c: Type[A]) -> DatasetClassMeta[A]:
     evaluated at runtime.
 
     Any members of the class that are not Evaluatables are wrapped in
-    :class:`labrea.datasetclasses.Field` instances.
+    :class:`labrea.Value` instances.
 
     Example Usage
     -------------
@@ -130,10 +134,11 @@ def datasetclass(c: Type[A]) -> DatasetClassMeta[A]:
     ...     c: bool = True
     ...
     >>> inst = MyDatasetClass({'A': 'Hello World!', 'B': 1})
-    >>> print(inst.a, inst.b, inst.c)  # Hello World! 1 True
+    >>> print(inst.a, inst.b, inst.c)
+    Hello World! 1 True
     """
     dataset_class = new_class(
-        c.__name__, (c, DatasetClass), kwds={"metaclass": DatasetClassMeta}
+        c.__name__, (c, _DatasetClassMixin), kwds={"metaclass": _DatasetClassMeta}
     )
 
     functools.update_wrapper(dataset_class, c, updated=())

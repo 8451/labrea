@@ -11,12 +11,11 @@ from .collections import (
     evaluatable_set,
     evaluatable_tuple,
 )
-from .computation import Computation
 from .conditional import Switch, case, switch
 from .dataset import abstractdataset, dataset
 from .datasetclass import datasetclass
 from .interface import implements, interface
-from .iterable import Map
+from .iterable import Iter, Map
 from .option import Option, WithDefaultOptions, WithOptions
 from .overload import Overloaded
 from .pipeline import pipeline_step
@@ -28,11 +27,11 @@ __version__ = _version.__version__
 
 __all__ = [
     "Coalesce",
-    "Computation",
     "DatasetDict",
     "DatasetList",
     "DatasetSet",
     "DatasetTuple",
+    "Iter",
     "Map",
     "Option",
     "WithDefaultOptions",

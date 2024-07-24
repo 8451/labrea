@@ -66,6 +66,43 @@ class _DependsOn(Generic[A, B], Evaluatable[B]):
 
 
 class Switch(Generic[K, V], Evaluatable[V]):
+    """A class representing a switch statement.
+
+    This class takes a dispatch evaluatable and a mapping of keys to evaluatables.
+    When evaluated, the dispatch is evaluated and the corresponding value is
+    evaluated and returned. If the key is not found in the mapping, or the dispatch
+    cannot be evaluated, a default value can be provided. If no default is provided,
+    and the switch cannot choose a branch, an error is raised.
+
+    Aliases: :func:`labrea.switch`, :class:`labrea.Switch`
+
+
+    Arguments
+    ---------
+    dispatch : Union[str, Evaluatable[K]]
+        The dispatch evaluatable. This is used to determine which branch to take.
+    lookup : Mapping[K, MaybeEvaluatable[V]]
+        A mapping of keys to evaluatables. The key is determined by the dispatch.
+        Values can also be plain values.
+    default : MaybeMissing[MaybeEvaluatable[V]], optional
+        The default value to use if the key is not found in the mapping. Can be
+        an evaluatable, or a plain value.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option, switch
+    >>> s = switch(Option('A'), {True: Option('X'), False: Option('Y')}, Option('Z'))
+    >>> s({'A': True, 'X': 'Hello', 'Y': 'World', 'Z': 'Default'})
+    'Hello'
+    >>> s({'A': False, 'X': 'Hello', 'Y': 'World', 'Z': 'Default'})
+    'World'
+    >>> s({'A': None, 'X': 'Hello', 'Y': 'World', 'Z': 'Default'})
+    'Default'
+    >>> s({'X': 'Hello', 'Y': 'World', 'Z': 'Default'})
+    'Default'
+    """
+
     dispatch: Evaluatable[K]
     lookup: Mapping[K, Evaluatable[V]]
     default: MaybeMissing[Evaluatable[V]]
@@ -103,15 +140,19 @@ class Switch(Generic[K, V], Evaluatable[V]):
         return _DependsOn(self.lookup[key], self.dispatch)  # type: ignore  [arg-type]
 
     def evaluate(self, options: Options) -> V:
+        """Evaluate the switch statement and return the result."""
         return self._lookup(options).evaluate(options)
 
     def validate(self, options: Options) -> None:
+        """Validate that the switch statement can be evaluated."""
         self._lookup(options).validate(options)
 
     def keys(self, options: Options) -> Set[str]:
+        """Return the option keys required by the switch statement."""
         return self._lookup(options).keys(options)
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
+        """Return the option keys required by the switch statement."""
         options = options or {}
         try:
             chosen = self._lookup(options)
@@ -144,7 +185,16 @@ class CaseWhenError(EvaluationError):
 
 
 class CaseWhen(Generic[A, B], Evaluatable[B]):
-    """A class representing a case when statement."""
+    """A class representing a case when statement.
+
+    This class takes a dispatch evaluatable and a sequence of cases. Each case is
+    a condition and a result. When evaluated, the dispatch is evaluated and the
+    corresponding case is matched. If no case is matched, a default value can be
+    provided. If no default is provided, and the case cannot choose a branch, an
+    error is raised.
+
+    This class is not usually instantiated directly. Instead, use the :code:`case` function.
+    """
 
     dispatch: Evaluatable[A]
     cases: Sequence[Tuple[Evaluatable[Callable[[A], bool]], Evaluatable[B]]]
@@ -181,15 +231,19 @@ class CaseWhen(Generic[A, B], Evaluatable[B]):
         return self.dispatch.bind(functools.partial(self._evaluate, options=options))
 
     def evaluate(self, options: Options) -> B:
+        """Evaluate the case when statement and return the result."""
         return self._bound(options).evaluate(options)
 
     def validate(self, options: Options) -> None:
+        """Validate that the case when statement can be evaluated."""
         self._bound(options).validate(options)
 
     def keys(self, options: Options) -> Set[str]:
+        """Return the option keys required by the case when statement."""
         return self._bound(options).keys(options)
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
+        """Return the option keys required by the case when statement."""
         return self._bound(options or {}).explain(options)
 
     def when(
@@ -197,9 +251,25 @@ class CaseWhen(Generic[A, B], Evaluatable[B]):
         condition: MaybeEvaluatable[Callable[[A], bool]],
         result: MaybeEvaluatable[B],
     ) -> "CaseWhen[A, B]":
+        """Add a case to the case when statement. Returns a new instance.
+
+        Arguments
+        ---------
+        condition : Union[str, Callable[[A], bool]]
+            The condition to match. Can be a plain value or a callable.
+        result : MaybeEvaluatable[B]
+            The result to return if the condition is matched.
+        """
         return CaseWhen(self.dispatch, [*self.cases, (condition, result)], self.default)
 
     def otherwise(self, default: MaybeEvaluatable[B]) -> "CaseWhen[A, B]":
+        """Add a default value to the case when statement. Returns a new instance.
+
+        Arguments
+        ---------
+        default : MaybeEvaluatable[B]
+            The default value to return if no case is matched.
+        """
         return CaseWhen(self.dispatch, self.cases, default)
 
     def __repr__(self) -> str:
@@ -214,4 +284,39 @@ class CaseWhen(Generic[A, B], Evaluatable[B]):
 
 
 def case(dispatch: MaybeEvaluatable[A]) -> CaseWhen[A, B]:
+    """Create a case when statement.
+
+    This is the preferred method for creating a case when statement.
+    It allows for chaining multiple cases and a default value.
+
+    Arguments
+    ---------
+    dispatch : MaybeEvaluatable[A]
+        The dispatch evaluatable. This is used to determine which branch to take.
+
+    Returns
+    -------
+    CaseWhen[A, B]
+        A new case when statement with no cases or default.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option, case
+    >>> c = case(
+    ...     Option('A')
+    ... ).when(
+    ...     lambda a: a < 0,
+    ...     Option('X')
+    ... ).when(
+    ...     lambda a: a > 0,
+    ...     Option('Y')
+    ... ).otherwise(Option('Z'))
+    >>> c({'A': -1, 'X': 'Negative', 'Y': 'Positive', 'Z': 'Zero'})
+    'Negative'
+    >>> c({'A': 1, 'X': 'Negative', 'Y': 'Positive', 'Z': 'Zero'})
+    'Positive'
+    >>> c({'A': 0, 'X': 'Negative', 'Y': 'Positive', 'Z': 'Zero'})
+    'Zero'
+    """
     return CaseWhen(dispatch, [])

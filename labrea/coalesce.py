@@ -1,7 +1,7 @@
 from typing import Any, List, Optional, Set, TypeVar
 
 from .exceptions import EvaluationError
-from .types import Evaluatable, MaybeEvaluatable, Options
+from .types import Evaluatable, Options
 
 A = TypeVar("A", covariant=True)
 
@@ -12,20 +12,29 @@ class Coalesce(Evaluatable[A]):
     Takes 1 or more Evaluatables as arguments. Evaluates each Evaluatable in
     order until one can be evaluated. If none can be evaluated, raises an
     EvaluationError.
+
+    Aliases: :func:`labrea.coalesce`, :class:`labrea.Coalesce`
+
+
+    Arguments
+    ---------
+    *evaluatables : MaybeEvaluatable[A]
+        The evaluatables to evaluate.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Coalesce, Option
+    >>> c = Coalesce(Option('A.X'), Option('B.Y'))
+    >>> c({'A': {'X': 1}, 'B': {'Y': 2}})
+    1
+    >>> c({'B': {'Y': 2}})
+    2
     """
 
     members: List[Evaluatable[A]]
 
-    def __init__(self, __first: MaybeEvaluatable[A], *__rest: MaybeEvaluatable[A]):
-        """Create a new Coalesce Evaluatable
-
-        Parameters
-        ----------
-        __first : MaybeEvaluatable[A]
-            The first Evaluatable to try to evaluate.
-        *__rest : MaybeEvaluatable[A]
-            The rest of the Evaluatables to try to evaluate.
-        """
+    def __init__(self, __first: Evaluatable[A], *__rest: Evaluatable[A]):
         self.members = [Evaluatable.ensure(arg) for arg in (__first, *__rest)]
 
     def evaluate(self, options: Options) -> A:
@@ -48,7 +57,6 @@ class Coalesce(Evaluatable[A]):
             return self.members[-1].explain(options)
 
     def _delegate(self, method: str, options: Optional[Options] = None) -> Any:
-        """Delegate a method to the first Evaluatable that can be evaluated."""
         options = options or {}
         err: Optional[EvaluationError] = None
 

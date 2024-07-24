@@ -29,6 +29,14 @@ P = ParamSpec("P")
 
 
 class PipelineStep(Evaluatable[Callable[[A], B]], Transformation[A, B]):
+    """A class representing a single step in a pipeline.
+
+    A pipeline step is a single transformation that can be applied to a value.
+    Steps can be composed into pipelines using the :code:`+` operator.
+
+    This class should probably not be used directly. Instead, use the :code:`pipeline_step`
+    """
+
     step: Evaluatable[Callable[[A], B]]
     _name: Optional[str]
 
@@ -39,18 +47,36 @@ class PipelineStep(Evaluatable[Callable[[A], B]], Transformation[A, B]):
         self._name = _name
 
     def evaluate(self, options: Options) -> Callable[[A], B]:
+        """Evaluate the pipeline step, returning a function that applies the transformation."""
         return self.step.evaluate(options)
 
     def validate(self, options: Options) -> None:
+        """Validate the pipeline step."""
         self.step.validate(options)
 
     def keys(self, options: Options) -> Set[str]:
+        """Return the option keys required by the pipeline step."""
         return self.step.keys(options)
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
+        """Return the option keys required by the pipeline step."""
         return self.step.explain(options)
 
     def transform(self, value: A, options: Optional[Options] = None) -> B:
+        """Transform a value using the pipeline step.
+
+        Arguments
+        ---------
+        value : A
+            The value to transform.
+        options : Optional[Options]
+            The options to use when transforming the value.
+
+        Returns
+        -------
+        B
+            The transformed value.
+        """
         return self(options)(value)
 
     def __repr__(self) -> str:
@@ -82,6 +108,17 @@ class Pipeline(
     Iterable[Evaluatable[Callable[[Any], Any]]],
     Transformation[A, B],
 ):
+    """A class representing a pipeline of transformations.
+
+    A pipeline is a sequence of transformations that can be applied to a value.
+    Pipelines are implemented as a linked list of PipelineSteps, where each step
+    is a single transformation that can be applied to a value. Pipelines, like
+    PipelineSteps, can be composed using the :code:`+` operator.
+
+    This class should probably not be used directly. Instead, use the :code:`pipeline_step`
+    and compose pipelines using the :code:`+` operator.
+    """
+
     tail: PipelineStep[Any, B]
     rest: Optional["Pipeline[A, Any]"]
 
@@ -118,26 +155,31 @@ class Pipeline(
         self.rest = rest
 
     def evaluate(self, options: Options) -> Callable[[A], B]:
+        """Evaluate the pipeline, returning a function that applies all transformations."""
         tail = self.tail.evaluate(options)
         rest = self.rest.evaluate(options) if self.rest else lambda x: x
         return lambda x: tail(rest(x))
 
     def validate(self, options: Options) -> None:
+        """Validate the pipeline."""
         self.tail.validate(options)
         if self.rest:
             self.rest.validate(options)
 
     def keys(self, options: Options) -> Set[str]:
+        """Return the option keys required by the pipeline."""
         return self.tail.keys(options) | (
             self.rest.keys(options) if self.rest else set()
         )
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
+        """Return the option keys required by the pipeline."""
         return self.tail.explain(options) | (
             self.rest.explain(options) if self.rest else set()
         )
 
     def transform(self, value: A, options: Optional[Options] = None) -> B:
+        """Transform a value using the pipeline."""
         return self(options)(value)
 
     def __repr__(self) -> str:
@@ -168,4 +210,29 @@ class Pipeline(
 
 
 def pipeline_step(func: Callable[Concatenate[A, P], B]) -> "PipelineStep[A, B]":
+    """Create a pipeline step from a function.
+
+    This is the primary way to create a pipeline step. The function should be used
+    as a decorator on the function that will be used as the transformation. The
+    function should take at least one argument. The first argument will be the value
+    to transform; the remaining arguments will be the parameters for the transformation,
+    and should have default values similar to a dataset definition.
+
+
+    Example Usage
+    -------------
+    >>> @pipeline_step
+    ... def add(x: int, y: int = Option('AMOUNT', 1)) -> int:
+    ...     return x + y
+    >>>
+    >>> @pipeline_step
+    ... def multiply(x: int, y: int = Option('FACTOR', 2)) -> int:
+    ...     return x * y
+    >>>
+    >>> pipeline = add + multiply
+    >>> pipeline.transform(1)
+    4
+    >>> pipeline.transform(1, {'AMOUNT': 2, 'FACTOR': 3})
+    9
+    """
     return PipelineStep(PartialApplication.lift(func), getattr(func, "__name__", None))

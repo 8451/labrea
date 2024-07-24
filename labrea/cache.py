@@ -170,6 +170,20 @@ class MemoryCache(Cache[A]):
 
 
 class CacheSetRequest(runtime.Request[A]):
+    """A request to set a value in a cache.
+
+    Arguments
+    ---------
+    evaluatable : Evaluatable
+        The evaluatable that produced the value.
+    options : Options
+        The options dictionary that was used to evaluate the value.
+    value : A
+        The value to set in the cache.
+    cache : Cache
+        The cache to set the value in.
+    """
+
     evaluatable: Evaluatable
     options: Options
     value: A
@@ -185,6 +199,18 @@ class CacheSetRequest(runtime.Request[A]):
 
 
 class CacheGetRequest(runtime.Request[A]):
+    """A request to get a value from a cache.
+
+    Arguments
+    ---------
+    evaluatable : Evaluatable
+        The evaluatable to get from the cache.
+    options : Options
+        The options dictionary to evaluate against.
+    cache : Cache
+        The cache to get the value from.
+    """
+
     evaluatable: Evaluatable[A]
     options: Options
     cache: Cache[A]
@@ -196,6 +222,18 @@ class CacheGetRequest(runtime.Request[A]):
 
 
 class CacheExistsRequest(runtime.Request[bool]):
+    """A request to check if a value exists in a cache.
+
+    Arguments
+    ---------
+    evaluatable : Evaluatable
+        The evaluatable to check in the cache.
+    options : Options
+        The options dictionary to evaluate against.
+    cache : Cache
+        The cache to check the value in.
+    """
+
     evaluatable: Evaluatable
     options: Options
     cache: Cache
@@ -215,7 +253,7 @@ def _cache_disabled(
 
 
 @CacheSetRequest.handle
-def set_cache_handler(request: CacheSetRequest[A]) -> A:
+def _set_cache_handler(request: CacheSetRequest[A]) -> A:
     if _cache_disabled(request):
         return _disabled_set_cache_handler(request)
 
@@ -227,7 +265,7 @@ def set_cache_handler(request: CacheSetRequest[A]) -> A:
 
 
 @CacheGetRequest.handle
-def get_cache_handler(request: CacheGetRequest[A]) -> A:
+def _get_cache_handler(request: CacheGetRequest[A]) -> A:
     if _cache_disabled(request):
         return _disabled_get_cache_handler(request)
 
@@ -235,7 +273,7 @@ def get_cache_handler(request: CacheGetRequest[A]) -> A:
 
 
 @CacheExistsRequest.handle
-def exists_cache_handler(request: CacheExistsRequest) -> bool:
+def _exists_cache_handler(request: CacheExistsRequest) -> bool:
     if _cache_disabled(request):
         return _disabled_exists_cache_handler(request)
 
@@ -265,7 +303,20 @@ def disabled() -> runtime.Runtime:
 
 
 class Cached(Evaluatable[A]):
-    """A class representing an Evaluatable that may be cached."""
+    """A class representing an Evaluatable that may be cached.
+
+    When evaluated, this class will check if the value exists in the cache
+    before evaluating the underlying Evaluatable. If the value is not in the
+    cache, the value will be evaluated and stored in the cache before being
+    returned.
+
+    Arguments
+    ---------
+    evaluatable : Evaluatable
+        The evaluatable to cache.
+    cache : Cache
+        The cache to store the value in.
+    """
 
     evaluatable: Evaluatable[A]
     cache: Cache[A]
@@ -275,6 +326,7 @@ class Cached(Evaluatable[A]):
         self.cache = cache
 
     def evaluate(self, options: Options) -> A:
+        """Return the (possibly cached) result of evaluating the evaluatable."""
         if CacheExistsRequest(self.evaluatable, options, self.cache).run():
             try:
                 return CacheGetRequest(self.evaluatable, options, self.cache).run()
@@ -286,17 +338,20 @@ class Cached(Evaluatable[A]):
         return CacheSetRequest(self.evaluatable, options, value, self.cache).run()
 
     def validate(self, options: Options) -> None:
+        """If the value is not in the cache, validate the evaluatable."""
         if not CacheExistsRequest(self.evaluatable, options, self.cache).run():
             self.evaluatable.validate(options)
 
     def keys(self, options: Options) -> Set[str]:
+        """Return the keys required to evaluate the evaluatable."""
         return self.evaluatable.keys(options)
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
+        """Return the keys required to evaluate the evaluatable."""
         return self.evaluatable.explain(options)
 
     def __repr__(self) -> str:
-        return f"CachedEvaluation({self.evaluatable!r}, {self.cache!r})"
+        return f"Cached({self.evaluatable!r}, {self.cache!r})"
 
 
 @overload
@@ -313,6 +368,43 @@ def cached(
     __x: Union[Cache[A], Evaluatable[A]],
     cache: Optional[Cache[A]] = None,
 ) -> Union[Callable[[Evaluatable[A]], Evaluatable[A]], Evaluatable[A]]:
+    """Return an Evaluatable that caches the result of evaluating the input Evaluatable.
+
+    Can be used as a decorator or a function. If used as a decorator, can be used with or without
+    providing a cache object. If no cache object is provided, a MemoryCache will be used.
+
+    Arguments
+    ---------
+    __x : Union[Cache, Evaluatable]
+        The cache object or evaluatable to cache.
+    cache : Optional[Cache], optional
+        The cache object to use, by default None, in which case a MemoryCache is used.
+
+    Returns
+    -------
+    Union[Callable[[Evaluatable[A]], Evaluatable[A]], Evaluatable[A]]
+        The cached evaluatable, or a function that takes an evaluatable and returns a cached
+        evaluatable.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import cached, Option
+    >>> from labrea.cache import MemoryCache
+    >>> from labrea.application import FunctionApplication
+    >>> x_cached = cached(Option('X'))
+    >>> x_cached_with_cache = cached(Option('X'), MemoryCache())
+    >>>
+    >>> @cached
+    ... @FunctionApplication.lift
+    ... def y(x: int = Option('X')) -> int:
+    ...     return x
+    >>>
+    >>> @cached(MemoryCache())
+    ... @FunctionApplication.lift
+    ... def z(x: int = Option('X')) -> int:
+    ...     return x
+    """
     if isinstance(__x, Cache):
         return lambda evaluatable: cached(evaluatable, __x)
     else:

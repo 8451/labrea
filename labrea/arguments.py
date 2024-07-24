@@ -13,7 +13,15 @@ P = ParamSpec("P")
 
 
 class Arguments(Generic[P]):
-    """A class representing the arguments of a function or method."""
+    """A class representing the arguments of a function or method.
+
+    Arguments
+    ---------
+    *args : P.args
+        The positional arguments.
+    **kwargs : P.kwargs
+        The keyword arguments.
+    """
 
     args: P.args
     kwargs: P.kwargs
@@ -36,7 +44,13 @@ class Arguments(Generic[P]):
 
 
 class EvaluatableArgs(Generic[P], Evaluatable["P.args"]):
-    """A class representing a set of arguments that can be evaluated."""
+    """A class representing a set of arguments that can be evaluated.
+
+    Arguments
+    ---------
+    *args : Evaluatable[P.args]
+        The arguments to evaluate.
+    """
 
     args: Tuple[Evaluatable, ...]
 
@@ -61,7 +75,13 @@ class EvaluatableArgs(Generic[P], Evaluatable["P.args"]):
 
 
 class EvaluatableKwargs(Generic[P], Evaluatable["P.kwargs"]):
-    """A class representing a set of keyword arguments that can be evaluated."""
+    """A class representing a set of keyword arguments that can be evaluated.
+
+    Arguments
+    ---------
+    **kwargs : Evaluatable[P.kwargs]
+        The keyword arguments to evaluate.
+    """
 
     kwargs: Dict[str, Evaluatable]
 
@@ -90,7 +110,15 @@ class EvaluatableKwargs(Generic[P], Evaluatable["P.kwargs"]):
 
 
 class EvaluatableArguments(Evaluatable[Arguments[P]]):
-    """A class representing a set of arguments that can be evaluated."""
+    """A class representing a set of arguments that can be evaluated.
+
+    Arguments
+    ---------
+    *args : MaybeEvaluatable[P.args]
+        The positional arguments to evaluate.
+    **kwargs : MaybeEvaluatable[P.kwargs]
+        The keyword arguments to evaluate
+    """
 
     args: EvaluatableArgs[P]
     kwargs: EvaluatableKwargs[P]
@@ -124,6 +152,15 @@ class EvaluatableArguments(Evaluatable[Arguments[P]]):
 def arguments(
     *args: MaybeEvaluatable["P.args"], **kwargs: MaybeEvaluatable["P.kwargs"]
 ) -> Evaluatable[Arguments[P]]:
+    """Create an EvaluatableArguments object from the given arguments.
+
+    Arguments
+    ---------
+    *args : MaybeEvaluatable[P.args]
+        The positional arguments to evaluate.
+    **kwargs : MaybeEvaluatable[P.kwargs]
+        The keyword arguments to evaluate
+    """
     return EvaluatableArguments(
         *(Evaluatable.ensure(arg) for arg in args),
         **{key: Evaluatable.ensure(value) for key, value in kwargs.items()},

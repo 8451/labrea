@@ -14,6 +14,44 @@ B = TypeVar("B", covariant=True)
 
 
 class Option(Evaluatable[A]):
+    """A class representing a single user-provided option.
+
+    Options are the singular way to provide user-input to an Evaluatable
+    object. They take a key, which is used to retrieve the value from the
+    options dictionary. If the key does not exist, a default value can be
+    provided.
+
+    Arguments
+    ----------
+    key : str
+        The key to retrieve from the options dictionary. This key can be
+        nested using the standard :code:`{NESTED.KEY}` syntax from
+        confectioner.
+    default : MaybeEvaluatable[A]
+        The default value to use if the key does not exist in the options
+        dictionary. If the default value is an Evaluatable, it is evaluated
+        using the options dictionary. If the default value is not an
+        Evaluatable, it is returned as-is. If the default value is a string,
+        it is treated as a :code:`Template` and evaluated using the options
+        dictionary.
+    default_factory : Callable[[], A]
+        A factory function that returns the default value to use if the key
+        does not exist in the options dictionary. This is an alternative to
+        providing a default value directly.
+    doc : str
+        The docstring for the option.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> o = Option('A.X', default='foo')
+    >>> o()
+    'foo'
+    >>> o({'A': {'X': 'bar'}})
+    'bar'
+    """
+
     key: str
     default: MaybeMissing[Evaluatable[A]]
 
@@ -67,6 +105,13 @@ class Option(Evaluatable[A]):
             raise KeyNotFoundError(self.key, self)
 
     def keys(self, options: Options) -> Set[str]:
+        """Returns the keys required by the option.
+
+        Usually this is just the provided key, but if the default value is a
+        string, the keys required by the template are also returned. Similarly,
+        if the default value is an Evaluatable, the keys required by the
+        Evaluatable are also returned.
+        """
         if dotted_key_exists(self.key, options):
             value = get_dotted_key(self.key, options)
             if isinstance(value, str):
@@ -79,6 +124,7 @@ class Option(Evaluatable[A]):
             raise KeyNotFoundError(self.key, self)
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
+        """Returns the keys required by the option."""
         options = options or {}
         if dotted_key_exists(self.key, options):
             value = get_dotted_key(self.key, options)
@@ -100,6 +146,25 @@ class Option(Evaluatable[A]):
 
 
 class WithOptions(Evaluatable[B]):
+    """A class that wraps an Evaluatable object and provides default options.
+
+    This class is used to provide default options to an Evaluatable object. The
+    default options are mixed with the provided options. The default options
+    can be forced to take precedence over the provided options (default) or
+    the provided options can take precedence over the default options.
+
+    Arguments
+    ----------
+    evaluatable : Evaluatable[B]
+        The evaluatable object to wrap.
+    options : Options
+        The default options to provide to the evaluatable object.
+    force : bool, optional
+        If True, the default options take precedence over the provided options.
+        If False, the provided options take precedence over the default options.
+        Default is True.
+    """
+
     evaluatable: Evaluatable[B]
     options: Options
     force: bool
@@ -119,12 +184,15 @@ class WithOptions(Evaluatable[B]):
         )
 
     def evaluate(self, options: Options) -> B:
+        """Evaluate the wrapped Evaluatable object with the provided options."""
         return self.evaluatable.evaluate(self._options(options))
 
     def validate(self, options: Options) -> None:
+        """Validate the wrapped Evaluatable object with the provided options."""
         self.evaluatable.validate(self._options(options))
 
     def keys(self, options: Options) -> Set[str]:
+        """Return the keys required by the wrapped Evaluatable object."""
         return {
             key
             for key in self.evaluatable.keys(self._options(options))
@@ -135,6 +203,7 @@ class WithOptions(Evaluatable[B]):
         }
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
+        """Return the explanation for the wrapped Evaluatable object."""
         options = options or {}
         return {
             key
@@ -154,4 +223,21 @@ class WithOptions(Evaluatable[B]):
 
 
 def WithDefaultOptions(evaluatable: Evaluatable[B], options: Options) -> WithOptions[B]:
+    """Wrap an Evaluatable object with default options.
+
+    This is a convenience function for creating a WithOptions object
+    with :code:`force=False`.
+
+    Arguments
+    ----------
+    evaluatable : Evaluatable[B]
+        The evaluatable object to wrap.
+    options : Options
+        The default options to provide to the evaluatable object.
+
+    Returns
+    -------
+    WithOptions[B]
+        The wrapped evaluatable object with default options.
+    """
     return WithOptions(evaluatable, options, force=False)
