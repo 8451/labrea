@@ -11,6 +11,26 @@ Core Types
    :members:
    :show-inheritance:
 
+.. autoclass:: labrea.types.Apply
+    :members:
+    :show-inheritance:
+
+.. autoclass:: labrea.types.Bind
+    :members:
+    :show-inheritance:
+
+.. autoclass:: labrea.types.Cacheable
+    :members:
+    :show-inheritance:
+
+.. autoclass:: labrea.types.Validatable
+    :members:
+    :show-inheritance:
+
+.. autoclass:: labrea.types.Explainable
+    :members:
+    :show-inheritance:
+
 Options
 -------
 .. autoclass:: labrea.Option
@@ -116,6 +136,70 @@ DatasetClasses
 .. autofunction:: labrea.datasetclass
 
 
+Function Application
+--------------------
+.. autoclass:: labrea.arguments.Arguments
+    :members:
+    :show-inheritance:
+
+.. autoclass:: labrea.arguments.EvaluatableArgs
+    :members:
+    :show-inheritance:
+
+.. autoclass:: labrea.arguments.EvaluatableKwargs
+    :members:
+    :show-inheritance:
+
+.. autoclass:: labrea.arguments.EvaluatableArguments
+    :members:
+    :show-inheritance:
+
+.. autofunction:: labrea.arguments.arguments
+
+.. autoclass:: labrea.application.FunctionApplication
+    :members:
+    :show-inheritance:
+
+.. autoclass:: labrea.application.PartialApplication
+    :members:
+    :show-inheritance:
+
+
+Runtime
+-------
+.. autoclass:: labrea.runtime.Request
+    :members:
+    :show-inheritance:
+
+.. autoclass:: labrea.runtime.Runtime
+    :members:
+    :show-inheritance:
+
+.. autofunction:: labrea.runtime.current_runtime
+.. autofunction:: labrea.runtime.handle
+.. autofunction:: labrea.runtime.handle_by_default
+.. autofunction:: labrea.runtime.inherit
+
+
+Computation
+-----------
+.. autoclass:: labrea.computation.Effect
+    :members:
+    :show-inheritance:
+
+.. autoclass:: labrea.computation.ChainedEffect
+    :members:
+    :show-inheritance:
+
+.. autoclass:: labrea.computation.CallbackEffect
+    :members:
+    :show-inheritance:
+
+.. autoclass:: labrea.computation.Computation
+    :members:
+    :show-inheritance:
+
+
 Caching
 -------
 .. autoclass:: labrea.cache.Cached
@@ -145,5 +229,42 @@ Caching
     :show-inheritance:
 
 .. autoclass:: labrea.cache.CacheExistsRequest
+    :members:
+    :show-inheritance:
+
+
+Logging
+-------
+.. autoclass:: labrea.logging.LogRequest
+    :members:
+    :show-inheritance:
+
+.. autoclass:: labrea.logging.Logged
+    :members:
+    :show-inheritance:
+
+.. autoclass:: labrea.logging.LogEffect
+    :members:
+    :show-inheritance:
+
+.. autofunction:: labrea.logging.disabled
+.. autofunction:: labrea.logging.DEBUG
+.. autofunction:: labrea.logging.INFO
+.. autofunction:: labrea.logging.WARNING
+.. autofunction:: labrea.logging.ERROR
+.. autofunction:: labrea.logging.CRITICAL
+
+
+Exceptions
+----------
+.. autoclass:: labrea.exceptions.EvaluationError
+    :members:
+    :show-inheritance:
+
+.. autoclass:: labrea.exceptions.KeyNotFoundError
+    :members:
+    :show-inheritance:
+
+.. autoclass:: labrea.exceptions.InsufficientInformationError
     :members:
     :show-inheritance:

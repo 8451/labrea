@@ -19,6 +19,8 @@ X = TypeVar("X")
 class FunctionApplication(Generic[P, A], Evaluatable[A]):
     """A class representing the application of a function to a set of arguments.
 
+    This class is what is used by the :class:`labrea.dataset.Dataset` under the hood.
+
     Arguments
     ---------
     __func : Callable[P, A]
@@ -97,6 +99,36 @@ class FunctionApplication(Generic[P, A], Evaluatable[A]):
         "FunctionApplication[P, A]",
         Callable[[Callable[P, A]], "FunctionApplication[P, A]"],
     ]:
+        """Lift a function definition with Evaluatable default arguments to a FunctionApplication.
+
+        This is used by the :func:`labrea.dataset` decorator under the hood. Can be used
+        as a decorator with or without keyword arguments for the defaults.
+
+        Arguments
+        ---------
+        __func : Callable[P, A]
+            The function to apply.
+        **kwargs : MaybeEvaluatable[P.kwargs]
+            Default values for the keyword arguments of the function.
+
+        Returns
+        -------
+        FunctionApplication[P, A]
+            The lifted function application.
+
+
+        Example Usage
+        -------------
+        >>> @FunctionApplication.lift
+        ... def a_squared(a: int = Option('A')) -> int:
+        ...     return a ** 2
+        >>>
+        >>> @FunctionApplication(a=Option('A'))
+        ... def a_squared(a: int) -> int:
+        ...     return a ** 2
+        >>>
+        >>> a_squared = FunctionApplication.lift(lambda a: a**2, a=Option('A'))
+        """
         if __func is None:
             return lambda f: cls.lift(f, **kwargs)
 
@@ -115,6 +147,20 @@ class FunctionApplication(Generic[P, A], Evaluatable[A]):
 
 
 class PartialApplication(Generic[X, P, A], Evaluatable[Callable[[X], A]]):
+    """A class representing the partial application of a function to a set of arguments.
+
+    This class is used by the :func:`labrea.pipeline_step` decorator under the hood.
+
+    Arguments
+    ---------
+    __func : Callable[Concatenate[X, P], A]
+        The function to apply.
+    *args : MaybeEvaluatable[P.args]
+        The positional arguments to evaluate.
+    **kwargs : MaybeEvaluatable[P.kwargs]
+        The keyword arguments to evaluate.
+    """
+
     func: Callable[Concatenate[X, P], A]
     arguments: Evaluatable[Arguments[P]]
     _repr: str
@@ -183,6 +229,36 @@ class PartialApplication(Generic[X, P, A], Evaluatable[Callable[[X], A]]):
         "PartialApplication[X, P, A]",
         Callable[[Callable[Concatenate[X, P], A]], "PartialApplication[X, P, A]"],
     ]:
+        """Lift a function definition with Evaluatable default arguments to a PartialApplication.
+
+        This is used by the :func:`labrea.pipeline_step` decorator under the hood. Can be used
+        as a decorator with or without keyword arguments for the defaults.
+
+        Arguments
+        ---------
+        __func : Callable[Concatenate[X, P], A]
+            The function to apply.
+        **kwargs : MaybeEvaluatable[P.kwargs]
+            Default values for the keyword arguments of the function.
+
+        Returns
+        -------
+        PartialApplication[X, P, A]
+            The lifted partial application.
+
+
+        Example Usage
+        -------------
+        >>> @PartialApplication.lift
+        ... def a_plus_b(a: int, b: int = Option('B')) -> int:
+        ...     return a + b
+        >>>
+        >>> @PartialApplication(b=Option('B'))
+        ... def a_plus_b(a: int, b: int) -> int:
+        ...     return a + b
+        >>>
+        >>> a_plus_b = PartialApplication.lift(lambda a, b: a + b, b=Option('B'))
+        """
         if __func is None:
             return lambda f: cls.lift(f, **kwargs)
 
