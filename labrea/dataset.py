@@ -271,22 +271,25 @@ class Dataset(Evaluatable[A]):
 
         self.cache = cache
 
-    def add_effect(self, effect: Union[Effect[A], Callback[A]]) -> None:
-        """Adds an effect to the dataset.
+    def add_effects(self, *effects: Union[Effect[A], Callback[A]]) -> None:
+        """Adds effects to the dataset.
 
-        Adds an effect to the dataset. Effects are applied to the dataset when it is evaluated.
+        Adds effects to the dataset. Effects are applied to the dataset when it is evaluated.
         This is a stateful operation that changes the effects for the dataset. This is intended
         for use with third-party datasets that you would like to add effects to (i.e. logging).
 
         Arguments
         ---------
-        effect : Union[Effect[A], Callback[A]]
-            The effect to add to the dataset.
+        effects : Union[Effect[A], Callback[A]]
+            The effects to add to the dataset.
         """
-        if isinstance(effect, Effect):
-            self.effects.append(effect)
-        else:
-            self.effects.append(CallbackEffect(effect))
+        for effect in effects:
+            if isinstance(effect, Effect):
+                self.effects.append(effect)
+            else:
+                self.effects.append(CallbackEffect(effect))
+
+    add_effect = add_effects
 
     def disable_effects(self) -> None:
         """Disables effects for the dataset.
