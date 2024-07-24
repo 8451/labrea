@@ -272,7 +272,7 @@ def test_logging():
     def test_logging_handler(request: LogRequest) -> None:
         assert request.level == logging.INFO
         assert request.name == x.__module__
-        assert request.msg == f'Labrea: Evaluating {x.__qualname__}'
+        assert request.msg == f'Labrea: Evaluating {x!r}'
 
     with labrea.runtime.handle(LogRequest, test_logging_handler):
         x()

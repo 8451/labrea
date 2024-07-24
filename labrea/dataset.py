@@ -105,13 +105,7 @@ class Dataset(Evaluatable[A]):
                         self.overloads if self._effects_disabled else computation,
                         level=logging.INFO,
                         name=self.__module__,
-                        msg=(
-                            f"Labrea: Evaluating {self.__qualname__}"
-                            if hasattr(self, "__qualname__")
-                            else f"Labrea: Evaluating {self.__name__}"
-                            if hasattr(self, "__name__")
-                            else "Labrea: Evaluating {self!r}"
-                        ),
+                        msg=f"Labrea: Evaluating {self!r}",
                     ),
                     self.cache,
                 ),
