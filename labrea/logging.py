@@ -188,5 +188,9 @@ class Logged(Evaluatable[A]):
 
     def __repr__(self) -> str:
         return (
-            f"Logged({self.evaluatable!r}, {self.level!r}, {self.name!r}, {self.msg!r})"
+            f"Logged({self.evaluatable!r}, {self.level!r}, "
+            f"{self.name!r}, {self.msg!r})"
+            if self.log_first
+            else f"Logged({self.evaluatable!r}, {self.level!r}, "
+            f"{self.name!r}, {self.msg!r}, log_first=False)"
         )
