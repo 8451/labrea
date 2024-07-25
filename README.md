@@ -1,6 +1,6 @@
 <picture align="center">
-  <source media="(prefers-color-scheme: dark)" srcset="docs/source/static/logo_white.png">
-  <img alt="Labrea Logo" src="docs/source/static/logo.png">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/source/static/labrea-logo-white.png">
+  <img alt="Labrea Logo" src="docs/source/static/labrea-logo-black.png">
 </picture>
 
 -----------------
