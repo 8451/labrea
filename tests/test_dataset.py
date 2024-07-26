@@ -269,10 +269,16 @@ def test_logging():
     def x() -> int:
         return 1
 
+    handler_run = False
+
     def test_logging_handler(request: LogRequest) -> None:
+        nonlocal handler_run
+        handler_run = True
         assert request.level == logging.INFO
         assert request.name == x.__module__
         assert request.msg == f'Labrea: Evaluating {x!r}'
 
     with labrea.runtime.handle(LogRequest, test_logging_handler):
         x()
+
+    assert handler_run
