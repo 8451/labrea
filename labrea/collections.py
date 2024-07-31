@@ -1,114 +1,167 @@
-from typing import Dict, List, Set, TypeVar
+from typing import Dict, Hashable, List, Set, Tuple, TypeVar, Union, overload
 
-from .types import Evaluatable, JSONDict
+from .iterable import Iter
+from .types import Evaluatable, Value
 
 A = TypeVar("A")
-K = TypeVar("K")
+K = TypeVar("K", bound=Hashable)
+V = TypeVar("V")
+T1 = TypeVar("T1")
+T2 = TypeVar("T2")
+T3 = TypeVar("T3")
+T4 = TypeVar("T4")
+T5 = TypeVar("T5")
+T6 = TypeVar("T6")
+T7 = TypeVar("T7")
+T8 = TypeVar("T8")
 
 
-class DatasetList(Evaluatable[List[A]]):
-    """A list of Evaluatables that can be evaluated as a list of values
+def evaluatable_list(*evaluatables: Evaluatable[A]) -> Evaluatable[List[A]]:
+    """Create an Evaluatable that evaluates to a list of values.
 
-    Turns a list of Evaluatables into a single Evaluatable that evaluates to a
-    list of values.
+    This function is a convenience wrapper around Iter.apply(list).
+
+    Aliases: :func:`labrea.DatasetList`, :func:`labrea.evaluatable_list`
+
+    Arguments
+    ---------
+    *evaluatables : Evaluatable[A]
+        The objects to evaluate.
     """
-
-    contents: List[Evaluatable[A]]
-
-    def __init__(self, *contents: Evaluatable[A]):
-        """Create a new DatasetList Evaluatable
-
-        Parameters
-        ----------
-        *contents : Evaluatable[A]
-            The Evaluatables to include in the list.
-        """
-        self.contents = list(contents)
-
-    def evaluate(self, options: JSONDict) -> List[A]:
-        """Evaluate the Evaluatables in the list
-
-        Return a list containing the results of evaluating each Evaluatable in
-        the list.
-
-        See Also
-        --------
-        labrea.types.Evaluatable.evaluate
-        """
-        return [dep.evaluate(options) for dep in self.contents]
-
-    def validate(self, options: JSONDict):
-        """Validate each Evaluatable in the list.
-
-        See Also
-        --------
-        labrea.types.Validatable.validate
-        """
-        for val in self.contents:
-            val.validate(options)
-
-    def keys(self, options: JSONDict) -> Set[str]:
-        """Return the keys that each Evaluatable in the list depends on.
-
-        See Also
-        --------
-        labrea.types.Validatable.keys
-        """
-        return {key for val in self.contents for key in val.keys(options)}
-
-    def __repr__(self):
-        return f'DatasetList({", ".join(map(repr, self.contents))})'
+    return Iter(*evaluatables).apply(list)
 
 
-class DatasetDict(Evaluatable[Dict[K, A]]):
-    """A dict of Evaluatables that can be evaluated as a dict of values
+@overload
+def evaluatable_tuple(
+    __e1: Evaluatable[T1],
+) -> Evaluatable[Tuple[T1]]:
+    ...
 
-    Turns a dict of Evaluatables into a single Evaluatable that evaluates to a
-    dict of values.
+
+@overload
+def evaluatable_tuple(
+    __e1: Evaluatable[T1],
+    __e2: Evaluatable[T2],
+) -> Evaluatable[Tuple[T1, T2]]:
+    ...
+
+
+@overload
+def evaluatable_tuple(
+    __e1: Evaluatable[T1],
+    __e2: Evaluatable[T2],
+    __e3: Evaluatable[T3],
+) -> Evaluatable[Tuple[T1, T2, T3]]:
+    ...
+
+
+@overload
+def evaluatable_tuple(
+    __e1: Evaluatable[T1],
+    __e2: Evaluatable[T2],
+    __e3: Evaluatable[T3],
+    __e4: Evaluatable[T4],
+) -> Evaluatable[Tuple[T1, T2, T3, T4]]:
+    ...
+
+
+@overload
+def evaluatable_tuple(
+    __e1: Evaluatable[T1],
+    __e2: Evaluatable[T2],
+    __e3: Evaluatable[T3],
+    __e4: Evaluatable[T4],
+    __e5: Evaluatable[T5],
+) -> Evaluatable[Tuple[T1, T2, T3, T4, T5]]:
+    ...
+
+
+@overload
+def evaluatable_tuple(
+    __e1: Evaluatable[T1],
+    __e2: Evaluatable[T2],
+    __e3: Evaluatable[T3],
+    __e4: Evaluatable[T4],
+    __e5: Evaluatable[T5],
+    __e6: Evaluatable[T6],
+) -> Evaluatable[Tuple[T1, T2, T3, T4, T5, T6]]:
+    ...
+
+
+@overload
+def evaluatable_tuple(
+    __e1: Evaluatable[T1],
+    __e2: Evaluatable[T2],
+    __e3: Evaluatable[T3],
+    __e4: Evaluatable[T4],
+    __e5: Evaluatable[T5],
+    __e6: Evaluatable[T6],
+    __e7: Evaluatable[T7],
+) -> Evaluatable[Tuple[T1, T2, T3, T4, T5, T6, T7]]:
+    ...
+
+
+@overload
+def evaluatable_tuple(
+    __e1: Evaluatable[T1],
+    __e2: Evaluatable[T2],
+    __e3: Evaluatable[T3],
+    __e4: Evaluatable[T4],
+    __e5: Evaluatable[T5],
+    __e6: Evaluatable[T6],
+    __e7: Evaluatable[T7],
+    __e8: Evaluatable[T8],
+) -> Evaluatable[Tuple[T1, T2, T3, T4, T5, T6, T7, T8]]:
+    ...
+
+
+def evaluatable_tuple(*evaluatables: Evaluatable[A]) -> Evaluatable[Tuple[A, ...]]:
+    """Create an Evaluatable that evaluates to a tuple of values.
+
+    This function is a convenience wrapper around Iter.apply(tuple).
+
+    Aliases: :func:`labrea.DatasetTuple`, :func:`labrea.evaluatable_tuple`
+
+    Arguments
+    ---------
+    *evaluatables : Evaluatable[A]
+        The objects to evaluate.
     """
+    return Iter(*evaluatables).apply(tuple)
 
-    contents: Dict[K, Evaluatable[A]]
 
-    def __init__(self, contents: Dict[K, Evaluatable[A]]):
-        """Create a new DatasetDict Evaluatable
+def evaluatable_set(*evaluatables: Evaluatable[K]) -> Evaluatable[Set[K]]:
+    """Create an Evaluatable that evaluates to a set of values.
 
-        Parameters
-        ----------
-        contents : Dict[K, Evaluatable[A]]
-            The Evaluatables to include in the dict.
-        """
-        self.contents = contents.copy()
+    This function is a convenience wrapper around Iter.apply(set).
 
-    def evaluate(self, options: JSONDict) -> Dict[K, A]:
-        """Evaluate the Evaluatables in the dict
+    Aliases: :func:`labrea.DatasetSet`, :func:`labrea.evaluatable_set`
 
-        Return a dict containing the results of evaluating each Evaluatable in
-        the dict.
+    Arguments
+    ---------
+    *evaluatables : Evaluatable[K]
+        The objects to evaluate.
+    """
+    return Iter(*evaluatables).apply(set)
 
-        See Also
-        --------
-        labrea.types.Evaluatable.evaluate
-        """
-        return {key: val.evaluate(options) for key, val in self.contents.items()}
 
-    def validate(self, options: JSONDict):
-        """Validate each Evaluatable in the dict values.
+def evaluatable_dict(contents: Dict[K, Evaluatable[V]]) -> Evaluatable[Dict[K, V]]:
+    """Create an Evaluatable that evaluates to a dictionary of values.
 
-        See Also
-        --------
-        labrea.types.Validatable.validate
-        """
-        for val in self.contents.values():
-            val.validate(options)
+    This function is a convenience wrapper around Iter.apply(dict).
 
-    def keys(self, options: JSONDict) -> Set[str]:
-        """Return the keys that each Evaluatable in the dict values depends on.
+    Aliases: :func:`labrea.DatasetDict`, :func:`labrea.evaluatable_dict`
 
-        See Also
-        --------
-        labrea.types.Validatable.keys
-        """
-        return {key for val in self.contents.values() for key in val.keys(options)}
+    Arguments
+    ---------
+    contents : Dict[K, Evaluatable[V]]
+        The objects to evaluate.
+    """
+    pairs = (Iter[Union[K, V]](Value(key), val) for key, val in contents.items())
+    return Iter(*pairs).apply(dict)  # type: ignore
 
-    def __repr__(self):
-        return f"DatasetDict({repr(self.contents)})"
+
+DatasetList = evaluatable_list
+DatasetTuple = evaluatable_tuple
+DatasetSet = evaluatable_set
+DatasetDict = evaluatable_dict

@@ -235,50 +235,26 @@ from labrea import Option
 
 config = {
     'A': 'a',
-    'B': 'b'
+    'V': 'b'
 }
 
 Option('X', 1)(config)          ## 1
-Option('Y', '{A}/{B}')(config)  ## 'a/b'
-```
-
-### Templates
-
-Similar to the built-in f-strings, Labrea provides a `Template` type for
-string interpolation. This can be useful for creating strings that depend on
-config values, or for creating strings that depend on the results of other
-datasets.
-
-```python
-from labrea import dataset, Option, Template
-
-@dataset
-def b_dataset(
-        b: str = Option('B')
-) -> str:
-    return b
-
-template = Template(
-    '{A} {:b:}',
-    b=b_dataset
-)
-
-template({'A': 'Hello', 'B': 'World!'})  ## 'Hello World!'
+Option('Y', '{A}/{V}')(config)  ## 'a/b'
 ```
 
 ### Switches
 
 Sometimes your dataset might have different dependencies depending on some 
-input parameter or other condition. We can express this simply using `Switch`es.
+input parameter or other condition. We can express this simply using `switch`es.
 
 In this example, we have different logic for cloud vs on-prem, and can 
-express that this way. `Switch` takes a string representing the option we want
+express that this way. `switch` takes a string representing the option we want
 to switch over, a dictionary mapping config values to corresponding datasets,
 and (optionally) a default value if the config value is missing or does not 
 appear in our mapping.
 
 ```python
-from labrea import dataset, Switch
+from labrea import dataset, switch
 
 
 @dataset
@@ -293,7 +269,7 @@ def onprem_inputs():
 
 @dataset
 def final_data(
-        inputs = Switch(
+        inputs = switch(
             'ENVIRONMENT',
             {
                 'CLOUD': cloud_inputs,
@@ -308,12 +284,12 @@ final_data({'ENVIRONMENT': 'CLOUD'})  ## uses cloud_inputs as inputs arg
 final_data({'ENVIRONMENT': 'ONPREM'})  ## uses onprem_inputs as inputs arg
 ```
 
-The first argument to `Switch` can also be another dataset. In this example, we
+The first argument to `switch` can also be another dataset. In this example, we
 could automatically determine the environment in another dataset rather than 
 pass it explicitly in the config.
 
 ```python
-from labrea import dataset, Switch
+from labrea import dataset, switch
 
 
 @dataset
@@ -323,7 +299,7 @@ def inferred_environment():
 
 @dataset
 def final_data(
-        inputs = Switch(
+        inputs = switch(
             inferred_environment,
             {
                 'CLOUD': cloud_inputs,
@@ -341,110 +317,21 @@ the first one that can evaluate.
 ```python
 from labrea import Coalesce, Option
 
-x = Coalesce(Option('A'), Option('B'), Option('C'))
+x = Coalesce(Option('A'), Option('V'), Option('C'))
 
 x({'A': 1}) == 1
-x({'B': 2}) == 2
+x({'V': 2}) == 2
 x({'C': 3}) == 3
-x({'A': 1, 'B': 2}) == 1
-x({'B': 2, 'C': 3}) == 2
-x({})  ## EvaluationError
+x({'A': 1, 'V': 2}) == 1
+x({'V': 2, 'C': 3}) == 2
+x()  ## EvaluationError
 
 
-y = Coalesce(Option('A'), Option('B'), None)
+y = Coalesce(Option('A'), Option('V'), None)
 y({'A': 1}) == 1
-y({'B': 2}) == 2
-y({'A': 1, 'B': 2}) == 1
-y({}) is None
-```
-
-### Without Decorators
-
-What if you want to have your normal function, but then also create a dataset 
-version of that function? We can wrap an existing function in a dataset like so.
-
-```python
-import pandas as pd
-
-from labrea import dataset, Option
-
-
-def read_data(
-        path: str,
-        fmt: str = 'csv'
-) -> pd.DataFrame:
-    if fmt == 'csv':
-        return pd.read_csv(path)
-    elif fmt == 'excel':
-        return pd.read_excel(path)
-    else:
-        raise ValueError('Only csv and excel files are accepted.')
-
-
-input_data = dataset.where(
-    path=Option('INPUT.PATH'), 
-    fmt=Option('INPUT.FMT')
-).wrap(
-    read_data
-)
-```
-
-### Dataset Classes
-
-You may want to write classes with more complex behavior that use datasets
-and options as their inputs. Similar to the built-in dataclasses, we can use
-the `@datasetclass` decorator to create a class whose `__init__` method takes
-an options dictionary and automatically evaluates dependencies like a dataset.
-
-```python
-from typing import Set
-
-import pandas as pd
-
-from labrea import dataset, datasetclass, Option
-
-@dataset
-def input_data(
-        path: str = Option('INPUT.PATH'),
-        fmt: str = Option('INPUT.FMT', 'csv')
-) -> pd.DataFrame:
-    if fmt == 'csv':
-        return pd.read_csv(path)
-    elif fmt == 'excel':
-        return pd.read_excel(path)
-    else:
-        raise ValueError('Only csv and excel files are accepted.')
-
-@dataset
-def distinct_stores(data: pd.DataFrame = input_data) -> Set[str]:
-    return set(data['store_id'])
-
-@dataset
-def distinct_regions(data: pd.DataFrame = input_data) -> Set[str]:
-    return set(data['region_id'])
-
-
-@datasetclass
-class MyClass:
-    data: pd.DataFrame = input_data
-    stores: Set[str] = distinct_stores
-    region: Set[str] = distinct_regions
-    
-    def lookup_store(self, store_id: str):
-        if store_id not in self.stores:
-            return None
-        
-        return self.data[self.data['store_id'] == store_id]]
-
-options = {
-    'INPUT.PATH': '/path/to/input.xlsx',
-    'INPUT.FMT': 'excel'
-}
-
-my_data = MyClass(options)
-
-my_data.regions == {'region_1', 'region_2', 'region_3'} 
-my_data.lookup_store('<my_store>') == pd.DataFrame(...)
+y({'V': 2}) == 2
+y({'A': 1, 'V': 2}) == 1
+y() is None
 ```
 
 ### Overloads
@@ -477,7 +364,7 @@ By default, if nothing is provided, we use the default implementation in the bod
 ```python
 input_data({'INPUT': {'PATH': '/input/data/path'}})  ## Use default implementation
 input_data({'INPUT': {'SOURCE': 'MOCK'}}) == ['a', 'b', 'c'] 
-input_data({'INPUT': {'SOURCE': 'UNKNOWN_SOURCE'}})  ## EvaluationError
+input_data({'INPUT': {'SOURCE': 'UNKNOWN_SOURCE'}})  ## Error
 ```
 
 #### Abstract Datasets
@@ -519,7 +406,7 @@ from labrea import abstractdataset, dataset, interface, Option
 
 @interface(dispatch='ENVIRONMENT')
 class DataSource:
-    @staticmethod
+    @staticmethod  # Adding staticmethod appeases linters/IDEs that don't understand interfaces
     @abstractdataset
     def store() -> pd.DataFrame:
         """Returns a dataframe of store data."""
@@ -532,7 +419,7 @@ class DataSource:
     @staticmethod
     @dataset
     def store_ids(
-            store_: pd.DataFrame = store.__func__
+            store_: pd.DataFrame = store.__func__  # Use .__func__ to refer to the abstract dataset itself
     ) -> set[str]:
         """Derives the set of store ids from the store dataframe. This implementation is shared across all environments
         by default, but can be overridden if necessary."""
@@ -601,12 +488,114 @@ def num_stores(
     return len(store_ids)
 ```
 
+### Collections
+
+Labrea provides a few helper functions for creating collections of datasets. For example,
+you might have a list of datasets that you want to provide as a single input to another
+dataset. You can use the `evaluatable_list` function to accomplist this.
+
+```python
+from labrea import evaluatable_list, dataset
+
+@dataset
+def x() -> int:
+    return 1
+
+@dataset
+def y() -> int:
+    return 2
+
+@dataset
+def z(
+        x_and_y: list[int] = evaluatable_list(x, y)
+) -> list[int]:
+    return x_and_y
+
+
+z() == [1, 2]
+```
+
+The `evaluatable_tuple` and `evaluatable_set` functions work similarly. There is also a `evaluatable_dict`
+function that takes a dictionary mapping (static) keys to labrea objects.
+
+```python
+from labrea import evaluatable_dict
+
+@dataset
+def z(
+        xy_dict: dict[str, int] = evaluatable_dict({'x': x, 'y': y})
+) -> dict[str, int]:
+    return xy_dict
+
+z() == {'x': 1, 'y': 2}
+```
+
+### Map
+Sometimes you want to use a dataset multiple times with different options. This can be accomplished using the
+`Map` type. `Map` takes a dataset and a dictionary mapping option keys to labrea objects that return lists
+(or other iterables) of values. When the `Map` object is evaluated, it will call the dataset with each of the
+values in the dictionary, and return an iterable of tuples, where the first element is the options set on that 
+iteration, and the second element is the value. Like the build-in `map`, this iterable is lazy and is not a 
+list.
+
+```python
+from labrea import dataset, Option, Map
+
+
+@dataset
+def x_plus_y(
+        x: int = Option('X'),
+        y: int = Option('Y')
+) -> int:
+    return x + y
+
+
+mapped = Map(x_plus_y, {'X': Option('X_LIST')})
+
+for keys, value in mapped({'X_LIST': [1, 2, 3], 'Y': 10}):
+    print(keys, value)
+
+## {'X': 1} 11
+## {'X': 2} 12
+## {'X': 3} 13
+```
+
+`Map` objects have a `.values` property that can be used to only get the values.
+
+```python
+for value in mapped.values({'X_LIST': [1, 2, 3], 'Y': 10}):
+    print(value)
+    
+## 11
+## 12
+## 13
+```
+
+### In-Line Transformations
+Sometimes you want to perform a transformation on a dataset (or other object) that is not worth creating 
+a new dataset for. A common example is an Option that you want to parse as a date. You can use the
+`>>` operator (or the equivalent `.apply()` method) to perform this transformation in-line. The `>>`
+operator is shared by all Labrea objects.
+
+```python
+from labrea import Option
+import datetime as dt
+
+start_date = Option('START_DATE') >> dt.datetime.fromisoformat
+
+start_date({'START_DATE': '2022-01-01'}) == dt.datetime(2022, 1, 1)
+```
+
 ### Pipelines
 Labrea datasets are really useful when you know the dependency tree in advance. However, sometimes 
 you want to write code that performs some transformation on an arbitrary input, and perhaps you want 
 to perform a series of these transformations in an arbitrary order. To accomplish this, Labrea exposes
-a custom implementation of the `Pipeline` class from the [`funtional-pypelines`](https://github.com/8451/functional-pypelines)
-library that affords the same conveniences of writing datasets.
+a `Pipeline` class, where each step is created using the `@pipeline_step` decorator. 
+
+Pipelines look similar to datasets, but their first argument is always the input to the pipeline, and
+should not have a default value. To combine pipeline steps into a pipeline, use the `+` operator. Pipelines
+can be evaluated like a dataset, and it will return a function of 1 variable. If you want to run the pipeline
+on a value, use the `.transform(input, options)` method.
 
 For example, if you were building a feature engineering pipeline, you could write a series of functions
 that take a dataframe and add new columns, and then chain different subsets of these functions together
@@ -614,7 +603,7 @@ to create different feature sets.
 
 ```python
 import pandas as pd
-from labrea import LabreaPipeline, Option, dataset
+from labrea import pipeline_step, Option, dataset
 
 @dataset
 def store_sales(path: str = Option('PATH.STORE_SALES')) -> pd.DataFrame:
@@ -625,7 +614,7 @@ def store_square_footage(path: str = Option('PATH.STORE_SQFT')) -> pd.DataFrame:
     pd.read_csv(path)
 
 
-@LabreaPipeline.step
+@pipeline_step
 def add_sales(
         df: pd.DataFrame,
         sales: pd.DataFrame = store_sales
@@ -633,7 +622,7 @@ def add_sales(
     return pd.merge(df, sales, on='store_id', how='left')
 
 
-@LabreaPipeline.step
+@pipeline_step
 def add_square_footage(
         df: pd.DataFrame,
         sqft: pd.DataFrame = store_square_footage
@@ -641,7 +630,7 @@ def add_square_footage(
     return pd.merge(df, sqft, on='store_id', how='left')
 
 
-@LabreaPipeline.step
+@pipeline_step
 def add_sales_per_sqft(
         df: pd.DataFrame,
         sales: pd.DataFrame = store_sales,
@@ -653,9 +642,9 @@ def add_sales_per_sqft(
     return df.drop(columns=['sales', 'sqft'])
 
 
-basic_features = add_sales >> add_square_footage
+basic_features = add_sales + add_square_footage
 derived_features = add_sales_per_sqft
-all_features = basic_features >> derived_features
+all_features = basic_features + derived_features
 
 
 stores = pd.read_csv('/path/to/stores.csv')
@@ -664,68 +653,133 @@ options = {
     'PATH.STORE_SQFT': '/path/to/store_sqft.csv'
 }
 
-basic_features(stores, options)
+basic_features.transform(stores, options)
 ## Returns a dataframe with columns from stores and new columns sales and sqft
 
-derived_features(stores, options)
+derived_features.transform(stores, options)
 ## Returns a dataframe with columns from stores and a new column sales_per_sqft
 
-all_features(stores, options)
+all_features.transform(stores, options)
 ## Returns a dataframe with columns from stores and new columns sales, sqft, and sales_per_sqft
 ```
 
-### Callbacks
-Sometimes you want to run some code after a dataset has been evaluated, such as logging the result, 
-validating the result, etc. Callbacks can be added to datasets either when created using the
-`callbacks=` argument to the `@dataset` decorator, or by using the `.add_callbacks` method on the
-dataset.
-
-Callbacks are any callable that takes two arguments, the first being the value of the dataset and
-the second being the options dictionary that was passed to the dataset. The callable can return a
-value, which will be used as the new value of the dataset, or it can return `None`, in which case
-the value of the dataset will not be changed.
+Pipelines can also be used as inline transformations on other Labrea objects.
 
 ```python
-def print_callback(value, options):
-    print(f'Value of dataset is {value}')
-    return value
-
-@dataset(callbacks=[print_callback])
-def my_dataset() -> int:
-    return 1
-
-my_dataset({})  ## prints 'Value of dataset is 1'
+from labrea import dataset, Option, pipeline_step
 
 @dataset
-def my_other_dataset() -> int:
-    return 2
+def letters() -> list[str]:
+    return ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
 
-my_other_dataset.add_callbacks(print_callback)
 
-my_other_dataset({})  ## prints 'Value of dataset is 2'
+@pipeline_step
+def take_first_n(
+        lst: list[str],
+        n: int = Option('N')
+) -> list[str]:
+    return lst[:n]
+
+
+first_n_letters = letters >> take_first_n
+
+first_n_letters({'N': 3}) == ['a', 'b', 'c']
 ```
 
-If a dataset uses caching, the callbacks will only be run the first time the dataset is evaluated
-with a given set of options. If you want to run the callbacks every time the dataset is evaluated,
-you can disable caching using the `@dataset.nocache` decorator.
-
-There are also pre-callbacks, which receive the dataset object and options dictionary before the 
-dataset is evaluated. These can be added using the `add_pre_callbacks` method on the dataset.
+### Helper Pipelines
+Labrea provides a few helper functions for creating common pipeline steps. These are
+`map`, `filter`, and `reduce`, all under the `labrea.functions` module.
 
 ```python
-@dataset
-def my_dataset() -> int:
-    return 1
+from labrea import dataset
+import labrea.functions as lf
 
-def print_pre_callback(dataset, options):
-    print(f'About to evaluate {dataset.__name__} with options {options}')
-    
-my_dataset.add_pre_callbacks(print_pre_callback)
-my_dataset({})  ## prints 'About to evaluate my_dataset with options {}'
+@dataset
+def numbers() -> list[int]:
+    return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+sum_squared_evens = (
+        numbers >> 
+        lf.filter(lambda x: x % 2 == 0) >> 
+        lf.map(lambda x: x**2) >> 
+        lf.reduce(lambda x, y: x + y)
+)
+
+sum_squared_evens() == 220
 ```
 
-Conveniently, `LabreaPipeline` objects meet the requirements of a callback, so you can add a pipeline
-as a callback to a dataset.
+
+### Templates
+
+Similar to the built-in f-strings, Labrea provides a `Template` type for
+string interpolation. This can be useful for creating strings that depend on
+config values, or for creating strings that depend on the results of other
+datasets.
+
+```python
+from labrea import dataset, Option, Template
+
+@dataset
+def b_dataset(
+        b: str = Option('B')
+) -> str:
+    return b
+
+template = Template(
+    '{A} {:b:}',
+    b=b_dataset
+)
+
+template({'A': 'Hello', 'B': 'World!'})  ## 'Hello World!'
+```
+
+### Dataset Classes
+
+You may want to write classes with more complex behavior that use datasets
+and options as their inputs. Similar to the built-in dataclasses, we can use
+the `@datasetclass` decorator to create a class whose `__init__` method takes
+an options dictionary and automatically evaluates dependencies like a dataset.
+
+```python
+from typing import Set
+
+import pandas as pd
+
+from labrea import dataset, datasetclass, Option
+
+@dataset
+def input_data(
+        path: str = Option('INPUT.PATH'),
+        fmt: str = Option('INPUT.FMT', 'csv')
+) -> pd.DataFrame:
+    if fmt == 'csv':
+        return pd.read_csv(path)
+    elif fmt == 'excel':
+        return pd.read_excel(path)
+    else:
+        raise ValueError('Only csv and excel files are accepted.')
+
+@dataset
+def distinct_stores(data: pd.DataFrame = input_data) -> Set[str]:
+    return set(data['store_id'])
+
+@dataset
+def distinct_regions(data: pd.DataFrame = input_data) -> Set[str]:
+    return set(data['region_id'])
+
+
+gi
+
+options = {
+    'INPUT.PATH': '/path/to/input.xlsx',
+    'INPUT.FMT': 'excel'
+}
+
+my_data = MyClass(options)
+
+my_data.regions == {'region_1', 'region_2', 'region_3'} 
+my_data.lookup_store('<my_store>') == pd.DataFrame(...)
+```
 
 ### Typing
 
@@ -764,9 +818,8 @@ This will signal to the type checker that `Option('X').result` should be treated
 as the resulting value of the `Option`, rather than the option value itself.
 
 The `.result` property is shared among all Labrea types (`Option`, `Dataset`,
-`Switch`, `DatasetDict`, `DatasetList`, and `DatasetClass`). Whenever you are
-defining a dataset or DatasetClass, use the `.result` suffix on all your 
-dependencies to pass type checking.
+etc.). Whenever you are defining a dataset or DatasetClass, use the `.result` 
+suffix on all your dependencies to pass type checking.
 
 
 #### Subscripting
@@ -804,12 +857,10 @@ def first_char(
     return x[0]
 ```
 
-#### DatasetClasses
+#### MyPy Plugin
 
-MyPy has trouble understanding that DatasetClasses will have a `.result` attribute
-to reference. Labrea provides a MyPy plugin that handles this issue. 
-You use it by adding the following to a `mypy.ini` or `setup.cfg` file in your
-project.
+MyPy has trouble understanding the way the decorators for interfaces and dataset classes work.
+A MyPy plugin is provided to help with this. To use it, add the following to your `mypy.ini` file:
 
 
 ```

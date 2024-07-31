@@ -1,11 +1,12 @@
 import re
 import warnings
-from typing import Any, Dict, Set
+from typing import Any, Dict, Optional, Set
 
 from confectioner import mix
-from confectioner.templating import dotted_key_exists, find_template_keys, resolve
+from confectioner.templating import find_template_keys, resolve
 
-from .types import Evaluatable, EvaluationError, JSONDict, ValidationError, Value
+from .exceptions import KeyNotFoundError
+from .types import Evaluatable, Options, Value
 
 TEMPLATE_PARAM = re.compile(r"^:[a-zA-Z_][a-zA-Z0-9_]*:$")
 
@@ -20,14 +21,14 @@ class Template(Evaluatable[str]):
     the template using the standard :code:`{NESTED.KEY}` syntax from
     confectioner.
 
-    Parameters
+    Arguments
     ----------
     template : str
         The template string to evaluate
     kwargs : Any
         The parameters to use when evaluating the template. Each parameter
         can be any Evaluatable. If a parameter is not an Evaluatable, it is
-        used as a constant value.
+        used as a constant key.
 
     Raises
     ------
@@ -43,8 +44,8 @@ class Template(Evaluatable[str]):
     ...     return b
     >>>
     >>> t = Template('{A.X} {:b:}', b=b_dataset)
-    >>> t({'A': {'X': 'Hello'}, 'B': 'World!'})  # 'Hello World!'
-
+    >>> t({'A': {'X': 'Hello'}, 'B': 'World!'})
+    'Hello World!'
     """
 
     template: str
@@ -77,35 +78,65 @@ class Template(Evaluatable[str]):
                 f"{template}"
             )
 
-    def evaluate(self, options: JSONDict) -> str:
+    def evaluate(self, options: Options) -> str:
         """Evaluates the template using the options dictionary."""
         params = {f":{key}:": val.evaluate(options) for key, val in self.params.items()}
 
         try:
             return str(resolve(self.template, mix(options, params)))  # type: ignore
         except KeyError as e:
-            raise EvaluationError(
-                f"Missing option {e.args[0]} for {self.template}"
-            ) from e
+            raise KeyNotFoundError((*e.args, "UNKNOWN")[0], self) from e
 
-    def validate(self, options: JSONDict) -> None:
+    def validate(self, options: Options) -> None:
         """Validates that the template can be evaluated using the options."""
+        from .option import Option
+
         for val in self.params.values():
             val.validate(options)
 
         for key in find_template_keys(self.template):
             if TEMPLATE_PARAM.match(key):
                 continue
-            if not dotted_key_exists(key, options):
-                raise ValidationError(f"Missing option {key} for {self.template}")
+            try:
+                Option(key).validate(options)
+            except KeyNotFoundError as e:
+                raise KeyNotFoundError(e.key, self) from e
 
-    def keys(self, options: JSONDict) -> Set[str]:
+    def keys(self, options: Options) -> Set[str]:
         """Returns the keys that this object depends on."""
-        return set.union(
-            *(value.keys(options) for value in self.params.values()),
-            {
-                key
-                for key in find_template_keys(self.template)
-                if not TEMPLATE_PARAM.match(key)
-            },
-        )
+        from .option import Option
+
+        keys = set().union(*(value.keys(options) for value in self.params.values()))
+        for key in find_template_keys(self.template):
+            if TEMPLATE_PARAM.match(key):
+                continue
+            try:
+                keys.update(Option(key).keys(options))
+            except KeyNotFoundError as e:
+                raise KeyNotFoundError(e.key, self) from e
+
+        return keys
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        """Returns the keys that this object depends on."""
+        from .option import Option
+
+        options = options or {}
+        keys = set().union(*(value.explain(options) for value in self.params.values()))
+        for key in find_template_keys(self.template):
+            if TEMPLATE_PARAM.match(key):
+                continue
+
+            keys.update(Option(key).explain(options))
+
+        return keys
+
+    def __repr__(self) -> str:
+        if self.params:
+            return (
+                f"Template({self.template!r}, "
+                f"{', '.join(f'{key}={value!r}' for key, value in self.params.items())}"
+                f")"
+            )
+
+        return f"Template({self.template!r})"

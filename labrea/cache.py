@@ -1,185 +1,412 @@
-from abc import ABCMeta, abstractmethod
-from typing import Generic, TypeVar
+from abc import ABC, abstractmethod
+from typing import Any, Callable, Dict, Generic, Optional, Set, TypeVar, Union, overload
 
-from confectioner.templating import get_dotted_key
-
-from .types import Evaluatable, JSONDict, JSONType
+from . import runtime
+from .option import Option
+from .types import Evaluatable, Options
 
 A = TypeVar("A")
 
 
-class CacheInvalidationError(Exception):
-    """Raised when a cache is invalidated"""
+class CacheFailure(Exception):
+    """An exception raised when a cache operation fails."""
 
-    pass
-
-
-def json_hash(json: JSONType):
-    if isinstance(json, dict):
-        keys = tuple(sorted(json.keys()))
-        vals = [json[key] for key in keys]
-        return hash((hash(keys), json_hash(vals)))
-    if isinstance(json, list):
-        return hash(tuple(json_hash(val) for val in json))
-    else:
-        return hash(json)
+    evaluatable: Evaluatable
+    options: Options
+    cache: "Cache"
 
 
-class Cache(Generic[A], metaclass=ABCMeta):
-    """A cache for Datasets
+class CacheGetFailure(CacheFailure):
+    """An exception raised when a cache get operation fails."""
 
-    A cache is used to store the results of evaluating a Dataset. Every time a
-    Dataset is evaluated, the cache is checked to see if the result has already
-    been computed. If it has, the cached result is returned. If not, the
-    Dataset is evaluated and the result is stored in the cache.
+    def __init__(
+        self, evaluatable: Evaluatable, options: Options, cache: "Cache"
+    ) -> None:
+        self.evaluatable = evaluatable
+        self.options = options
+        self.cache = cache
 
-    Because the same Dataset can be evaluated with different options, the cache
-    is keyed by the options dictionary. The keys returned by the Cache's
-    keys() method are used to generate the key for the cache lookup, so the
-    keys() method should return all keys that affect the evaluation of the
-    Dataset.
+        super().__init__(f"Failed to retrieve {evaluatable} from cache {cache}")
 
-    The Cache class is abstract and must be subclassed to implement the
-    exists(), get(), and set() methods.
-    """
 
-    evaluatable: Evaluatable[A]
+class CacheSetFailure(CacheFailure):
+    """An exception raised when a cache set operation fails."""
 
-    def __init__(self, _evaluatable: Evaluatable[A]):
-        """Create a new Cache
+    evaluatable: Evaluatable
+    options: Options
+    cache: "Cache"
+    value: Any
 
-        Parameters
-        ----------
-        _evaluatable : Evaluatable[A]
-            The Evaluatable that this Cache is caching.
-        """
-        self.evaluatable = _evaluatable
+    def __init__(
+        self, evaluatable: Evaluatable, options: Options, cache: "Cache", value: Any
+    ) -> None:
+        self.evaluatable = evaluatable
+        self.options = options
+        self.cache = cache
+        self.value = value
 
-    @abstractmethod
-    def exists(self, keys: JSONDict) -> bool:
-        """Check if there is a cached value for the given keys
+        super().__init__(f"Failed to add value {value} from {evaluatable} to {cache}")
 
-        Parameters
-        ----------
-        keys : JSONDict
-            The keys to check for in the cache.
 
-        Returns
-        -------
-        bool
-            True if there is a cached value for the given keys,
-            False otherwise.
+class CacheExistsFailure(CacheFailure):
+    """An exception raised when a cache exists operation fails."""
 
-        Raises
-        ------
-        CacheInvalidationError
-            If the cached value is no longer valid.
-        """
-        ...  # pragma: nocover
+    evaluatable: Evaluatable
+    options: Options
+    cache: "Cache"
+
+    def __init__(
+        self, evaluatable: Evaluatable, options: Options, cache: "Cache"
+    ) -> None:
+        self.evaluatable = evaluatable
+        self.options = options
+        self.cache = cache
+
+        super().__init__(f"Failed to check if {evaluatable} exists in cache {cache}")
+
+
+class Cache(Generic[A], ABC):
+    """A class representing a cache of values that can be evaluated."""
 
     @abstractmethod
-    def get(self, keys: JSONDict) -> A:
-        """Get the cached value for the given keys
+    def get(self, evaluatable: Evaluatable[A], options: Options) -> A:
+        """Get a key from the cache.
 
-        Parameters
-        ----------
-        keys : JSONDict
-            The keys to lookup in the cache
+        Arguments
+        ---------
+        evaluatable: Evaluatable
+            The evaluatable to get from the cache.
+        options : Options
+            The options dictionary to evaluate against.
 
         Returns
         -------
         A
-            The cached value for the given keys.
+            The value from the cache.
 
         Raises
         ------
-        KeyError
-            If there is no cached value for the given keys.
-        CacheInvalidationError
-            If the cached value is no longer valid.
+        CacheGetFailure
+            If the key cannot be retrieved from the cache.
         """
-        ...  # pragma: nocover
+        raise NotImplementedError  # pragma: nocover
 
     @abstractmethod
-    def set(self, keys: JSONDict, value: A):
-        """Set the cached value for the given keys
+    def set(self, evaluatable: Evaluatable[A], options: Options, value: A) -> None:
+        """Set a key in the cache.
 
-        Parameters
-        ----------
-        keys : JSONDict
-            The keys to set in the cache
+        Arguments
+        ---------
+        evaluatable: Evaluatable
+            The evaluatable to set in the cache.
+        options : Options
+            The options dictionary to evaluate against.
         value : A
-            The value to set in the cache
+            The value to set in the cache.
 
         Raises
         ------
-        CacheInvalidationError
-            If the cached value is no longer valid.
+        CacheSetFailure
+            If the key cannot be set in the cache.
         """
-        ...  # pragma: nocover
+        raise NotImplementedError  # pragma: nocover
 
-    def keys(self, options: JSONDict) -> JSONDict:
-        """Identify the keys that affect the evaluation of the Dataset
+    def exists(self, evaluatable: Evaluatable[A], options: Options) -> bool:
+        """Check if a key exists in the cache.
 
-        Parameters
-        ----------
-        options : JSONDict
-            The options dictionary to use to evaluate the Dataset
+        Arguments
+        ---------
+        evaluatable: Evaluatable
+            The evaluatable to check in the cache.
+        options : Options
+            The options dictionary to evaluate against.
 
         Returns
         -------
-        JSONDict
-            The keys that affect the evaluation of the Dataset, and their
-            values.
+        bool
+            Whether the value exists in the cache.
+
+        Raises
+        ------
+        CacheExistsFailure
+            If the existence of the key cannot be checked in the cache.
         """
-        return {
-            key: get_dotted_key(key, dict(options))
-            for key in self.evaluatable.keys(options)
-        }
-
-    def __getitem__(self, options: JSONDict):
-        keys = self.keys(options)
-        return self.get(keys)
-
-    def __setitem__(self, options: JSONDict, value: A):
-        keys = self.keys(options)
-        self.set(keys, value)
-
-    def __contains__(self, options: JSONDict):
-        keys = self.keys(options)
-        return self.exists(keys)
+        try:
+            self.get(evaluatable, options)
+            return True
+        except CacheGetFailure:
+            return False
 
 
-class NoCache(Cache[A]):
-    """A Cache that does not cache anything"""
+class NoCache(Cache[Any]):
+    """A class representing a cache that does not store any values."""
 
-    def exists(self, keys: JSONDict) -> bool:
-        return False
+    def get(self, evaluatable: Evaluatable, options: Options) -> Any:
+        raise CacheGetFailure(evaluatable, options, self)
 
-    def get(self, keys: JSONDict) -> A:
-        raise KeyError
-
-    def set(self, keys: JSONDict, value: A):
+    def set(self, evaluatable: Evaluatable, options: Options, value: Any) -> None:
         pass
 
 
 class MemoryCache(Cache[A]):
-    """A Cache that stores values in memory
+    """A class representing a cache that stores values in memory."""
 
-    A simple in-memory cache that stores values in a dictionary.
+    _cache: Dict[bytes, A]
+
+    def __init__(self) -> None:
+        self._cache = {}
+
+    def get(self, evaluatable: Evaluatable, options: Options) -> A:
+        try:
+            return self._cache[evaluatable.fingerprint(options)]
+        except KeyError as e:
+            raise CacheGetFailure(evaluatable, options, self) from e
+
+    def set(self, evaluatable: Evaluatable, options: Options, value: A) -> None:
+        self._cache[evaluatable.fingerprint(options)] = value
+
+    def exists(self, evaluatable: Evaluatable, options: Options) -> bool:
+        return evaluatable.fingerprint(options) in self._cache
+
+
+class CacheSetRequest(runtime.Request[A]):
+    """A request to set a value in a cache.
+
+    Arguments
+    ---------
+    evaluatable : Evaluatable
+        The evaluatable that produced the value.
+    options : Options
+        The options dictionary that was used to evaluate the value.
+    value : A
+        The value to set in the cache.
+    cache : Cache
+        The cache to set the value in.
     """
 
-    _cache: dict
+    evaluatable: Evaluatable
+    options: Options
+    value: A
+    cache: Cache[A]
 
-    def __init__(self, *args, **kwargs):
-        self._cache = {}
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self, evaluatable: Evaluatable[A], options: Options, value: A, cache: Cache[A]
+    ):
+        self.evaluatable = evaluatable
+        self.options = options
+        self.value = value
+        self.cache = cache
 
-    def exists(self, keys: JSONDict) -> bool:
-        return json_hash(keys) in self._cache
 
-    def get(self, keys: JSONDict) -> A:
-        return self._cache[json_hash(keys)]
+class CacheGetRequest(runtime.Request[A]):
+    """A request to get a value from a cache.
 
-    def set(self, keys: JSONDict, value: A):
-        self._cache[json_hash(keys)] = value
+    Arguments
+    ---------
+    evaluatable : Evaluatable
+        The evaluatable to get from the cache.
+    options : Options
+        The options dictionary to evaluate against.
+    cache : Cache
+        The cache to get the value from.
+    """
+
+    evaluatable: Evaluatable[A]
+    options: Options
+    cache: Cache[A]
+
+    def __init__(self, evaluatable: Evaluatable, options: Options, cache: Cache[A]):
+        self.evaluatable = evaluatable
+        self.options = options
+        self.cache = cache
+
+
+class CacheExistsRequest(runtime.Request[bool]):
+    """A request to check if a value exists in a cache.
+
+    Arguments
+    ---------
+    evaluatable : Evaluatable
+        The evaluatable to check in the cache.
+    options : Options
+        The options dictionary to evaluate against.
+    cache : Cache
+        The cache to check the value in.
+    """
+
+    evaluatable: Evaluatable
+    options: Options
+    cache: Cache
+
+    def __init__(self, evaluatable: Evaluatable, options: Options, cache: Cache):
+        self.evaluatable = evaluatable
+        self.options = options
+        self.cache = cache
+
+
+def _cache_disabled(
+    request: Union[CacheSetRequest, CacheGetRequest, CacheExistsRequest]
+) -> bool:
+    return Option("LABREA.CACHE.DISABLED", Option("LABREA.CACHE.DISABLE", False))(
+        request.options
+    )
+
+
+@CacheSetRequest.handle
+def _set_cache_handler(request: CacheSetRequest[A]) -> A:
+    if _cache_disabled(request):
+        return _disabled_set_cache_handler(request)
+
+    request.cache.set(request.evaluatable, request.options, request.value)
+    try:
+        return request.cache.get(request.evaluatable, request.options)
+    except CacheGetFailure:
+        return request.value
+
+
+@CacheGetRequest.handle
+def _get_cache_handler(request: CacheGetRequest[A]) -> A:
+    if _cache_disabled(request):
+        return _disabled_get_cache_handler(request)
+
+    return request.cache.get(request.evaluatable, request.options)
+
+
+@CacheExistsRequest.handle
+def _exists_cache_handler(request: CacheExistsRequest) -> bool:
+    if _cache_disabled(request):
+        return _disabled_exists_cache_handler(request)
+
+    return request.cache.exists(request.evaluatable, request.options)
+
+
+def _disabled_set_cache_handler(request: CacheSetRequest[A]) -> A:
+    return request.value
+
+
+def _disabled_get_cache_handler(request: CacheGetRequest[A]) -> A:
+    raise CacheGetFailure(request.evaluatable, request.options, request.cache)
+
+
+def _disabled_exists_cache_handler(request: CacheExistsRequest) -> bool:
+    return False
+
+
+def disabled() -> runtime.Runtime:
+    return runtime.handle(
+        {
+            CacheSetRequest: _disabled_set_cache_handler,
+            CacheGetRequest: _disabled_get_cache_handler,
+            CacheExistsRequest: _disabled_exists_cache_handler,
+        }
+    )
+
+
+class Cached(Evaluatable[A]):
+    """A class representing an Evaluatable that may be cached.
+
+    When evaluated, this class will check if the value exists in the cache
+    before evaluating the underlying Evaluatable. If the value is not in the
+    cache, the value will be evaluated and stored in the cache before being
+    returned.
+
+    Arguments
+    ---------
+    evaluatable : Evaluatable
+        The evaluatable to cache.
+    cache : Cache
+        The cache to store the value in.
+    """
+
+    evaluatable: Evaluatable[A]
+    cache: Cache[A]
+
+    def __init__(self, evaluatable: Evaluatable[A], cache: Cache[A]):
+        self.evaluatable = evaluatable
+        self.cache = cache
+
+    def evaluate(self, options: Options) -> A:
+        """Return the (possibly cached) result of evaluating the evaluatable."""
+        if CacheExistsRequest(self.evaluatable, options, self.cache).run():
+            try:
+                return CacheGetRequest(self.evaluatable, options, self.cache).run()
+            except CacheGetFailure:
+                pass
+
+        value = self.evaluatable.evaluate(options)
+
+        return CacheSetRequest(self.evaluatable, options, value, self.cache).run()
+
+    def validate(self, options: Options) -> None:
+        """If the value is not in the cache, validate the evaluatable."""
+        if not CacheExistsRequest(self.evaluatable, options, self.cache).run():
+            self.evaluatable.validate(options)
+
+    def keys(self, options: Options) -> Set[str]:
+        """Return the keys required to evaluate the evaluatable."""
+        return self.evaluatable.keys(options)
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        """Return the keys required to evaluate the evaluatable."""
+        return self.evaluatable.explain(options)
+
+    def __repr__(self) -> str:
+        return f"Cached({self.evaluatable!r}, {self.cache!r})"
+
+
+@overload
+def cached(__x: Evaluatable[A], cache: Optional[Cache[A]] = None) -> Evaluatable[A]:
+    ...  # pragma: nocover
+
+
+@overload
+def cached(__x: Cache[A]) -> Callable[[Evaluatable[A]], Evaluatable[A]]:
+    ...  # pragma: nocover
+
+
+def cached(
+    __x: Union[Cache[A], Evaluatable[A]],
+    cache: Optional[Cache[A]] = None,
+) -> Union[Callable[[Evaluatable[A]], Evaluatable[A]], Evaluatable[A]]:
+    """Return an Evaluatable that caches the result of evaluating the input Evaluatable.
+
+    Can be used as a decorator or a function. If used as a decorator, can be used with or without
+    providing a cache object. If no cache object is provided, a MemoryCache will be used.
+
+    Arguments
+    ---------
+    __x : Union[Cache, Evaluatable]
+        The cache object or evaluatable to cache.
+    cache : Optional[Cache], optional
+        The cache object to use, by default None, in which case a MemoryCache is used.
+
+    Returns
+    -------
+    Union[Callable[[Evaluatable[A]], Evaluatable[A]], Evaluatable[A]]
+        The cached evaluatable, or a function that takes an evaluatable and returns a cached
+        evaluatable.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import cached, Option
+    >>> from labrea.cache import MemoryCache
+    >>> from labrea.application import FunctionApplication
+    >>> x_cached = cached(Option('X'))
+    >>> x_cached_with_cache = cached(Option('X'), MemoryCache())
+    >>>
+    >>> @cached
+    ... @FunctionApplication.lift
+    ... def y(x: int = Option('X')) -> int:
+    ...     return x
+    >>>
+    >>> @cached(MemoryCache())
+    ... @FunctionApplication.lift
+    ... def z(x: int = Option('X')) -> int:
+    ...     return x
+    """
+    if isinstance(__x, Cache):
+        return lambda evaluatable: cached(evaluatable, __x)
+    else:
+        cache = cache or MemoryCache()
+        return Cached(__x, cache)
