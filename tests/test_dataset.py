@@ -63,10 +63,6 @@ def test_overload_no_dispatch():
 
 
 def test_abstract():
-    with pytest.raises(ValueError):
-        @abstractdataset
-        def x() -> int:
-            pass
 
     @abstractdataset(dispatch='A')
     def x() -> int:

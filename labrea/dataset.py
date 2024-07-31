@@ -499,8 +499,6 @@ class DatasetFactory(Generic[A]):
             lifted = FunctionApplication.lift(definition, **self.defaults)
             overloads = Overloaded(self.dispatch, {}, lifted)
         else:
-            if self.dispatch == Value(MISSING):
-                raise ValueError("Abstract datasets must have a dispatch")
             overloads = Overloaded(self.dispatch, {})
 
         cache: Cache
