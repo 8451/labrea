@@ -385,7 +385,7 @@ class DatasetFactory(Generic[A]):
     dispatch: Evaluatable[Hashable]
     defaults: Dict[str, Evaluatable[Any]]
     options: Options
-    defaut_options: Options
+    default_options: Options
     abstract: bool
 
     def __init__(
@@ -499,8 +499,6 @@ class DatasetFactory(Generic[A]):
             lifted = FunctionApplication.lift(definition, **self.defaults)
             overloads = Overloaded(self.dispatch, {}, lifted)
         else:
-            if self.dispatch == Value(MISSING):
-                raise ValueError("Abstract datasets must have a dispatch")
             overloads = Overloaded(self.dispatch, {})
 
         cache: Cache
