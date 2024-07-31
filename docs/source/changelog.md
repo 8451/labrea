@@ -1,8 +1,6 @@
 # Changelog
 
-## Unreleased (2.0.0)
-
-
+## Version 2.0.0
 ### Breaking Changes
 - Module structure has been fully changed.
   + Any imports that look like `from labrea.<module> import <object>` will need to be updated 
