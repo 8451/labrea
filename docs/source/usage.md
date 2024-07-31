@@ -741,10 +741,7 @@ the `@datasetclass` decorator to create a class whose `__init__` method takes
 an options dictionary and automatically evaluates dependencies like a dataset.
 
 ```python
-from typing import Set
-
 import pandas as pd
-
 from labrea import dataset, datasetclass, Option
 
 @dataset
@@ -760,15 +757,25 @@ def input_data(
         raise ValueError('Only csv and excel files are accepted.')
 
 @dataset
-def distinct_stores(data: pd.DataFrame = input_data) -> Set[str]:
+def distinct_stores(data: pd.DataFrame = input_data) -> set[str]:
     return set(data['store_id'])
 
 @dataset
-def distinct_regions(data: pd.DataFrame = input_data) -> Set[str]:
+def distinct_regions(data: pd.DataFrame = input_data) -> set[str]:
     return set(data['region_id'])
 
 
-gi
+@datasetclass
+class MyClass:
+    data: pd.DataFrame = input_data
+    stores: set[str] = distinct_stores
+    region: set[str] = distinct_regions
+    
+    def lookup_store(self, store_id: str):
+        if store_id not in self.stores:
+            return None
+        
+        return self.data[self.data['store_id'] == store_id]]
 
 options = {
     'INPUT.PATH': '/path/to/input.xlsx',
