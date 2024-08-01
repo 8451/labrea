@@ -43,6 +43,10 @@ Options
 
 .. autofunction:: labrea.WithDefaultOptions
 
+.. py:data:: labrea.AllOptions
+
+        A special value that evaluates to the entire options dictionary.
+
 Datasets
 --------
 .. autoclass:: labrea.dataset.Dataset
