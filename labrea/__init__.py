@@ -16,7 +16,7 @@ from .dataset import abstractdataset, dataset
 from .datasetclass import datasetclass
 from .interface import implements, interface
 from .iterable import Iter, Map
-from .option import Option, WithDefaultOptions, WithOptions
+from .option import AllOptions, Option, WithDefaultOptions, WithOptions
 from .overload import Overloaded
 from .pipeline import pipeline_step
 from .template import Template
@@ -33,6 +33,7 @@ __all__ = [
     "DatasetTuple",
     "Iter",
     "Map",
+    "AllOptions",
     "Option",
     "WithDefaultOptions",
     "WithOptions",

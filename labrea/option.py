@@ -241,3 +241,24 @@ def WithDefaultOptions(evaluatable: Evaluatable[B], options: Options) -> WithOpt
         The wrapped evaluatable object with default options.
     """
     return WithOptions(evaluatable, options, force=False)
+
+
+class _AllOptions(Evaluatable[Options]):
+    def evaluate(self, options: Options) -> Options:
+        return resolve(options)
+
+    def validate(self, options: Options) -> None:
+        pass
+
+    def keys(self, options: Options) -> Set[str]:
+        return set(options.keys())
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return set() if options is None else set(options.keys())
+
+    def __repr__(self) -> str:
+        return "AllOptions"
+
+
+AllOptions = _AllOptions()
+AllOptions.__doc__ = """An object that evaluates to the entire options dictionary."""
