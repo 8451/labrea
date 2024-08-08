@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 2.0.1
+- Fix bug where pipeline steps are evaluated before their inputs
+
 ## Version 2.0.0
 ### Breaking Changes
 - Module structure has been fully changed.
