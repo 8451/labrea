@@ -410,8 +410,9 @@ class Apply(Generic[A, B], Evaluatable[B]):
         self.func = func
 
     def evaluate(self, options: Options) -> B:
-        """Apply the function to the result of evaluating the object.""" ""
-        return self.func(options)(self.evaluatable(options))
+        """Apply the function to the result of evaluating the object."""
+        value = self.evaluatable(options)
+        return self.func(options)(value)
 
     def validate(self, options: Options) -> None:
         """Validate the source object and the function to apply to it."""
