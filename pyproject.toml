@@ -93,3 +93,7 @@ exclude = '''
   | dist
 )/
 '''
+
+[tool.pyright]
+venvPath = "."
+venv = "venv"
