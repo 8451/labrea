@@ -22,9 +22,10 @@ from typing import (
 )
 
 from ._missing import MISSING, MaybeMissing
+from .coalesce import coalesce
 from .exceptions import EvaluationError, InsufficientInformationError
 from .option import Option
-from .types import Evaluatable, MaybeEvaluatable, Options
+from .types import Evaluatable, MaybeEvaluatable, Options, Value
 
 A = TypeVar("A")
 B = TypeVar("B")
@@ -141,9 +142,13 @@ class Switch(Evaluatable[V]):
                 raise e
             return self.default
 
+        default_dipatch = coalesce(self.dispatch, Value(MISSING))(options)
+
         if key not in self.lookup:
             if self.default is MISSING:
                 raise SwitchError(self.dispatch, key, self.lookup)  # type: ignore  [arg-type]
+            if key != default_dipatch:
+                return _DependsOn(self.default, self.dispatch)  # type: ignore  [arg-type]
             return self.default
 
         return _DependsOn(self.lookup[key], self.dispatch)  # type: ignore  [arg-type]
@@ -253,16 +258,14 @@ class CaseWhen(Generic[A, B], Evaluatable[B]):
         self,
         condition: MaybeEvaluatable[Callable[[A], bool]],
         result: Evaluatable[C],
-    ) -> "CaseWhen[A, Union[B, C]]":
-        ...
+    ) -> "CaseWhen[A, Union[B, C]]": ...
 
     @overload
     def when(
         self,
         condition: MaybeEvaluatable[Callable[[A], bool]],
         result: C,
-    ) -> "CaseWhen[A, Union[B, C]]":
-        ...
+    ) -> "CaseWhen[A, Union[B, C]]": ...
 
     def when(
         self,
@@ -285,12 +288,10 @@ class CaseWhen(Generic[A, B], Evaluatable[B]):
         )
 
     @overload
-    def otherwise(self, default: Evaluatable[C]) -> "CaseWhen[A, Union[B, C]]":
-        ...
+    def otherwise(self, default: Evaluatable[C]) -> "CaseWhen[A, Union[B, C]]": ...
 
     @overload
-    def otherwise(self, default: C) -> "CaseWhen[A, Union[B, C]]":
-        ...
+    def otherwise(self, default: C) -> "CaseWhen[A, Union[B, C]]": ...
 
     def otherwise(self, default: MaybeEvaluatable[C]) -> "CaseWhen[A, Union[B, C]]":
         """Add a default value to the case when statement. Returns a new instance.
@@ -314,13 +315,11 @@ class CaseWhen(Generic[A, B], Evaluatable[B]):
 
 
 @overload
-def case(dispatch: Evaluatable[A]) -> CaseWhen[A, Never]:
-    ...
+def case(dispatch: Evaluatable[A]) -> CaseWhen[A, Never]: ...
 
 
 @overload
-def case(dispatch: A) -> CaseWhen[A, Never]:
-    ...
+def case(dispatch: A) -> CaseWhen[A, Never]: ...
 
 
 def case(dispatch: MaybeEvaluatable[A]) -> CaseWhen[A, Never]:
