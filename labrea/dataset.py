@@ -427,8 +427,7 @@ class DatasetFactory(Generic[A]):
         abstract: Optional[bool] = ...,
         options: Optional[Options] = ...,
         default_options: Optional[Options] = ...,
-    ) -> Dataset[A]:
-        ...  # pragma: no cover
+    ) -> Dataset[A]: ...  # pragma: no cover
 
     @overload
     def __call__(
@@ -442,8 +441,7 @@ class DatasetFactory(Generic[A]):
         abstract: Optional[bool] = ...,
         options: Optional[Options] = ...,
         default_options: Optional[Options] = ...,
-    ) -> "DatasetFactory[A]":
-        ...  # pragma: no cover
+    ) -> "DatasetFactory[A]": ...  # pragma: no cover
 
     @overload
     def __call__(
@@ -458,8 +456,7 @@ class DatasetFactory(Generic[A]):
         abstract: Optional[bool] = ...,
         options: Optional[Options] = ...,
         default_options: Optional[Options] = ...,
-    ) -> "DatasetFactory[A]":
-        ...  # pragma: no cover
+    ) -> "DatasetFactory[A]": ...  # pragma: no cover
 
     def __call__(
         self,
@@ -473,7 +470,7 @@ class DatasetFactory(Generic[A]):
         abstract: Optional[bool] = None,
         options: Optional[Options] = None,
         default_options: Optional[Options] = None,
-    ) -> Union["DatasetFactory", Dataset[A]]:
+    ) -> Union["DatasetFactory[A]", Dataset[A]]:
         _effects = [
             effect if isinstance(effect, Effect) else CallbackEffect(effect)
             for effect in (effects or [])
@@ -496,7 +493,11 @@ class DatasetFactory(Generic[A]):
     def wrap(self, definition: Callable[..., A]) -> Dataset[A]:
         overloads: Overloaded[A]
         if not self.abstract:
-            lifted = FunctionApplication.lift(definition, **self.defaults)
+            lifted: Evaluatable[A] = (
+                FunctionApplication.lift(definition, **self.defaults)
+                if not isinstance(definition, Evaluatable)
+                else definition
+            )
             overloads = Overloaded(self.dispatch, {}, lifted)
         else:
             overloads = Overloaded(self.dispatch, {})

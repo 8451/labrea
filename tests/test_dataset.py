@@ -3,11 +3,12 @@ import pytest
 import uuid
 
 from labrea.computation import CallbackEffect
-from labrea.dataset import dataset, abstractdataset
+from labrea.dataset import Dataset, dataset, abstractdataset
 from labrea.exceptions import EvaluationError
 from labrea.logging import LogRequest
 from labrea.option import Option
 import labrea.runtime
+from labrea.types import Evaluatable
 
 
 def test_dataset():
@@ -19,6 +20,12 @@ def test_dataset():
     add.validate({'A': 1, 'B': 2})
     assert add.keys({'A': 1, 'B': 2}) == {'A', 'B'}
     assert add.explain() == {'A', 'B'}
+
+
+def test_dataset_non_decorator() -> None:
+    a = dataset(Option('A'))
+    assert isinstance(a, Dataset)
+    assert a.evaluate({'A': 1}) == 1
 
 
 def test_overloads():
