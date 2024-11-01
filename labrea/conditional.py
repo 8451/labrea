@@ -22,10 +22,9 @@ from typing import (
 )
 
 from ._missing import MISSING, MaybeMissing
-from .coalesce import coalesce
 from .exceptions import EvaluationError, InsufficientInformationError
 from .option import Option
-from .types import Evaluatable, MaybeEvaluatable, Options, Value
+from .types import Evaluatable, MaybeEvaluatable, Options
 
 A = TypeVar("A")
 B = TypeVar("B")
@@ -142,13 +141,15 @@ class Switch(Evaluatable[V]):
                 raise e
             return self.default
 
-        default_dipatch = coalesce(self.dispatch, Value(MISSING))(options)
-
         if key not in self.lookup:
             if self.default is MISSING:
                 raise SwitchError(self.dispatch, key, self.lookup)  # type: ignore  [arg-type]
-            if key != default_dipatch:
-                return _DependsOn(self.default, self.dispatch)  # type: ignore  [arg-type]
+            try:
+                if key != self._dispatch({}):
+                    return _DependsOn(self.default, self.dispatch)  # type: ignore  [arg-type]
+            except EvaluationError:
+                pass
+
             return self.default
 
         return _DependsOn(self.lookup[key], self.dispatch)  # type: ignore  [arg-type]
