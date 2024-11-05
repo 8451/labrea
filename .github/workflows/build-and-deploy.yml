@@ -22,10 +22,9 @@ on:
   workflow_dispatch:
     inputs:
       pre-release-version:
-        description: 'Version to set wheel to for pre-release'
+        description: "Version to set wheel to for pre-release"
         required: false
-        default: ''
-
+        default: ""
 
 jobs:
   test:
@@ -38,10 +37,21 @@ jobs:
       pre-release-version: ${{ inputs.pre-release-version || '' }}
 
   publish:
-    uses: ./.github/workflows/publish.yml
+    name: Upload release to PyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ (github.event.release || inputs.pre-release-version) && 'release' || 'test-release' }}
+      url: ${{ vars.RELEASE_URL }}
     permissions:
       id-token: write
-    with:
-      # release if this is a published release, test-release otherwise
-      environment: ${{ (github.event.release || inputs.pre-release-version) && 'release' || 'test-release' }}
-    needs: build
+    steps:
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: dist/
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: ${{ vars.RELEASE_REPOSITORY_URL }}
+          skip-existing: ${{ vars.RELEASE_SKIP_EXISTING }}
