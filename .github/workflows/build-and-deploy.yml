@@ -38,6 +38,7 @@ jobs:
 
   publish:
     name: Upload release to PyPI
+    needs: build
     runs-on: ubuntu-latest
     environment:
       name: ${{ (github.event.release || inputs.pre-release-version) && 'release' || 'test-release' }}
