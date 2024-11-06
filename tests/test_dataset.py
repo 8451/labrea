@@ -54,8 +54,8 @@ def test_overloads():
 
     assert combine.evaluate({'X': 'Z', 'A': 1, 'B': 2}) == 3
     combine.validate({'X': 'Z', 'A': 1, 'B': 2})
-    assert combine.keys({'X': 'Z', 'A': 1, 'B': 2}) == {'A', 'B'}
-    assert combine.explain({'X': 'Z'}) == {'A', 'B'}
+    assert combine.keys({'X': 'Z', 'A': 1, 'B': 2}) == {'X', 'A', 'B'}
+    assert combine.explain({'X': 'Z'}) == {'X', 'A', 'B'}
 
 
 def test_overload_no_dispatch():
