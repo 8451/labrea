@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 2.0.3
+- Fix bug introduced in 2.0.3 where dispatch is called with no options
+
 ## Version 2.0.2
 - Allow `dataset` to be used to directly wrap an evaluatable
 - Fix bug in `Switch.keys` that didn't properly handle when the dispatch by default will evaluate to something
