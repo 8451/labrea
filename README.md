@@ -8,7 +8,7 @@
 # Labrea
 A framework for declarative, functional dataset definitions.
 
-![](https://img.shields.io/badge/version-2.0.2-blue.svg)
+![](https://img.shields.io/badge/version-2.0.3-blue.svg)
 [![lifecycle](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.tidyverse.org/lifecycle/#stable)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/labrea.svg?label=PyPI%20downloads)](https://pypi.org/project/labrea/)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
