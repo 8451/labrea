@@ -144,13 +144,7 @@ class Switch(Evaluatable[V]):
         if key not in self.lookup:
             if self.default is MISSING:
                 raise SwitchError(self.dispatch, key, self.lookup)  # type: ignore  [arg-type]
-            try:
-                if key != self._dispatch({}):
-                    return _DependsOn(self.default, self.dispatch)  # type: ignore  [arg-type]
-            except EvaluationError:
-                pass
-
-            return self.default
+            return _DependsOn(self.default, self.dispatch)  # type: ignore  [arg-type]
 
         return _DependsOn(self.lookup[key], self.dispatch)  # type: ignore  [arg-type]
 
