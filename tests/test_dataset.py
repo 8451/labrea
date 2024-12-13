@@ -1,6 +1,7 @@
 import logging
 import pytest
 import uuid
+import pickle
 
 from labrea.computation import CallbackEffect
 from labrea.dataset import Dataset, dataset, abstractdataset
@@ -8,7 +9,6 @@ from labrea.exceptions import EvaluationError
 from labrea.logging import LogRequest
 from labrea.option import Option
 import labrea.runtime
-from labrea.types import Evaluatable
 
 
 def test_dataset():
@@ -285,3 +285,9 @@ def test_logging():
         x()
 
     assert handler_run
+
+
+def test_pickle():
+    x = dataset(Option('X'))
+
+    assert isinstance(pickle.loads(pickle.dumps(x)), Dataset)
