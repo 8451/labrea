@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Make the `Dataset` type pickleable
+
 ## Version 2.0.3
 - Fix bug introduced in 2.0.3 where dispatch is called with no options
 
