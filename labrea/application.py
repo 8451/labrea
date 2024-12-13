@@ -1,10 +1,11 @@
 import sys
 
 if sys.version_info < (3, 10):
-    from typing_extensions import Concatenate, ParamSpec
+    from typing_extensions import ParamSpec
 else:
-    from typing import Concatenate, ParamSpec
+    from typing import ParamSpec
 
+import functools
 import inspect
 from typing import Callable, Dict, Generic, Optional, Set, TypeVar, Union, overload
 
@@ -31,40 +32,42 @@ class FunctionApplication(Generic[P, A], Evaluatable[A]):
         The keyword arguments to evaluate.
     """
 
-    func: Callable[P, A]
+    func: Evaluatable[Callable[P, A]]
     arguments: Evaluatable[Arguments[P]]
     _repr: str
 
     def __init__(
         self,
-        __func: Callable[P, A],
+        __func: MaybeEvaluatable[Callable[P, A]],
         /,
         *args: "MaybeEvaluatable[P.args]",
         **kwargs: "MaybeEvaluatable[P.kwargs]",
     ):
-        self.func = __func
+        self.func = Evaluatable.ensure(__func)
         self.arguments = arguments(*args, **kwargs)
 
         self._repr = (
             f"FunctionApplication("
-            f"{self.func.__name__}, "
+            f"{getattr(__func, '__name__', repr(__func))}, "
             f"{', '.join(map(repr, args))}"
             f"{', '.join(f'{key}={value!r}' for key, value in kwargs.items())}"
             f")"
         )
 
     def evaluate(self, options: Options) -> A:
+        func = self.func.evaluate(options)
         args = self.arguments.evaluate(options)
-        return self.func(*args.args, **args.kwargs)
+        return func(*args.args, **args.kwargs)
 
     def validate(self, options: Options) -> None:
+        self.func.validate(options)
         self.arguments.validate(options)
 
     def keys(self, options: Options) -> Set[str]:
-        return self.arguments.keys(options)
+        return self.func.keys(options) | self.arguments.keys(options)
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
-        return self.arguments.explain(options)
+        return self.func.explain(options) | self.arguments.explain(options)
 
     def __repr__(self) -> str:
         return self._repr
@@ -76,8 +79,7 @@ class FunctionApplication(Generic[P, A], Evaluatable[A]):
         __func: Callable[P, A],
         /,
         **kwargs: "MaybeEvaluatable[P.kwargs]",
-    ) -> "FunctionApplication[P, A]":
-        ...  # pragma: no cover
+    ) -> "FunctionApplication[P, A]": ...  # pragma: no cover
 
     @overload
     @classmethod
@@ -86,8 +88,9 @@ class FunctionApplication(Generic[P, A], Evaluatable[A]):
         __func: None = None,
         /,
         **kwargs: "MaybeEvaluatable[P.kwargs]",
-    ) -> Callable[[Callable[P, A]], "FunctionApplication[P, A]"]:
-        ...  # pragma: no cover
+    ) -> Callable[
+        [Callable[P, A]], "FunctionApplication[P, A]"
+    ]: ...  # pragma: no cover
 
     @classmethod
     def lift(
@@ -146,14 +149,14 @@ class FunctionApplication(Generic[P, A], Evaluatable[A]):
         return FunctionApplication(__func, **eval_kwargs)
 
 
-class PartialApplication(Generic[X, P, A], Evaluatable[Callable[[X], A]]):
+class PartialApplication(Generic[P, A], Evaluatable[Callable[..., A]]):
     """A class representing the partial application of a function to a set of arguments.
 
     This class is used by the :func:`labrea.pipeline_step` decorator under the hood.
 
     Arguments
     ---------
-    __func : Callable[Concatenate[X, P], A]
+    __func : Callable[P, A]
         The function to apply.
     *args : MaybeEvaluatable[P.args]
         The positional arguments to evaluate.
@@ -161,40 +164,42 @@ class PartialApplication(Generic[X, P, A], Evaluatable[Callable[[X], A]]):
         The keyword arguments to evaluate.
     """
 
-    func: Callable[Concatenate[X, P], A]
+    func: Evaluatable[Callable[P, A]]
     arguments: Evaluatable[Arguments[P]]
     _repr: str
 
     def __init__(
         self,
-        __func: Callable[Concatenate[X, P], A],
+        __func: MaybeEvaluatable[Callable[P, A]],
         /,
-        *args: Evaluatable["P.args"],
-        **kwargs: Evaluatable["P.kwargs"],
+        *args: MaybeEvaluatable["P.args"],
+        **kwargs: MaybeEvaluatable["P.kwargs"],
     ):
-        self.func = __func
+        self.func = Evaluatable.ensure(__func)
         self.arguments = arguments(*args, **kwargs)
 
         self._repr = (
             f"PartialApplication("
-            f"{self.func.__name__}, "
+            f"{getattr(__func, '__name__', repr(__func))}, "
             f"{', '.join(map(repr, args))}"
             f"{', '.join(f'{key}={value!r}' for key, value in kwargs.items())}"
             f")"
         )
 
-    def evaluate(self, options: Options) -> Callable[[X], A]:
+    def evaluate(self, options: Options) -> Callable[..., A]:
+        func = self.func.evaluate(options)
         args = self.arguments.evaluate(options)
-        return lambda x: self.func(x, *args.args, **args.kwargs)
+        return functools.partial(func, *args.args, **args.kwargs)
 
     def validate(self, options: Options) -> None:
+        self.func.validate(options)
         self.arguments.validate(options)
 
     def keys(self, options: Options) -> Set[str]:
-        return self.arguments.keys(options)
+        return self.func.keys(options) | self.arguments.keys(options)
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
-        return self.arguments.explain(options)
+        return self.func.explain(options) | self.arguments.explain(options)
 
     def __repr__(self) -> str:
         return self._repr
@@ -203,11 +208,10 @@ class PartialApplication(Generic[X, P, A], Evaluatable[Callable[[X], A]]):
     @classmethod
     def lift(
         cls,
-        __func: Callable[Concatenate[X, P], A],
+        __func: Callable[P, A],
         /,
         **kwargs: "MaybeEvaluatable[P.kwargs]",
-    ) -> "PartialApplication[X, P, A]":
-        ...  # pragma: no cover
+    ) -> "PartialApplication[P, A]": ...  # pragma: no cover
 
     @overload
     @classmethod
@@ -216,18 +220,17 @@ class PartialApplication(Generic[X, P, A], Evaluatable[Callable[[X], A]]):
         __func: None = None,
         /,
         **kwargs: "MaybeEvaluatable[P.kwargs]",
-    ) -> Callable[[Callable[Concatenate[X, P], A]], "PartialApplication[X, P, A]"]:
-        ...  # pragma: no cover
+    ) -> Callable[[Callable[P, A]], "PartialApplication[P, A]"]: ...  # pragma: no cover
 
     @classmethod
     def lift(
         cls,
-        __func: Optional[Callable[Concatenate[X, P], A]] = None,
+        __func: Optional[Callable[P, A]] = None,
         /,
         **kwargs: "MaybeEvaluatable[P.kwargs]",
     ) -> Union[
-        "PartialApplication[X, P, A]",
-        Callable[[Callable[Concatenate[X, P], A]], "PartialApplication[X, P, A]"],
+        "PartialApplication[P, A]",
+        Callable[[Callable[P, A]], "PartialApplication[P, A]"],
     ]:
         """Lift a function definition with Evaluatable default arguments to a PartialApplication.
 
@@ -236,14 +239,14 @@ class PartialApplication(Generic[X, P, A], Evaluatable[Callable[[X], A]]):
 
         Arguments
         ---------
-        __func : Callable[Concatenate[X, P], A]
+        __func : Callable[P, A]
             The function to apply.
         **kwargs : MaybeEvaluatable[P.kwargs]
             Default values for the keyword arguments of the function.
 
         Returns
         -------
-        PartialApplication[X, P, A]
+        PartialApplication[P, A]
             The lifted partial application.
 
 
@@ -267,17 +270,7 @@ class PartialApplication(Generic[X, P, A], Evaluatable[Callable[[X], A]]):
 
         for i, param in enumerate(signature.parameters.values()):
             default = kwargs.get(param.name, param.default)
-            if i == 0 and default is not param.empty:
-                raise TypeError(
-                    f"Cannot create a PartialApplication with a default value "
-                    f"for the first parameter of {__func}"
-                )
-            elif i > 0 and default is param.empty:
-                raise TypeError(
-                    f"Cannot lift function {__func} with non-defaulted parameters "
-                    f"after the first parameter"
-                )
-            elif default is not param.empty:
+            if default is not param.empty:
                 eval_kwargs[param.name] = Evaluatable.ensure(default)
 
         return PartialApplication(__func, **eval_kwargs)

@@ -25,6 +25,18 @@ def test_types():
     assert isinstance(incr_then_repeat, Pipeline)
 
 
+def test_bad_def():
+    with pytest.raises(ValueError):
+        @pipeline_step
+        def missing_default(x: float, y: float) -> float:
+            return x + y
+
+    with pytest.raises(ValueError):
+        @pipeline_step
+        def unused_default(x: float = Option('X')):
+            return x + 1
+
+
 def test_pipeline_valid():
     assert incr_then_repeat.evaluate({'N': 3})(1) == [2, 2, 2]
     incr_then_repeat.validate({'N': 3})
