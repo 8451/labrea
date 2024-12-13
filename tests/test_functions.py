@@ -32,6 +32,7 @@ def test_into():
     i = Option('A') >> lf.into(lf.partial(lambda x, y, z: x + y + z, z=3))
 
     assert i({'A': [1, 2]}) == 6
+    assert i({'A': {'x': 1, 'y': 2}}) == 6
 
 
 def test_flatmap():

@@ -8,7 +8,7 @@ else:
 import builtins
 import functools
 import itertools
-from typing import Callable, Iterable, TypeVar
+from typing import Any, Callable, Iterable, Mapping, TypeVar, Union
 
 from ._missing import MISSING, MaybeMissing
 from .application import PartialApplication
@@ -160,7 +160,9 @@ def reduce(
     )  # type: ignore [arg-type]
 
 
-def into(func: MaybeEvaluatable[Callable[..., A]]) -> PipelineStep[Iterable, A]:
+def into(
+    func: MaybeEvaluatable[Callable[..., A]],
+) -> PipelineStep[Union[Iterable, Mapping[str, Any]], A]:
     """Convert a function that takes positional arguments into one that takes an iterable.
 
     This can be useful if you have an evaluatable that returns a tuple of arguments and you want
@@ -188,8 +190,11 @@ def into(func: MaybeEvaluatable[Callable[..., A]]) -> PipelineStep[Iterable, A]:
     """
 
     @pipeline_step
-    def _into(args: Iterable, f: Callable[..., A] = func) -> A:  # type: ignore[assignment]
-        return f(*args)
+    def _into(
+        args: Union[Iterable, Mapping[str, Any]],
+        f: Callable[..., A] = func,  # type: ignore[assignment]
+    ) -> A:
+        return f(**args) if isinstance(args, Mapping) else f(*args)
 
     return _into
 
