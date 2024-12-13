@@ -165,8 +165,9 @@ def into(
 ) -> PipelineStep[Union[Iterable, Mapping[str, Any]], A]:
     """Convert a function that takes positional arguments into one that takes an iterable.
 
-    This can be useful if you have an evaluatable that returns a tuple of arguments and you want
-    to unpack that tuple into a function that takes positional arguments.
+    This can be useful if you have an evaluatable that returns an iterable of args or a mapping
+    of kwargs and you want to unpack that into a function that takes positional or keyword
+    arguments.
 
     Arguments
     ---------
@@ -176,7 +177,7 @@ def into(
 
     Returns
     -------
-    PipelineStep[Iterable, A]
+    PipelineStep[Union[Iterable, Mapping[str, Any], A]
         A pipeline step that applies the function to the arguments after unpacking.
 
 
@@ -186,6 +187,8 @@ def into(
     >>> import labrea.functions as F
     >>>
     >>> (Option('A') >> F.into(lambda x, y: x + y))({'A': [1, 2]})
+    3
+    >>> (Option('A') >> F.into(lambda x, y: x + y))({'A': {'x': 1, 'y': 2}})
     3
     """
 
