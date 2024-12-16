@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## Version 2.0.4
 - Make the `Dataset` type pickleable
 
 ## Version 2.0.3
