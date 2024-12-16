@@ -21,7 +21,7 @@ P = ParamSpec("P")
 
 
 def partial(
-    func: MaybeEvaluatable[Callable[P, A]],
+    __func: MaybeEvaluatable[Callable[P, A]],
     *args: MaybeEvaluatable["P.args"],
     **kwargs: MaybeEvaluatable["P.kwargs"],
 ) -> Evaluatable[Callable[..., A]]:
@@ -51,7 +51,7 @@ def partial(
     >>> (Option('A') >> F.partial(lambda x, y: x + y, y=Option('B')))({'A': 1, 'B': 2})
     3
     """
-    return PartialApplication(func, *args, **kwargs)
+    return PartialApplication(__func, *args, **kwargs)
 
 
 def map(
@@ -75,7 +75,7 @@ def map(
     >>> from labrea import Option
     >>> import labrea.functions as F
     >>>
-    >>> (Option('A') >> F.map(lambda x: x + 1))({'A': [1, 2, 3, 4]})
+    >>> (Option('A') >> F.map(lambda x: x + 1) >> list)({'A': [1, 2, 3, 4]})
     [2, 3, 4, 5]
     """
     return PipelineStep(
@@ -105,7 +105,7 @@ def filter(
     >>> from labrea import Option
     >>> import labrea.functions as F
     >>>
-    >>> (Option('A') >> F.filter(lambda x: x % 2 == 0))({'A': [1, 2, 3, 4]})
+    >>> (Option('A') >> F.filter(lambda x: x % 2 == 0) >> list)({'A': [1, 2, 3, 4]})
     [2, 4]
     """
     return PipelineStep(
@@ -223,7 +223,7 @@ def flatmap(
     >>> from labrea import Option
     >>> import labrea.functions as F
     >>>
-    >>> (Option('A') >> F.flatmap(lambda x: [x, x + 1]))({'A': [1, 2, 3, 4]})
+    >>> (Option('A') >> F.flatmap(lambda x: [x, x + 1]) >> list)({'A': [1, 2, 3, 4]})
     [1, 2, 2, 3, 3, 4, 4, 5]
     """
     return map(func) + itertools.chain.from_iterable
