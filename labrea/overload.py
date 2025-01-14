@@ -15,6 +15,14 @@ from .types import Evaluatable, MaybeEvaluatable, Options
 A = TypeVar("A", covariant=True)
 P = ParamSpec("P")
 
+_MODULE_LOCK = threading.Lock()
+_LOCKS: Dict[int, threading.Lock] = {}
+
+
+def _get_lock(__x: int) -> threading.Lock:
+    with _MODULE_LOCK:
+        return _LOCKS.setdefault(__x, threading.Lock())
+
 
 class Overloaded(Evaluatable[A]):
     """A class representing multiple implementations of an Evaluatable.
@@ -55,7 +63,7 @@ class Overloaded(Evaluatable[A]):
         self.default = (
             Evaluatable.ensure(default) if default is not MISSING else default
         )
-        self._lock = threading.Lock()
+        self._lock = _get_lock(id(self))
 
     def evaluate(self, options: Options) -> A:
         """Evaluate the dispatch, and then evaluate the selected implementation."""
@@ -96,3 +104,10 @@ class Overloaded(Evaluatable[A]):
     def switch(self) -> Evaluatable[A]:
         """Return the switch evaluatable that determines which implementation to use."""
         return switch(self.dispatch, self.lookup, default=self.default)
+
+    def __getstate__(self) -> dict:
+        return {**self.__dict__, "_lock": id(self)}
+
+    def __setstate__(self, state: dict) -> None:
+        self.__dict__.update(state)
+        self._lock = _get_lock(state["_lock"])
