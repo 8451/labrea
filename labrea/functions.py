@@ -331,3 +331,99 @@ def map_values(
         map_items(partial(lambda k, v, f: (k, f(v)), f=func)),
         f"map_values({func!r})",
     )
+
+
+def filter_items(
+    func: MaybeEvaluatable[Callable[[K1, V1], bool]],
+) -> PipelineStep[Mapping[K1, V1], Mapping[K1, V1]]:
+    """Create a pipeline step that filters items from a mapping using a predicate function.
+
+    Arguments
+    ---------
+    func : MaybeEvaluatable[Callable[[K1, V1], bool]]
+        The predicate function to apply to each item of the mapping. This can be an
+        Evaluatable that returns a function, or a constant function.
+
+    Returns
+    -------
+    PipelineStep[Mapping[K1, V1], Mapping[K1, V1]]
+        A pipeline step that filters the items of the mapping using the predicate function.
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.filter_items(lambda k, v: k % 2 == 0))({'A': {1: 2, 3: 4}})
+    mappingproxy({3: 4})
+    """
+    return PipelineStep(
+        (
+            Pipeline()  # type: ignore
+            + (lambda m: m.items())  # type: ignore
+            + filter(into(func))  # type: ignore
+            + dict
+            + MappingProxyType  # type: ignore
+        ),
+        f"filter_items({func!r})",
+    )
+
+
+def filter_keys(
+    func: MaybeEvaluatable[Callable[[K1], bool]],
+) -> PipelineStep[Mapping[K1, V1], Mapping[K1, V1]]:
+    """Create a pipeline step that filters keys from a mapping using a predicate function.
+
+    Arguments
+    ---------
+    func : MaybeEvaluatable[Callable[[K1], bool]]
+        The predicate function to apply to each key of the mapping. This can be an
+        Evaluatable that returns a function, or a constant function.
+
+    Returns
+    -------
+    PipelineStep[Mapping[K1, V1], Mapping[K1, V1]]
+        A pipeline step that filters the keys of the mapping using the predicate function.
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.filter_keys(lambda k: k % 2 == 0))({'A': {1: 2, 3: 4}})
+    mappingproxy({1: 2})
+    """
+    return PipelineStep(
+        filter_items(partial(lambda k, v, f: f(k), f=func)),
+        f"filter_keys({func!r})",
+    )
+
+
+def filter_values(
+    func: MaybeEvaluatable[Callable[[V1], bool]],
+) -> PipelineStep[Mapping[K1, V1], Mapping[K1, V1]]:
+    """Create a pipeline step that filters values from a mapping using a predicate function.
+
+    Arguments
+    ---------
+    func : MaybeEvaluatable[Callable[[V1], bool]]
+        The predicate function to apply to each value of the mapping. This can be an
+        Evaluatable that returns a function, or a constant function.
+
+    Returns
+    -------
+    PipelineStep[Mapping[K1, V1], Mapping[K1, V1]]
+        A pipeline step that filters the values of the mapping using the predicate function.
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.filter_values(lambda v: v % 2 == 0))({'A': {1: 2, 3: 4}})
+    mappingproxy({1: 2})
+    """
+    return PipelineStep(
+        filter_items(partial(lambda k, v, f: f(v), f=func)),
+        f"filter_values({func!r})",
+    )

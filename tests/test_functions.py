@@ -39,3 +39,39 @@ def test_flatmap():
     f = Option('A') >> lf.flatmap(lambda x: [x, x]) >> list
 
     assert f({'A': [1, 2]}) == [1, 1, 2, 2]
+
+
+def test_map_items():
+    f = Option('A') >> dict >> lf.map_items(lambda k, v: (k + 1, v + 1)) >> dict
+
+    assert f({'A': [[1, 1], [2, 2]]}) == {2: 2, 3: 3}
+
+
+def test_map_keys():
+    f = Option('A') >> dict >> lf.map_keys(lambda k: k + 1) >> dict
+
+    assert f({'A': [[1, 1], [2, 2]]}) == {2: 1, 3: 2}
+
+
+def test_map_values():
+    f = Option('A') >> dict >> lf.map_values(lambda v: v + 1) >> dict
+
+    assert f({'A': [[1, 1], [2, 2]]}) == {1: 2, 2: 3}
+
+
+def test_filter_items():
+    f = Option('A') >> dict >> lf.filter_items(lambda k, v: (k * v) % 2 == 0) >> dict
+
+    assert f({'A': [[1, 1], [2, 2], [3, 3], [4, 4]]}) == {2: 2, 4: 4}
+
+
+def test_filter_keys():
+    f = Option('A') >> dict >> lf.filter_keys(lambda k: k % 2 == 0) >> dict
+
+    assert f({'A': [[1, 1], [2, 2], [3, 3], [4, 4]]}) == {2: 2, 4: 4}
+
+
+def test_filter_values():
+    f = Option('A') >> dict >> lf.filter_values(lambda v: v % 2 == 0) >> dict
+
+    assert f({'A': [[1, 1], [2, 2], [3, 3], [4, 4]]}) == {2: 2, 4: 4}
