@@ -8,7 +8,8 @@ else:
 import builtins
 import functools
 import itertools
-from typing import Any, Callable, Iterable, Mapping, TypeVar, Union
+from types import MappingProxyType
+from typing import Any, Callable, Hashable, Iterable, Mapping, Tuple, TypeVar, Union
 
 from ._missing import MISSING, MaybeMissing
 from .application import PartialApplication
@@ -17,6 +18,10 @@ from .types import Evaluatable, MaybeEvaluatable
 
 A = TypeVar("A")
 B = TypeVar("B")
+K1 = TypeVar("K1", bound=Hashable)
+K2 = TypeVar("K2", bound=Hashable)
+V1 = TypeVar("V1")
+V2 = TypeVar("V2")
 P = ParamSpec("P")
 
 
@@ -199,12 +204,12 @@ def into(
     ) -> A:
         return f(**args) if isinstance(args, Mapping) else f(*args)
 
-    return _into
+    return PipelineStep(_into, f"into({func!r})")
 
 
 def flatmap(
     func: MaybeEvaluatable[Callable[[A], Iterable[B]]],
-) -> Pipeline[Iterable[A], Iterable[B]]:
+) -> PipelineStep[Iterable[A], Iterable[B]]:
     """Create a pipeline step that maps a function over an iterable and flattens the result.
 
     This allows for calling flatmap in a functional style over an iterable
@@ -226,4 +231,103 @@ def flatmap(
     >>> (Option('A') >> F.flatmap(lambda x: [x, x + 1]) >> list)({'A': [1, 2, 3, 4]})
     [1, 2, 2, 3, 3, 4, 4, 5]
     """
-    return map(func) + itertools.chain.from_iterable
+    return PipelineStep(
+        map(func) + itertools.chain.from_iterable,
+        f"flatmap({func!r})",
+    )
+
+
+def map_items(
+    func: MaybeEvaluatable[Callable[[K1, V1], Tuple[K2, V2]]],
+) -> PipelineStep[Mapping[K1, V1], Mapping[K2, V2]]:
+    """Create a pipeline step that maps a function over the items of a mapping.
+
+    Arguments
+    ---------
+    func : MaybeEvaluatable[Callable[[K1, V1], Tuple[K2, V2]]]
+        The function to apply to each item of the mapping. This can be an
+        Evaluatable that returns a function, or a constant function.
+
+    Returns
+    -------
+    PipelineStep[Mapping[K1, V1], Mapping[K2, V2]]
+        A pipeline step that applies the function to the items of the mapping.
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.map_items(lambda k, v: (k + 1, v + 1)))({'A': {1: 2, 3: 4}})
+    mappingproxy({2: 3, 4: 5})
+    """
+    return PipelineStep(
+        (
+            Pipeline()  # type: ignore
+            + (lambda m: m.items())  # type: ignore
+            + map(into(func))  # type: ignore
+            + dict
+            + MappingProxyType  # type: ignore
+        ),
+        f"map_items({func!r})",
+    )
+
+
+def map_keys(
+    func: MaybeEvaluatable[Callable[[K1], K2]],
+) -> PipelineStep[Mapping[K1, V1], Mapping[K2, V1]]:
+    """Create a pipeline step that maps a function over the keys of a mapping.
+
+    Arguments
+    ---------
+    func : MaybeEvaluatable[Callable[[K1], K2]]
+        The function to apply to each key of the mapping. This can be an
+        Evaluatable that returns a function, or a constant function.
+
+    Returns
+    -------
+    PipelineStep[Mapping[K1, V1], Mapping[K2, V1]]
+        A pipeline step that applies the function to the keys of the mapping.
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.map_keys(lambda k: k + 1))({'A': {1: 2, 3: 4}})
+    mappingproxy({2: 2, 4: 4})
+    """
+    return PipelineStep(
+        map_items(partial(lambda k, v, f: (f(k), v), f=func)),
+        f"map_keys({func!r})",
+    )
+
+
+def map_values(
+    func: MaybeEvaluatable[Callable[[V1], V2]],
+) -> PipelineStep[Mapping[K1, V1], Mapping[K1, V2]]:
+    """Create a pipeline step that maps a function over the values of a mapping.
+
+    Arguments
+    ---------
+    func : MaybeEvaluatable[Callable[[V1], V2]]
+        The function to apply to each value of the mapping. This can be an
+        Evaluatable that returns a function, or a constant function.
+
+    Returns
+    -------
+    PipelineStep[Mapping[K1, V1], Mapping[K1, V2]]
+        A pipeline step that applies the function to the values of the mapping.
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.map_values(lambda v: v + 1))({'A': {1: 2, 3: 4}})
+    mappingproxy({1: 3, 3: 5})
+    """
+    return PipelineStep(
+        map_items(partial(lambda k, v, f: (k, f(v)), f=func)),
+        f"map_values({func!r})",
+    )
