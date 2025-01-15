@@ -233,13 +233,11 @@ class Evaluatable(Generic[A], Cacheable, Explainable, Validatable, ABC):
 
     @overload
     @staticmethod
-    def ensure(value: "Evaluatable[T]") -> "Evaluatable[T]":
-        ...
+    def ensure(value: "Evaluatable[T]") -> "Evaluatable[T]": ...
 
     @overload
     @staticmethod
-    def ensure(value: T) -> "Evaluatable[T]":
-        ...
+    def ensure(value: T) -> "Evaluatable[T]": ...
 
     @staticmethod
     def ensure(value: "MaybeEvaluatable[T]") -> "Evaluatable[T]":

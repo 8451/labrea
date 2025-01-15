@@ -245,7 +245,7 @@ class CacheExistsRequest(runtime.Request[bool]):
 
 
 def _cache_disabled(
-    request: Union[CacheSetRequest, CacheGetRequest, CacheExistsRequest]
+    request: Union[CacheSetRequest, CacheGetRequest, CacheExistsRequest],
 ) -> bool:
     return Option("LABREA.CACHE.DISABLED", Option("LABREA.CACHE.DISABLE", False))(
         request.options
@@ -355,13 +355,15 @@ class Cached(Evaluatable[A]):
 
 
 @overload
-def cached(__x: Evaluatable[A], cache: Optional[Cache[A]] = None) -> Evaluatable[A]:
-    ...  # pragma: nocover
+def cached(
+    __x: Evaluatable[A], cache: Optional[Cache[A]] = None
+) -> Evaluatable[A]: ...  # pragma: nocover
 
 
 @overload
-def cached(__x: Cache[A]) -> Callable[[Evaluatable[A]], Evaluatable[A]]:
-    ...  # pragma: nocover
+def cached(
+    __x: Cache[A],
+) -> Callable[[Evaluatable[A]], Evaluatable[A]]: ...  # pragma: nocover
 
 
 def cached(

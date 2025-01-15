@@ -331,5 +331,4 @@ def _build_overloads(
 
 
 class _ImplDecoProto(Protocol):
-    def __call__(self, alias: Hashable, *aliases: Hashable) -> Callable[[T], T]:
-        ...
+    def __call__(self, alias: Hashable, *aliases: Hashable) -> Callable[[T], T]: ...

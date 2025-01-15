@@ -127,6 +127,15 @@ Pipeline Helper Functions
 .. autofunction:: labrea.functions.map
 .. autofunction:: labrea.functions.filter
 .. autofunction:: labrea.functions.reduce
+.. autofunction:: labrea.functions.flatmap
+.. autofunction:: labrea.functions.partial
+.. autofunction:: labrea.functions.into
+.. autofunction:: labrea.functions.map_items
+.. autofunction:: labrea.functions.map_keys
+.. autofunction:: labrea.functions.map_values
+.. autofunction:: labrea.functions.filter_items
+.. autofunction:: labrea.functions.filter_keys
+.. autofunction:: labrea.functions.filter_values
 
 Templates
 ---------

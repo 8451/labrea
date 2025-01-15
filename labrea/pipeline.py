@@ -5,6 +5,7 @@ if sys.version_info < (3, 10):
 else:
     from typing import Concatenate, ParamSpec
 
+import inspect
 from typing import (
     Any,
     Callable,
@@ -120,18 +121,17 @@ class Pipeline(
     rest: Optional["Pipeline[A, Any]"]
 
     @overload
-    def __new__(cls) -> "Pipeline[A, A]":
-        ...  # pragma: nocover
+    def __new__(cls) -> "Pipeline[A, A]": ...  # pragma: nocover
 
     @overload
-    def __new__(cls, tail: PipelineStep[B, C]) -> "Pipeline[B, C]":
-        ...  # pragma: nocover
+    def __new__(
+        cls, tail: PipelineStep[B, C]
+    ) -> "Pipeline[B, C]": ...  # pragma: nocover
 
     @overload
     def __new__(
         cls, tail: PipelineStep[B, C], rest: "Pipeline[A, B]"
-    ) -> "Pipeline[A, C]":
-        ...  # pragma: nocover
+    ) -> "Pipeline[A, C]": ...  # pragma: nocover
 
     def __new__(
         cls,
@@ -232,4 +232,16 @@ def pipeline_step(func: Callable[Concatenate[A, P], B]) -> "PipelineStep[A, B]":
     >>> pipeline.transform(1, {'AMOUNT': 2, 'FACTOR': 3})
     9
     """
+    signature = inspect.signature(func)
+    for i, param in enumerate(signature.parameters.values()):
+        if i == 0 and param.default is not param.empty:
+            raise ValueError(
+                "The first parameter of a pipeline step cannot have a default value"
+            )
+        elif i != 0 and param.default is param.empty:
+            raise ValueError(
+                "All parameters after the first parameter of a pipeline step "
+                "must have a default value"
+            )
+
     return PipelineStep(PartialApplication.lift(func), getattr(func, "__name__", None))
