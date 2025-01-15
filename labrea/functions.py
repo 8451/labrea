@@ -48,6 +48,7 @@ def partial(
     Evaluatable[Callable[..., A]]
         An Evaluatable that returns a partially applied function.
 
+
     Example Usage
     -------------
     >>> from labrea import Option
@@ -192,8 +193,6 @@ def into(
     >>> import labrea.functions as F
     >>>
     >>> (Option('A') >> F.into(lambda x, y: x + y))({'A': [1, 2]})
-    3
-    >>> (Option('A') >> F.into(lambda x, y: x + y))({'A': {'x': 1, 'y': 2}})
     3
     """
 
