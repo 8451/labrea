@@ -1,5 +1,20 @@
 # Changelog
 
+## Version 2.1.0
+- Add helper functions in `labrea.functions`:
+  + `partial`
+    - Analog of `functools.partial`
+  + `into`
+    - Analog of `*` unpacking but for an evaluatable that returns an iterable
+  + `flatmap`
+    - Map then flatten result
+  + `map_items`, `map_keys`, and `map_values`
+    - Analogs of `map` but for mapping types
+  + `filter_items`, `filter_keys`, and `filter_values`
+    - Analogs of `filter` but for mapping types
+- Modify `PartialApplication` type to work even if multiple arguments are missing
+
+
 ## Version 2.0.4
 - Make the `Dataset` type pickleable
 

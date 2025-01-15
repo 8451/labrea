@@ -34,16 +34,14 @@ def evaluatable_list(*evaluatables: Evaluatable[A]) -> Evaluatable[List[A]]:
 @overload
 def evaluatable_tuple(
     __e1: Evaluatable[T1],
-) -> Evaluatable[Tuple[T1]]:
-    ...
+) -> Evaluatable[Tuple[T1]]: ...
 
 
 @overload
 def evaluatable_tuple(
     __e1: Evaluatable[T1],
     __e2: Evaluatable[T2],
-) -> Evaluatable[Tuple[T1, T2]]:
-    ...
+) -> Evaluatable[Tuple[T1, T2]]: ...
 
 
 @overload
@@ -51,8 +49,7 @@ def evaluatable_tuple(
     __e1: Evaluatable[T1],
     __e2: Evaluatable[T2],
     __e3: Evaluatable[T3],
-) -> Evaluatable[Tuple[T1, T2, T3]]:
-    ...
+) -> Evaluatable[Tuple[T1, T2, T3]]: ...
 
 
 @overload
@@ -61,8 +58,7 @@ def evaluatable_tuple(
     __e2: Evaluatable[T2],
     __e3: Evaluatable[T3],
     __e4: Evaluatable[T4],
-) -> Evaluatable[Tuple[T1, T2, T3, T4]]:
-    ...
+) -> Evaluatable[Tuple[T1, T2, T3, T4]]: ...
 
 
 @overload
@@ -72,8 +68,7 @@ def evaluatable_tuple(
     __e3: Evaluatable[T3],
     __e4: Evaluatable[T4],
     __e5: Evaluatable[T5],
-) -> Evaluatable[Tuple[T1, T2, T3, T4, T5]]:
-    ...
+) -> Evaluatable[Tuple[T1, T2, T3, T4, T5]]: ...
 
 
 @overload
@@ -84,8 +79,7 @@ def evaluatable_tuple(
     __e4: Evaluatable[T4],
     __e5: Evaluatable[T5],
     __e6: Evaluatable[T6],
-) -> Evaluatable[Tuple[T1, T2, T3, T4, T5, T6]]:
-    ...
+) -> Evaluatable[Tuple[T1, T2, T3, T4, T5, T6]]: ...
 
 
 @overload
@@ -97,8 +91,7 @@ def evaluatable_tuple(
     __e5: Evaluatable[T5],
     __e6: Evaluatable[T6],
     __e7: Evaluatable[T7],
-) -> Evaluatable[Tuple[T1, T2, T3, T4, T5, T6, T7]]:
-    ...
+) -> Evaluatable[Tuple[T1, T2, T3, T4, T5, T6, T7]]: ...
 
 
 @overload
@@ -111,8 +104,7 @@ def evaluatable_tuple(
     __e6: Evaluatable[T6],
     __e7: Evaluatable[T7],
     __e8: Evaluatable[T8],
-) -> Evaluatable[Tuple[T1, T2, T3, T4, T5, T6, T7, T8]]:
-    ...
+) -> Evaluatable[Tuple[T1, T2, T3, T4, T5, T6, T7, T8]]: ...
 
 
 def evaluatable_tuple(*evaluatables: Evaluatable[A]) -> Evaluatable[Tuple[A, ...]]:

@@ -81,24 +81,22 @@ def test_partial_application():
 
 
 def test_lift_partial():
-    def good(a: float, b: float = Option('B')) -> float:
+    def some(a: float, b: float = Option('B')) -> float:
         return a + b
 
-    def bad(a: float, b: float) -> float:
+    def none(a: float, b: float) -> float:
         return a + b
 
-    def bad2(a: float = Option('A'), b: float = Option('B')) -> float:
+    def all(a: float = Option('A'), b: float = Option('B')) -> float:
         return a + b
 
-    assert PartialApplication.lift(good).evaluate({'B': 2})(1) == 3
+    assert PartialApplication.lift(some).evaluate({'B': 2})(1) == 3
+    assert PartialApplication.lift(some).evaluate({'B': 2})(a=1, b=3) == 4
+    assert PartialApplication.lift(some, b=Option('C')).evaluate({'C': 4})(1) == 5
 
-    with pytest.raises(TypeError):
-        PartialApplication.lift(bad)
+    assert PartialApplication.lift(none).evaluate({})(1, 2) == 3
 
-    with pytest.raises(TypeError):
-        PartialApplication.lift(bad2)
-
-    assert PartialApplication.lift(bad, b=Option('B')).evaluate({'B': 2})(1) == 3
+    assert PartialApplication.lift(all).evaluate({'A': 1, 'B': 2})() == 3
 
     @PartialApplication.lift
     def good_deco(a: float, b: float = Option('B')) -> float:
@@ -111,4 +109,3 @@ def test_lift_partial():
         return a + b
 
     assert good_deco_kwargs.evaluate({'B': 2})(1) == 3
-
