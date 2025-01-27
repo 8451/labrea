@@ -362,14 +362,14 @@ class Namespace(Evaluatable[Options]):
         for name in getattr(__namespace, "__annotations__", {}):
             members[name] = Option(f"{key}.{name}")
         for name, value in __namespace.__dict__.items():
-            if name.startswith("_"):
-                continue
-            elif isinstance(value, Evaluatable):
+            if isinstance(value, Evaluatable):
                 members[name] = value
-            elif isinstance(value, type):
-                members[name] = cls.from_type(value, parent=key)
             elif isinstance(value, _Auto):
                 members[name] = value.build(f"{key}.{name}")
+            elif name.startswith("_"):
+                continue
+            elif isinstance(value, type):
+                members[name] = cls.from_type(value, parent=key)
             else:
                 members[name] = Option(f"{key}.{name}", default=value)
 
