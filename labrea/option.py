@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Set, TypeVar
+from typing import Callable, Dict, Generic, List, Mapping, Optional, Set, Type, TypeVar
 
 from confectioner import mix
 from confectioner.templating import dotted_key_exists, get_dotted_key, resolve
@@ -7,7 +7,7 @@ from ._missing import MISSING, MaybeMissing
 from .application import FunctionApplication
 from .exceptions import KeyNotFoundError
 from .template import Template
-from .types import JSON, Evaluatable, MaybeEvaluatable, Options
+from .types import JSON, Apply, Evaluatable, MaybeEvaluatable, Options
 
 A = TypeVar("A", covariant=True, bound=JSON)
 B = TypeVar("B", covariant=True)
@@ -144,6 +144,19 @@ class Option(Evaluatable[A]):
             else f"Option({self.key!r})"
         )
 
+    @staticmethod
+    def namespace(__namespace: Type) -> "Namespace":
+        """Create an option namespace from a class definition"""
+        return Namespace.from_type(__namespace)
+
+    @staticmethod
+    def auto(
+        default: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
+        doc: str = "",
+    ) -> "Option[A]":
+        """Create an option in a namespace with an inferred key"""
+        return _Auto(default, doc)  # type: ignore
+
 
 class WithOptions(Evaluatable[B]):
     """A class that wraps an Evaluatable object and provides default options.
@@ -262,3 +275,128 @@ class _AllOptions(Evaluatable[Options]):
 
 AllOptions = _AllOptions()
 AllOptions.__doc__ = """An object that evaluates to the entire options dictionary."""
+
+
+class Namespace(Evaluatable[Options]):
+    """Namespace for options that allows for better documentation and organization."""
+
+    _key: str
+    _full: Option
+    _members: Mapping[str, Evaluatable]
+    __doc__: str
+
+    def __init__(self, key: str, members: Mapping[str, Evaluatable]) -> None:
+        self._key = key
+        self._full = Option(key, default={})
+        self._members = members
+        self.__doc__ = self._build_doc()
+
+    def evaluate(self, options: Options) -> Options:
+        return self._full.evaluate(options)
+
+    def validate(self, options: Options) -> None:
+        self._full.validate(options)
+
+    def keys(self, options: Options) -> Set[str]:
+        return self._full.keys(options)
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return self._full.explain(options)
+
+    def __getitem__(self, key: str) -> Evaluatable:
+        return self._members[key]
+
+    def __getattr__(self, key: str) -> Evaluatable:
+        try:
+            return self._members[key]
+        except KeyError:
+            raise AttributeError(f"Namespace {self._key} has no attribute {key!r}")
+
+    def __repr__(self) -> str:
+        return f"Namespace({self._key!r})"
+
+    @staticmethod
+    def _build_doc_option(option: Option) -> str:
+        doc = f"Option {option.key}"
+        if option.default is not MISSING:
+            doc += f" (default {option.default})"
+        if option.__doc__:
+            doc += ": " + "\n  ".join(option.__doc__.strip().splitlines())
+        return doc
+
+    def _build_doc(self) -> str:
+        members = sorted(self._members.items(), key=lambda x: x[0])
+        options: List[Option] = []
+        namespaces: List[Namespace] = []
+
+        for key, value in members:
+            if isinstance(value, Namespace):
+                namespaces.append(value)
+            elif isinstance(value, Option):
+                options.append(value)
+            elif isinstance(value, Apply):
+                while isinstance(value, Apply):
+                    value = value.evaluatable
+                if isinstance(value, Option):
+                    options.append(value)
+                else:
+                    raise TypeError(
+                        f"Namespace {self._key} has invalid member {key}: {value!r}"
+                    )
+
+        header = f"Namespace {self._key}:\n\n  "
+        option_docs = (
+            "\n  ".join(self._build_doc_option(opt).splitlines()) for opt in options
+        )
+        namespace_docs = (
+            "\n  ".join((ns.__doc__ or "").splitlines()) + "\n" for ns in namespaces
+        )
+
+        return header + "\n  ".join((*option_docs, *namespace_docs)).rstrip()
+
+    @classmethod
+    def from_type(cls, __namespace: Type, parent: Optional[str] = None) -> "Namespace":
+        key = f"{parent}.{__namespace.__name__}" if parent else __namespace.__name__
+
+        members: Dict[str, Evaluatable] = {}
+        for name in getattr(__namespace, "__annotations__", {}):
+            members[name] = Option(f"{key}.{name}")
+        for name, value in __namespace.__dict__.items():
+            if name.startswith("_"):
+                continue
+            elif isinstance(value, Evaluatable):
+                members[name] = value
+            elif isinstance(value, type):
+                members[name] = cls.from_type(value, parent=key)
+            elif isinstance(value, _Auto):
+                members[name] = value.build(f"{key}.{name}")
+            else:
+                members[name] = Option(f"{key}.{name}", default=value)
+
+        return cls(key, members)
+
+
+class _Auto(Generic[A]):
+    default: MaybeMissing[MaybeEvaluatable[A]]
+    doc: str
+    transformations: List[Callable]
+
+    def __init__(
+        self,
+        default: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
+        doc: str = "",
+        *transformations: Callable,
+    ) -> None:
+        self.default = default
+        self.doc = doc
+        self.transformations = list(transformations)
+
+    def build(self, key: str) -> Evaluatable[A]:
+        option: Evaluatable = Option(key, self.default, doc=self.doc)
+        for tform in self.transformations:
+            option = option >> tform
+
+        return option
+
+    def __rshift__(self, func: MaybeEvaluatable[Callable[[A], B]]) -> Evaluatable[B]:
+        return _Auto(self.default, self.doc, *self.transformations, func)  # type: ignore
