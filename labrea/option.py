@@ -1,4 +1,16 @@
-from typing import Callable, Dict, Generic, List, Mapping, Optional, Set, Type, TypeVar
+from typing import (
+    Callable,
+    Dict,
+    Generic,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Type,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from confectioner import mix
 from confectioner.templating import dotted_key_exists, get_dotted_key, resolve
@@ -7,7 +19,7 @@ from ._missing import MISSING, MaybeMissing
 from .application import FunctionApplication
 from .exceptions import KeyNotFoundError
 from .template import Template
-from .types import JSON, Apply, Evaluatable, MaybeEvaluatable, Options
+from .types import JSON, Evaluatable, MaybeEvaluatable, Options, Value
 
 A = TypeVar("A", covariant=True, bound=JSON)
 B = TypeVar("B", covariant=True)
@@ -144,10 +156,24 @@ class Option(Evaluatable[A]):
             else f"Option({self.key!r})"
         )
 
+    @overload
     @staticmethod
-    def namespace(__namespace: Type) -> "Namespace":
+    def namespace(__namespace: Type) -> "Namespace": ...  # pragma: no cover
+
+    @overload
+    @staticmethod
+    def namespace(
+        __namespace: str,
+    ) -> Callable[[Type], "Namespace"]: ...  # pragma: no cover
+
+    @staticmethod
+    def namespace(
+        __namespace: Union[Type, str],
+    ) -> Union["Namespace", Callable[[Type], "Namespace"]]:
         """Create an option namespace from a class definition"""
-        return Namespace.from_type(__namespace)
+        if isinstance(__namespace, str):
+            return lambda cls: Namespace._from_type(cls, name=__namespace)
+        return Namespace._from_type(__namespace)
 
     @staticmethod
     def auto(
@@ -282,10 +308,12 @@ class Namespace(Evaluatable[Options]):
 
     _key: str
     _full: Option
-    _members: Mapping[str, Evaluatable]
+    _members: Mapping[str, Union[Option, "_Auto", "Namespace"]]
     __doc__: str
 
-    def __init__(self, key: str, members: Mapping[str, Evaluatable]) -> None:
+    def __init__(
+        self, key: str, members: Mapping[str, Union[Option, "_Auto", "Namespace"]]
+    ) -> None:
         self._key = key
         self._full = Option(key, default={})
         self._members = members
@@ -304,11 +332,14 @@ class Namespace(Evaluatable[Options]):
         return self._full.explain(options)
 
     def __getitem__(self, key: str) -> Evaluatable:
-        return self._members[key]
+        item = self._members[key]
+        if isinstance(item, _Auto):
+            return item.build(f"{self._key}.{key}")
+        return item
 
     def __getattr__(self, key: str) -> Evaluatable:
         try:
-            return self._members[key]
+            return self[key]
         except KeyError:
             raise AttributeError(f"Namespace {self._key} has no attribute {key!r}")
 
@@ -319,7 +350,12 @@ class Namespace(Evaluatable[Options]):
     def _build_doc_option(option: Option) -> str:
         doc = f"Option {option.key}"
         if option.default is not MISSING:
-            doc += f" (default {option.default})"
+            default = (
+                option.default.value
+                if isinstance(option.default, Value)
+                else option.default
+            )
+            doc += f" (default {default!r})"
         if option.__doc__:
             doc += ": " + "\n  ".join(option.__doc__.strip().splitlines())
         return doc
@@ -334,15 +370,8 @@ class Namespace(Evaluatable[Options]):
                 namespaces.append(value)
             elif isinstance(value, Option):
                 options.append(value)
-            elif isinstance(value, Apply):
-                while isinstance(value, Apply):
-                    value = value.evaluatable
-                if isinstance(value, Option):
-                    options.append(value)
-                else:
-                    raise TypeError(
-                        f"Namespace {self._key} has invalid member {key}: {value!r}"
-                    )
+            elif isinstance(value, _Auto):
+                options.append(value.option(f"{self._key}.{key}"))
 
         header = f"Namespace {self._key}:\n\n  "
         option_docs = (
@@ -355,25 +384,58 @@ class Namespace(Evaluatable[Options]):
         return header + "\n  ".join((*option_docs, *namespace_docs)).rstrip()
 
     @classmethod
-    def from_type(cls, __namespace: Type, parent: Optional[str] = None) -> "Namespace":
-        key = f"{parent}.{__namespace.__name__}" if parent else __namespace.__name__
+    def _from_type(
+        cls, __namespace: Type, parent: Optional[str] = None, name: Optional[str] = None
+    ) -> "Namespace":
+        name = name or __namespace.__name__
+        key = f"{parent}.{name}" if parent else name
 
-        members: Dict[str, Evaluatable] = {}
-        for name in getattr(__namespace, "__annotations__", {}):
-            members[name] = Option(f"{key}.{name}")
-        for name, value in __namespace.__dict__.items():
-            if isinstance(value, Evaluatable):
-                members[name] = value
+        members: Dict[str, Union[Option, _Auto, Namespace]] = {}
+        for name_ in getattr(__namespace, "__annotations__", {}):
+            members[name] = Option(f"{key}.{name_}")
+
+        for name_, value in __namespace.__dict__.items():
+            if isinstance(value, Namespace):
+                members[name_] = value._inherit(key)
+            elif isinstance(value, Option):
+                if "." in value.key:
+                    raise ValueError(
+                        f"Namespace {key} has nested option {name_}: {value.key}"
+                    )
+                members[name_] = Option(
+                    f"{key}.{value.key}", default=value.default, doc=value.__doc__ or ""
+                )
             elif isinstance(value, _Auto):
-                members[name] = value.build(f"{key}.{name}")
-            elif name.startswith("_"):
+                members[name_] = value
+            elif name_.startswith("_"):
                 continue
             elif isinstance(value, type):
-                members[name] = cls.from_type(value, parent=key)
+                members[name_] = cls._from_type(value, parent=key)
+            elif isinstance(value, (str, int, float, bool, list, dict, Evaluatable)):
+                members[name_] = Option(f"{key}.{name_}", default=value)
             else:
-                members[name] = Option(f"{key}.{name}", default=value)
+                raise TypeError(
+                    f"Namespace {key} has non-JSON-serializable default value {name_}: {value!r}"
+                )
 
         return cls(key, members)
+
+    def _inherit(self, parent: str) -> "Namespace":
+        return Namespace(
+            f"{parent}.{self._key}",
+            {
+                name: (
+                    value._inherit(parent)
+                    if isinstance(value, Namespace)
+                    else Option(
+                        f"{parent}.{value.key}", value.default, doc=value.__doc__ or ""
+                    )
+                    if isinstance(value, Option)
+                    else value
+                )
+                for name, value in self._members.items()
+            },
+        )
 
 
 class _Auto(Generic[A]):
@@ -391,8 +453,12 @@ class _Auto(Generic[A]):
         self.doc = doc
         self.transformations = list(transformations)
 
-    def build(self, key: str) -> Evaluatable[A]:
-        option: Evaluatable = Option(key, self.default, doc=self.doc)
+    def option(self, key: str) -> Option[A]:
+        return Option(key, self.default, doc=self.doc)
+
+    def build(self, key: str, bare: bool = False) -> Evaluatable[A]:
+        option: Evaluatable = self.option(key)
+
         for tform in self.transformations:
             option = option >> tform
 
