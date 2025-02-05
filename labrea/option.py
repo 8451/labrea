@@ -336,13 +336,13 @@ def WithDefaultOptions(evaluatable: Evaluatable[B], options: Options) -> WithOpt
 
 class _AllOptions(Evaluatable[Options]):
     def evaluate(self, options: Options) -> Options:
-        return resolve(options)
-
-    def validate(self, options: Options) -> None:
         try:
-            _ = resolve(options)
+            return resolve(options)
         except KeyError as e:
             raise KeyNotFoundError(e.args[0], self) from e
+
+    def validate(self, options: Options) -> None:
+        _ = self.evaluate(options)
 
     def keys(self, options: Options) -> Set[str]:
         return set(options.keys())
@@ -453,7 +453,7 @@ class Namespace(Evaluatable[Options]):
 
         members: Dict[str, Union[Option, _Auto, Namespace]] = {}
         for name_ in getattr(__namespace, "__annotations__", {}):
-            members[name] = Option(f"{key}.{name_}")
+            members[name_] = Option(f"{key}.{name_}")
 
         for name_, value in __namespace.__dict__.items():
             if isinstance(value, Namespace):
@@ -522,6 +522,8 @@ class _Auto(Generic[A]):
 
         for tform in self.transformations:
             option = option >> tform
+
+        option.__doc__ = self.doc or option.__doc__
 
         return option
 
