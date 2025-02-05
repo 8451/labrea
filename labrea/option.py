@@ -170,7 +170,38 @@ class Option(Evaluatable[A]):
     def namespace(
         __namespace: Union[Type, str],
     ) -> Union["Namespace", Callable[[Type], "Namespace"]]:
-        """Create an option namespace from a class definition"""
+        """Create an option namespace from a class definition
+
+        This allows all of the options for a module to be grouped together. Namespaces can contain
+        :class:`Option` objects or other namespaces.
+
+        When developing a package with Labrea, it is recommended to create an option namespace for
+        with the same name as the package to avoid conflicts with other packages.
+
+        To create options with docstrings, see :meth:`Option.auto`.
+
+        Example Usage
+        -------------
+        >>> from labrea import Option
+        >>> @Option.namespace
+        ... class MY_PACKAGE:
+        ...     class MODULE_1:    # Implicit sub-namespace
+        ...         A: str  # Equivalent to Option('MY_PACKAGE.MODULE_1.A')
+        ...     @Option.namespace("MODULE-2")
+        ...     class MODULE_2:    # Explicit sub-namespace with custom name
+        ...         A = 10  # Equivalent to Option('MY_PACKAGE.MODULE_1.A', 10)
+        ...
+        >>> MY_PACKAGE.MODULE_2.A()
+        10
+        >>> MY_PACKAGE.MODULE_2.A({'MY_PACKAGE': {'MODULE-2': {'A': 20}}})
+        20
+        >>> print(MY_PACKAGE.__doc__)
+        Namespace MY_PACKAGE:
+            Namespace MY_PACKAGE.MODULE_1:
+                Option MY_PACKAGE.MODULE_1.A
+            Namespace MY_PACKAGE.MODULE-2:
+                Option MY_PACKAGE.MODULE-2.A (default 10)
+        """
         if isinstance(__namespace, str):
             return lambda cls: Namespace._from_type(cls, name=__namespace)
         return Namespace._from_type(__namespace)
@@ -180,7 +211,28 @@ class Option(Evaluatable[A]):
         default: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
         doc: str = "",
     ) -> "Option[A]":
-        """Create an option in a namespace with an inferred key"""
+        """Create an option in a namespace with an inferred key
+
+        Sometimes when creating a namespace, we want to add an option with a docstring or some
+        additional transformations, but we want the key to be inferred from the namespace. This
+        function creates an option with a default value and docstring, but automatically infers
+        the key.
+
+        Example Usage
+        -------------
+        >>> from labrea import Option
+        >>> @Option.namespace
+        ... class MY_PACKAGE:
+        ...     A = Option.auto(default='foo', doc='An automatic option') >> str
+        ...
+        >>> print(MY_PACKAGE.__doc__)
+        Namespace MY_PACKAGE:
+            Option MY_PACKAGE.A (default 'foo'): An automatic option
+        >>> MY_PACKAGE.A()
+        'foo'
+        >>> MY_PACKAGE.A({'MY_PACKAGE': {'A': 100}})
+        '100'  # str transformation applied
+        """
         return _Auto(default, doc)  # type: ignore
 
 
@@ -287,7 +339,10 @@ class _AllOptions(Evaluatable[Options]):
         return resolve(options)
 
     def validate(self, options: Options) -> None:
-        pass
+        try:
+            _ = resolve(options)
+        except KeyError as e:
+            raise KeyNotFoundError(e.args[0], self) from e
 
     def keys(self, options: Options) -> Set[str]:
         return set(options.keys())
@@ -304,7 +359,11 @@ AllOptions.__doc__ = """An object that evaluates to the entire options dictionar
 
 
 class Namespace(Evaluatable[Options]):
-    """Namespace for options that allows for better documentation and organization."""
+    """Namespace for options that allows for better documentation and organization.
+
+    This class should probably not be used directly. Instead, use the :meth:`Option.namespace`
+    decorator.
+    """
 
     _key: str
     _full: Option
@@ -353,6 +412,8 @@ class Namespace(Evaluatable[Options]):
             default = (
                 option.default.value
                 if isinstance(option.default, Value)
+                else option.default.template
+                if isinstance(option.default, Template)
                 else option.default
             )
             doc += f" (default {default!r})"
@@ -373,7 +434,7 @@ class Namespace(Evaluatable[Options]):
             elif isinstance(value, _Auto):
                 options.append(value.option(f"{self._key}.{key}"))
 
-        header = f"Namespace {self._key}:\n\n  "
+        header = f"Namespace {self._key}:\n  "
         option_docs = (
             "\n  ".join(self._build_doc_option(opt).splitlines()) for opt in options
         )
