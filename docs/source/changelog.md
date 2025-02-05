@@ -13,6 +13,7 @@
   + `filter_items`, `filter_keys`, and `filter_values`
     - Analogs of `filter` but for mapping types
 - Modify `PartialApplication` type to work even if multiple arguments are missing
+- Add `@Option.namespace` decorator for creating option namespaces
 
 
 ## Version 2.0.4
