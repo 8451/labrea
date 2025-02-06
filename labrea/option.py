@@ -472,7 +472,9 @@ class Namespace(Evaluatable[Options]):
                 continue
             elif isinstance(value, type):
                 members[name_] = cls._from_type(value, parent=key)
-            elif isinstance(value, (str, int, float, bool, list, dict, Evaluatable)):
+            elif value is None or isinstance(
+                value, (str, int, float, bool, list, dict, Evaluatable)
+            ):
                 members[name_] = Option(f"{key}.{name_}", default=value)
             else:
                 raise TypeError(
