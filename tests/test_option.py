@@ -288,3 +288,12 @@ def test_namespace_doc():
             B = Option.auto(1, doc="B")
 
     assert PKG.__doc__ == 'Namespace PKG:\n  Option PKG.A\n  Namespace PKG.MODULE:\n    Option PKG.MODULE.B (default 1): B'
+
+
+def test_set():
+    option = Option('A.B')
+    options = {'A': {'B': 0}, 'C': 1}
+
+    new = option.set(options, 2)
+    assert new is not options
+    assert new == {'A': {'B': 2}, 'C': 1}
