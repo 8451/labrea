@@ -72,13 +72,14 @@ class Mock:
 
     Example Usage
     -------------
-    >>> import labrea
+    >>> from labrea import dataset
+    >>> import labrea.mock
     >>>
-    >>> @labrea.dataset
+    >>> @dataset
     >>> def foo() -> str:
     ...    return "foo"
     ...
-    >>> with labrea.Mock() as mock:
+    >>> with labrea.mock.Mock() as mock:
     ...     mock(foo, "bar")
     ...     assert foo() == "bar"
     ...
