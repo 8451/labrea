@@ -13,7 +13,12 @@ from typing import (
 )
 
 from confectioner import mix
-from confectioner.templating import dotted_key_exists, get_dotted_key, resolve
+from confectioner.templating import (
+    dotted_key_exists,
+    get_dotted_key,
+    resolve,
+    set_dotted_key,
+)
 
 from ._missing import MISSING, MaybeMissing
 from .application import FunctionApplication
@@ -234,6 +239,33 @@ class Option(Evaluatable[A]):
         '100'  # str transformation applied
         """
         return _Auto(default, doc)  # type: ignore
+
+    def set(self, options: Options, value: JSON) -> Options:
+        """Set the value of the option in the options dictionary.
+
+        Arguments
+        ----------
+        options : Options
+            The options dictionary to modify.
+        value : A
+            The value to set the option to.
+
+        Returns
+        -------
+        Options
+            The modified options dictionary
+
+
+        Example Usage
+        -------------
+        >>> from labrea import Option
+        >>> o = Option('A.Y')
+        >>> o.set({'A': {'X': 'foo'}}, 'bar')
+        {'A': {'X': 'foo', 'Y': 'bar'}}
+        """
+        new: Dict[str, JSON] = {}
+        set_dotted_key(self.key, value, new)
+        return mix(options, new)  # type: ignore
 
 
 class WithOptions(Evaluatable[B]):
