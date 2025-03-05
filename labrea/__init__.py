@@ -1,4 +1,4 @@
-from . import _version, exceptions, types
+from . import _version, exceptions, mock, types
 from .cache import cached
 from .coalesce import Coalesce, coalesce
 from .collections import (
@@ -54,6 +54,7 @@ __all__ = [
     "exceptions",
     "implements",
     "interface",
+    "mock",
     "pipeline_step",
     "switch",
     "types",
