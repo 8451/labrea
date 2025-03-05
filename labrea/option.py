@@ -490,13 +490,15 @@ class Namespace(Evaluatable[Options]):
         options: List[Option] = []
         namespaces: List[Namespace] = []
 
-        for key, value in members:
+        for name, value in members:
+            if name.startswith("_"):
+                continue
             if isinstance(value, Namespace):
                 namespaces.append(value)
             elif isinstance(value, Option):
                 options.append(value)
             elif isinstance(value, _Auto):
-                options.append(value.option(f"{self._key}.{key}"))
+                options.append(value.option(f"{self._key}.{name}"))
 
         header = f"Namespace {self._key}:\n  "
         option_docs = (

@@ -301,6 +301,9 @@ def test_namespace_doc():
         A: str
         class MODULE:
             B = Option.auto(1, doc="B")
+        class _HIDDEN_MODULE:
+            C: str
+            _D = str
 
     assert PKG.__doc__ == 'Namespace PKG:\n  Option PKG.A\n  Namespace PKG.MODULE:\n    Option PKG.MODULE.B (default 1): B'
 
