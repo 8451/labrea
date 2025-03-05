@@ -268,6 +268,13 @@ Logging
 .. autofunction:: labrea.logging.CRITICAL
 
 
+Mocking
+-------
+.. autoclass:: labrea.mock.Mock
+    :members:
+    :show-inheritance:
+
+
 Exceptions
 ----------
 .. autoclass:: labrea.exceptions.EvaluationError
