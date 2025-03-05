@@ -411,16 +411,17 @@ class Namespace(Evaluatable[Options]):
         self.__doc__ = self._build_doc()
 
     def evaluate(self, options: Options) -> Options:
-        return self._full.evaluate(options)
+        return get_dotted_key(self._key, self._populate({}, options))
 
     def validate(self, options: Options) -> None:
-        self._full.validate(options)
+        for name in self._members:
+            self[name].validate(options)
 
     def keys(self, options: Options) -> Set[str]:
-        return self._full.keys(options)
+        return set().union(*(self[name].keys(options) for name in self._members))
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
-        return self._full.explain(options)
+        return set().union(*(self[name].explain(options) for name in self._members))
 
     def __getitem__(self, key: str) -> Evaluatable:
         item = self._members[key]
@@ -436,6 +437,16 @@ class Namespace(Evaluatable[Options]):
 
     def __repr__(self) -> str:
         return f"Namespace({self._key!r})"
+
+    def _populate(self, result: Options, options: Options) -> Options:
+        for name in self._members:
+            member = self[name]
+            if isinstance(member, Namespace):
+                result = member._populate(result, options)
+            elif isinstance(member, Option):
+                result = member.set(result, member(options))
+
+        return result
 
     @staticmethod
     def _build_doc_option(option: Option) -> str:

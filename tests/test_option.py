@@ -217,15 +217,15 @@ def test_namespace_full():
     @Option.namespace("PKG")
     class PKG:
         A: str
+        B: int = 1
 
-    inner = {"A": "a"}
-    options = {"PKG": inner}
+    options = {"PKG": {"A": "a"}}
 
-    assert PKG(options) == inner
+    assert PKG(options) == {"A": "a", "B": 1}
     PKG.validate(options)
-    assert PKG.keys(options) == {"PKG"}
-    assert PKG.explain(options) == {"PKG"}
-    assert PKG.explain() == set()
+    assert PKG.keys(options) == {"PKG.A"}
+    assert PKG.explain(options) == {"PKG.A"}
+    assert PKG.explain() == {"PKG.A"}
 
     assert repr(PKG) == "Namespace('PKG')"
 
