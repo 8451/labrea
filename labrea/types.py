@@ -598,7 +598,16 @@ class ExplainRequest(Request[Set[str]]):
 
 @EvaluateRequest.handle
 def _evaluate_request(request: EvaluateRequest[A]) -> A:
-    return request.evaluatable.__labrea_evaluate__(request.options)
+    try:
+        return request.evaluatable.__labrea_evaluate__(request.options)
+    except EvaluationError as e:
+        if e.source is request.evaluatable:
+            raise e
+        raise EvaluationError(
+            f"Error during evaluation of {e.source}", request.evaluatable
+        ) from e
+    except Exception as e:
+        raise EvaluationError("Error during evaluation", request.evaluatable) from e
 
 
 @ValidateRequest.handle
