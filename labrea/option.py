@@ -1,3 +1,4 @@
+import warnings
 from typing import (
     Callable,
     Dict,
@@ -22,7 +23,7 @@ from confectioner.templating import (
 
 from ._missing import MISSING, MaybeMissing
 from .application import FunctionApplication
-from .exceptions import EvaluationError, KeyNotFoundError
+from .exceptions import KeyNotFoundError
 from .template import Template
 from .types import JSON, Evaluatable, MaybeEvaluatable, Options, Value
 
@@ -390,19 +391,8 @@ AllOptions = _AllOptions()
 AllOptions.__doc__ = """An object that evaluates to the entire options dictionary."""
 
 
-class UnrecognizedNamespaceMemberError(EvaluationError):
+class UnrecognizedNamespaceMemberWarning(Warning):
     """Error raised when a passed option is not recognized in a namespace."""
-
-    key: str
-    source: Evaluatable
-
-    def __init__(self, key: str, source: "Namespace") -> None:
-        self.key = key
-
-        super().__init__(f"Key '{self.key}' not recognized in {source!r}", source)
-
-
-NAMESPACE_ALLOW_EXTRA = Option("LABREA.NAMESPACE.ALLOW_EXTRA", False)
 
 
 class Namespace(Evaluatable[Options]):
@@ -432,11 +422,13 @@ class Namespace(Evaluatable[Options]):
         for name in self._members:
             self[name].validate(options)
 
-        if not NAMESPACE_ALLOW_EXTRA(options):
-            section = Option[Options](self._key)(options)
-            for name in section:
-                if name not in self._members:
-                    raise UnrecognizedNamespaceMemberError(f"{self._key}.{name}", self)
+        section = Option[Options](self._key)(options)
+        for name in section:
+            if name not in self._members:
+                warnings.warn(
+                    f"Unrecognized option {name!r} in namespace {self._key}",
+                    UnrecognizedNamespaceMemberWarning,
+                )
 
     def keys(self, options: Options) -> Set[str]:
         return set().union(*(self[name].keys(options) for name in self._members))

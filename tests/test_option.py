@@ -1,5 +1,5 @@
 from labrea.exceptions import KeyNotFoundError
-from labrea.option import AllOptions, Option, WithOptions, WithDefaultOptions, UnrecognizedNamespaceMemberError, NAMESPACE_ALLOW_EXTRA
+from labrea.option import AllOptions, Option, WithOptions, WithDefaultOptions, UnrecognizedNamespaceMemberWarning
 from labrea.template import Template
 from labrea.types import Value
 import pytest
@@ -271,12 +271,8 @@ def test_namespace_extra():
 
     options = {"PKG": {"A": 1, "B": 2}}
 
-    with pytest.raises(UnrecognizedNamespaceMemberError):
+    with pytest.warns(UnrecognizedNamespaceMemberWarning):
         PKG.validate(options)
-
-    options = NAMESPACE_ALLOW_EXTRA.set(options, True)
-
-    PKG.validate(options)
 
 
 def test_namespace_default():
