@@ -28,6 +28,7 @@ classifiers = [
 dependencies = [
     "typing_extensions>=4.0; python_version<\"3.11\"",
     "confectioner>=1.0,<2.0",
+    "pydantic",
 ]
 dynamic = ["version"]
 
@@ -43,7 +44,6 @@ documentation = "https://8451.github.io/labrea"
 bugs = "https://github.com/8451/labrea/issues"
 
 [project.optional-dependencies]
-typed = ["pydantic>=2"]
 test = ["coverage", "coverage-badge", "pytest", "pytest-cov"]
 doc = [
     "nbsphinx",
@@ -61,7 +61,6 @@ dev = [
     "flake8>=3.7.9",
     "pre-commit",
     "coverage",
-    "labrea[typed]",
     "labrea[test]",
     "labrea[doc]",
 ]
