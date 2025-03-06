@@ -1,4 +1,6 @@
+import functools
 from typing import (
+    Any,
     Callable,
     Dict,
     Generic,
@@ -20,13 +22,14 @@ from confectioner.templating import (
     set_dotted_key,
 )
 
+from . import _typing
 from ._missing import MISSING, MaybeMissing
 from .application import FunctionApplication
-from .exceptions import KeyNotFoundError
+from .exceptions import InvalidTypeError, KeyNotFoundError
 from .template import Template
 from .types import JSON, Evaluatable, MaybeEvaluatable, Options, Value
 
-A = TypeVar("A", covariant=True, bound=JSON)
+A = TypeVar("A", covariant=True, bound="JSON")
 B = TypeVar("B", covariant=True)
 
 
@@ -71,12 +74,14 @@ class Option(Evaluatable[A]):
 
     key: str
     default: MaybeMissing[Evaluatable[A]]
+    type: Any
 
     def __init__(
         self,
         key: str,
         default: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
         default_factory: MaybeMissing[Callable[[], A]] = MISSING,
+        type: Any = MISSING,
         doc: str = "",
     ) -> None:
         self.key = key
@@ -89,7 +94,15 @@ class Option(Evaluatable[A]):
         else:
             self.default = MISSING
 
+        self.type = type
+
         self.__doc__ = doc
+
+    def _validate(self, value: Any) -> Any:
+        try:
+            return _typing.validate(value, self.type)
+        except Exception as e:
+            raise InvalidTypeError(self.type, value, self) from e
 
     def evaluate(self, options: Options) -> A:
         """Retrieves the key from the options dictionary.
@@ -100,12 +113,13 @@ class Option(Evaluatable[A]):
         default key is not an Evaluatable, it is returned as-is.
         """
         try:
-            value = get_dotted_key(self.key, options)
-            return resolve(value, options)
+            value = resolve(get_dotted_key(self.key, options), options)
         except KeyError:
             if self.default is MISSING:
                 raise KeyNotFoundError(self.key, self)
-            return self.default.evaluate(options)
+            value = self.default.evaluate(options)
+
+        return self._validate(value)
 
     def validate(self, options: Options) -> None:
         """Validates that the key exists in the options dictionary.
@@ -115,7 +129,7 @@ class Option(Evaluatable[A]):
         dictionary. If the default key is not an Evaluatable, it is ignored.
         """
         if dotted_key_exists(self.key, options):
-            _ = self.keys(options)
+            _ = self.evaluate(options)
         elif self.default is not MISSING:
             self.default.validate(options)
         else:
@@ -160,6 +174,9 @@ class Option(Evaluatable[A]):
             if self.default is not MISSING
             else f"Option({self.key!r})"
         )
+
+    def __class_getitem__(cls, type: Any):
+        return functools.partial(cls, type=type)
 
     @overload
     @staticmethod
