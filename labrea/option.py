@@ -22,11 +22,11 @@ from confectioner.templating import (
     set_dotted_key,
 )
 
+from . import type_validation
 from ._missing import MISSING, MaybeMissing
 from .application import FunctionApplication
 from .exceptions import KeyNotFoundError
 from .template import Template
-from .type_validation import TypeValidationRequest
 from .types import JSON, Evaluatable, MaybeEvaluatable, Options, Value
 
 A = TypeVar("A", covariant=True, bound="JSON")
@@ -113,7 +113,8 @@ class Option(Evaluatable[A]):
                 raise KeyNotFoundError(self.key, self)
             value = self.default.evaluate(options)
 
-        return TypeValidationRequest(value, self.type, options).run()
+        type_validation.validate(self, value, self.type, options)
+        return value
 
     def validate(self, options: Options) -> None:
         """Validates that the key exists in the options dictionary.

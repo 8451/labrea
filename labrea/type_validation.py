@@ -1,11 +1,9 @@
-from typing import Any, Type, TypeVar
+from typing import Any, Type
 
-from ._missing import MaybeMissing
+from ._missing import MISSING, MaybeMissing
 from .exceptions import EvaluationError
 from .runtime import Request
 from .types import Evaluatable, Options
-
-A = TypeVar("A")
 
 
 class TypeValidationError(EvaluationError):
@@ -24,7 +22,7 @@ class TypeValidationError(EvaluationError):
         )
 
 
-class TypeValidationRequest(Request[A]):
+class TypeValidationRequest(Request[None]):
     """A request to validate a type.
 
     Arguments
@@ -38,15 +36,26 @@ class TypeValidationRequest(Request[A]):
     """
 
     value: Any
-    type: MaybeMissing[Type[A]]
+    type: MaybeMissing[Type]
     options: Options
 
-    def __init__(self, value: Any, type: MaybeMissing[Type[A]], options: Options):
+    def __init__(self, value: Any, type: MaybeMissing[Type], options: Options):
         self.value = value
         self.type = type
         self.options = options
 
 
 @TypeValidationRequest.handle
-def _empty_handler(request: TypeValidationRequest[A]) -> A:
-    return request.value
+def _empty_handler(request: TypeValidationRequest):
+    return
+
+
+def validate(
+    source: Evaluatable, value: Any, type: MaybeMissing[Type], options: Options
+) -> None:
+    if type is MISSING:
+        return
+    try:
+        TypeValidationRequest(value, type, options).run()
+    except TypeError as e:
+        raise TypeValidationError(source, value, type) from e
