@@ -1,10 +1,27 @@
 from typing import Any, Type, TypeVar
 
 from ._missing import MaybeMissing
+from .exceptions import EvaluationError
 from .runtime import Request
-from .types import Options
+from .types import Evaluatable, Options
 
 A = TypeVar("A")
+
+
+class TypeValidationError(EvaluationError):
+    source: Evaluatable
+    value: Any
+    type: Type
+
+    def __init__(self, source: Evaluatable, value: Any, type: Type) -> None:
+        self.source = source
+        self.value = value
+        self.type = type
+
+        super().__init__(
+            f"Type validation failed for {source!r}: {value!r} is not of type {type!r}",
+            source,
+        )
 
 
 class TypeValidationRequest(Request[A]):
