@@ -29,17 +29,17 @@ class TypeValidationRequest(Request[None]):
     ---------
     value : Any
         The value to validate.
-    type : MaybeMissing[Type[A]]
+    type : Type[A]
         The type to validate against.
     options : Options
         The options used during evaluation.
     """
 
     value: Any
-    type: MaybeMissing[Type]
+    type: Type
     options: Options
 
-    def __init__(self, value: Any, type: MaybeMissing[Type], options: Options):
+    def __init__(self, value: Any, type: Type, options: Options):
         self.value = value
         self.type = type
         self.options = options
