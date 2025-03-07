@@ -17,7 +17,7 @@ class TypeValidationError(EvaluationError):
         self.type = type
 
         super().__init__(
-            f"Type validation failed for {source!r}: {value!r} is not of type {type!r}",
+            f"{value!r} is not of type {type!r}",
             source,
         )
 
