@@ -74,14 +74,14 @@ class Option(Evaluatable[A]):
 
     key: str
     default: MaybeMissing[Evaluatable[A]]
-    type: Any
+    type: MaybeMissing[Type[A]]
 
     def __init__(
         self,
         key: str,
         default: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
         default_factory: MaybeMissing[Callable[[], A]] = MISSING,
-        type: Any = MISSING,
+        type: MaybeMissing[Type[A]] = MISSING,
         doc: str = "",
     ) -> None:
         self.key = key
