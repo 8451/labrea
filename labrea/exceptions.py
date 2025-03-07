@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .types import Evaluatable
@@ -38,21 +38,4 @@ class InsufficientInformationError(EvaluationError):
     def __init__(self, reason: str, source: "Evaluatable") -> None:
         super().__init__(
             f"Insufficient information to evaluate {source}: {reason}", source
-        )
-
-
-class InvalidTypeError(EvaluationError):
-    """Error raised when an object is not of the expected type."""
-
-    expected: Any
-    actual: Any
-    source: "Evaluatable"
-
-    def __init__(self, expected: Any, actual: Any, source: "Evaluatable") -> None:
-        self.expected = expected
-        self.actual = actual
-
-        super().__init__(
-            f"Expected type {expected}, got {actual!r}",
-            source,
         )

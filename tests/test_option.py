@@ -1,5 +1,4 @@
-from typing import List
-from labrea.exceptions import InvalidTypeError, KeyNotFoundError
+from labrea.exceptions import KeyNotFoundError
 from labrea.option import AllOptions, Option, WithOptions, WithDefaultOptions
 from labrea.template import Template
 from labrea.types import Value
@@ -298,24 +297,3 @@ def test_set():
     new = option.set(options, 2)
     assert new is not options
     assert new == {'A': {'B': 2}, 'C': 1}
-
-
-def test_typing():
-    explicit = Option("A", type=List[int])
-    implicit = Option[List[int]]("A")
-
-    good = {"A": [1, 2, 3]}
-    bad = {"A": [1, 2, "3"]}
-
-    assert explicit(good) == implicit(good) == [1, 2, 3]
-    explicit.validate(good)
-    implicit.validate(good)
-
-    with pytest.raises(InvalidTypeError):
-        explicit(bad)
-    with pytest.raises(InvalidTypeError):
-        implicit(bad)
-    with pytest.raises(InvalidTypeError):
-        explicit.validate(bad)
-    with pytest.raises(InvalidTypeError):
-        implicit.validate(bad)
