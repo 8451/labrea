@@ -1,7 +1,10 @@
+from typing import Any
 from labrea.exceptions import KeyNotFoundError
 from labrea.option import AllOptions, Option, WithOptions, WithDefaultOptions
 from labrea.template import Template
+from labrea.type_validation import TypeValidationRequest
 from labrea.types import Value
+import labrea.runtime
 import pytest
 
 
@@ -297,3 +300,32 @@ def test_set():
     new = option.set(options, 2)
     assert new is not options
     assert new == {'A': {'B': 2}, 'C': 1}
+
+
+def test_type_validation():
+    store: TypeValidationRequest = TypeValidationRequest(None, Any, {})
+
+    def handle_type_validation(request: TypeValidationRequest):
+        nonlocal store
+        store = request
+        return request.value
+
+    implicit = Option[int]('A')
+    explicit = Option('A', type=int)
+
+    with labrea.runtime.current_runtime().handle(TypeValidationRequest, handle_type_validation):
+        implicit({'A': 1})
+        assert store.type is int
+        assert store.value == 1
+
+        implicit.validate({'A': 2})
+        assert store.type is int
+        assert store.value == 2
+
+        explicit({'A': 3})
+        assert store.type is int
+        assert store.value == 3
+
+        explicit.validate({'A': 4})
+        assert store.type is int
+        assert store.value == 4
