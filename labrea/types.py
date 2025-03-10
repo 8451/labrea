@@ -1,4 +1,3 @@
-import hashlib
 import json
 from abc import ABC, abstractmethod
 from copy import deepcopy
@@ -98,15 +97,9 @@ class Cacheable(ABC):
 
     def fingerprint(self, options: Options) -> bytes:
         """Return a fingerprint, which is a unique identifier for a given evaluation."""
-        fingerprint = hashlib.blake2b(digest_size=64)
-
-        for key in sorted(self.keys(options)):
-            fingerprint.update(key.encode())
-            fingerprint.update(
-                json.dumps(get_dotted_key(key, options), sort_keys=True).encode()
-            )
-
-        return fingerprint.digest()
+        return json.dumps(
+            [{key: get_dotted_key(key, options)} for key in sorted(self.keys(options))]
+        ).encode()
 
 
 class Explainable(ABC):

@@ -70,6 +70,23 @@ def test_overload_no_dispatch():
             pass
 
 
+def test_overload_stacked():
+    @dataset(dispatch='X')
+    def x():
+        pass
+
+    @x.overload('Y')
+    @dataset(dispatch='Y')
+    def y():
+        pass
+
+    @y.overload('Z')
+    def z():
+        return "foo"
+
+    assert x.evaluate({'X': 'Y', 'Y': 'Z'}) == "foo"
+
+
 def test_abstract():
 
     @abstractdataset(dispatch='A')
@@ -307,3 +324,12 @@ def test_callback():
         return 1
 
     assert y() == 5.5
+
+
+def test_dataset_kwargs():
+    @dataset.where(x=Option('X'))
+    def y(**kwargs) -> dict:
+        return kwargs
+
+
+    assert y({'X': 1, 'Z': 2}) == {'x': 1}
