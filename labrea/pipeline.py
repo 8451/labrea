@@ -90,12 +90,16 @@ class PipelineStep(Evaluatable[Callable[[A], B]], Transformation[A, B]):
         return isinstance(other, PipelineStep) and self.step == other.step
 
 
+def _identity(x):
+    return x
+
+
 class _Identity(Generic[A], PipelineStep[A, A]):
     def __new__(cls) -> "_Identity[A]":
         return super().__new__(cls)
 
     def __init__(self) -> None:
-        super().__init__(Value(lambda x: x), "Identity")
+        super().__init__(Value(_identity), "Identity")
 
 
 Identity: _Identity = _Identity()
