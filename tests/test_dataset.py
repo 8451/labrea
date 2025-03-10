@@ -8,6 +8,7 @@ from labrea.dataset import Dataset, dataset, abstractdataset
 from labrea.exceptions import EvaluationError
 from labrea.logging import LogRequest
 from labrea.option import Option
+from labrea.pipeline import Pipeline
 import labrea.runtime
 
 
@@ -308,6 +309,21 @@ def test_pickle():
     x = dataset(Option('X'))
 
     assert isinstance(pickle.loads(pickle.dumps(x)), Dataset)
+
+
+def test_callback():
+    @dataset(callback=lambda x: x + 1)
+    def x() -> int:
+        return 1
+
+    assert x() == 2
+
+
+    @dataset(callback=Pipeline() + (lambda x: x + 10) + (lambda x: x / 2))
+    def y() -> float:
+        return 1
+
+    assert y() == 5.5
 
 
 def test_dataset_kwargs():
