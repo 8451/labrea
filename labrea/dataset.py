@@ -7,6 +7,7 @@ else:
 
 import functools
 import logging
+import typing
 from typing import (
     Any,
     Callable,
@@ -18,7 +19,6 @@ from typing import (
     Set,
     TypeVar,
     Union,
-    overload,
 )
 
 from confectioner import mix
@@ -147,7 +147,7 @@ class Dataset(Evaluatable[A]):
     def overload(
         self,
         alias: Union[Hashable, List[Hashable]],
-    ) -> Callable[[Callable[P, A]], FunctionApplication[P, A]]:
+    ) -> Callable[[Callable[..., A]], "Dataset[A]"]:
         """Overloads the dataset with a new implementation. Used as a decorator.
 
         Overloading a dataset allows you to provide a new implementation for the dataset.
@@ -200,8 +200,9 @@ class Dataset(Evaluatable[A]):
         if not isinstance(alias, list):
             alias = [alias]
 
-        def decorator(func: Callable[P, A]) -> FunctionApplication[P, A]:
-            overload_ = FunctionApplication.lift(func)
+        def decorator(func: Callable[..., A]) -> Dataset[A]:
+            overload_ = func if isinstance(func, Dataset) else dataset(func)
+
             for key in alias:
                 self.register(key, overload_)
             return overload_
@@ -414,7 +415,7 @@ class DatasetFactory(Generic[A]):
         else:
             self.dispatch = dispatch
 
-    @overload
+    @typing.overload
     def __call__(
         self,
         definition: Callable[..., A],
@@ -429,7 +430,7 @@ class DatasetFactory(Generic[A]):
         default_options: Optional[Options] = ...,
     ) -> Dataset[A]: ...  # pragma: no cover
 
-    @overload
+    @typing.overload
     def __call__(
         self,
         /,
@@ -443,7 +444,7 @@ class DatasetFactory(Generic[A]):
         default_options: Optional[Options] = ...,
     ) -> "DatasetFactory[A]": ...  # pragma: no cover
 
-    @overload
+    @typing.overload
     def __call__(
         self,
         definition: None,

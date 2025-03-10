@@ -69,6 +69,23 @@ def test_overload_no_dispatch():
             pass
 
 
+def test_overload_stacked():
+    @dataset(dispatch='X')
+    def x():
+        pass
+
+    @x.overload('Y')
+    @dataset(dispatch='Y')
+    def y():
+        pass
+
+    @y.overload('Z')
+    def z():
+        return "foo"
+
+    assert x.evaluate({'X': 'Y', 'Y': 'Z'}) == "foo"
+
+
 def test_abstract():
 
     @abstractdataset(dispatch='A')
