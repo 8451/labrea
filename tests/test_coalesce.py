@@ -1,6 +1,6 @@
 from labrea.coalesce import Coalesce
 from labrea.option import Option
-from labrea.exceptions import KeyNotFoundError
+from labrea.exceptions import EvaluationError, KeyNotFoundError
 import pytest
 
 
@@ -15,7 +15,7 @@ def test_coalesce():
     assert c({'A': 'Hello', 'B': 'World!'}) == 'Hello'
     assert c({'B': 'World!', 'C': 'foo'}) == 'World!'
 
-    with pytest.raises(KeyNotFoundError):
+    with pytest.raises(EvaluationError):
         c({})
 
     with pytest.raises(KeyNotFoundError):

@@ -1,5 +1,5 @@
 from labrea.conditional import switch, SwitchError, case, CaseWhenError
-from labrea.exceptions import KeyNotFoundError, InsufficientInformationError
+from labrea.exceptions import EvaluationError, KeyNotFoundError, InsufficientInformationError
 from labrea.option import Option
 import pytest
 
@@ -9,11 +9,11 @@ def test_switch():
 
     assert s({'A': 'X'}) == 42
     assert s({'A': 'Y', 'Z': 43}) == 43
-    with pytest.raises(KeyNotFoundError):
+    with pytest.raises(EvaluationError):
         s.evaluate({})
-    with pytest.raises(KeyNotFoundError):
+    with pytest.raises(EvaluationError):
         s.evaluate({'A': 'Y'})
-    with pytest.raises(SwitchError):
+    with pytest.raises(EvaluationError):
         s.evaluate({'A': 'Z'})
 
     s.validate({'A': 'X'})
@@ -63,9 +63,9 @@ def test_case_when():
     assert c({'A': 'X'}) == 42
     assert c({'A': 'Y', 'Z': 44}) == 44
     assert c({'A': 'Z'}) == 43
-    with pytest.raises(KeyNotFoundError):
+    with pytest.raises(EvaluationError):
         c.evaluate({})
-    with pytest.raises(KeyNotFoundError):
+    with pytest.raises(EvaluationError):
         c.evaluate({'A': 'Y'})
 
     c.validate({'A': 'X'})
@@ -106,9 +106,9 @@ def test_case_when_no_default():
 
     assert c({'A': 'X'}) == 42
     assert c({'A': 'Y', 'Z': 44}) == 44
-    with pytest.raises(CaseWhenError):
+    with pytest.raises(EvaluationError):
         c({'A': 'Z'})
-    with pytest.raises(KeyNotFoundError):
+    with pytest.raises(EvaluationError):
         c.evaluate({})
 
     c.validate({'A': 'X'})
