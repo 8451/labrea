@@ -5,10 +5,10 @@ from copy import deepcopy
 from typing import (
     Callable,
     Generic,
-    List,
     Mapping,
     Optional,
     Protocol,
+    Sequence,
     Set,
     TypeVar,
     Union,
@@ -20,7 +20,7 @@ from confectioner.templating import get_dotted_key
 from .exceptions import EvaluationError, InsufficientInformationError
 
 JSONScalar = Union[str, int, float, bool, None]
-JSON = Union[JSONScalar, Mapping[str, "JSON"], List["JSON"]]
+JSON = Union[JSONScalar, Mapping[str, "JSON"], Sequence["JSON"]]
 Options = Mapping[str, JSON]
 
 

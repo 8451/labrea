@@ -1,6 +1,10 @@
+from typing import Any
 from labrea.exceptions import KeyNotFoundError
 from labrea.option import AllOptions, Option, WithOptions, WithDefaultOptions
 from labrea.template import Template
+from labrea.type_validation import TypeValidationRequest
+from labrea.types import Value
+import labrea.runtime
 import pytest
 
 
@@ -198,5 +202,130 @@ def test_all_options():
     AllOptions.validate(options)
     assert AllOptions.keys(options) == {'A', 'B', 'C'}
     assert AllOptions.explain(options) == {'A', 'B', 'C'}
-
     assert AllOptions.explain() == set()
+    assert repr(AllOptions) == "AllOptions"
+
+
+def test_all_options_cannot_resolve():
+    options = {"A": "{B}"}
+    with pytest.raises(KeyNotFoundError) as excinfo:
+        AllOptions.evaluate(options)
+        assert excinfo.value.key == 'B'
+    with pytest.raises(KeyNotFoundError) as excinfo:
+        AllOptions.validate(options)
+        assert excinfo.value.key == 'B'
+
+
+def test_namespace_full():
+    @Option.namespace("PKG")
+    class PKG:
+        A: str
+
+    inner = {"A": "a"}
+    options = {"PKG": inner}
+
+    assert PKG(options) == inner
+    PKG.validate(options)
+    assert PKG.keys(options) == {"PKG"}
+    assert PKG.explain(options) == {"PKG"}
+    assert PKG.explain() == set()
+
+    assert repr(PKG) == "Namespace('PKG')"
+
+
+def test_namespace_inferred():
+    @Option.namespace
+    class PKG:
+        A: str
+        class MODULE:
+            B: int
+
+    assert PKG.A({"PKG": {"A": "a"}}) == "a"
+    assert PKG.MODULE.B({"PKG": {"MODULE": {"B": 1}}}) == 1
+
+
+def test_namespace_explicit():
+    @Option.namespace("MY-PKG")
+    class PKG:
+        A = Option("X")
+        @Option.namespace("MY-MODULE")
+        class MODULE:
+            B = Option("Y")
+
+    assert PKG.A({"MY-PKG": {"X": "a"}}) == "a"
+    assert PKG.MODULE.B({"MY-PKG": {"MY-MODULE": {"Y": 1}}}) == 1
+
+
+def test_namespace_auto():
+    @Option.namespace
+    class PKG:
+        A = Option.auto(doc="A as string") >> str
+        B = Option.auto(doc="B")
+
+    assert PKG.A({"PKG": {"A": 1}}) == "1"
+    assert PKG.A.__doc__ == "A as string"
+    assert PKG.B.__doc__ == "B"
+
+
+def test_namespace_default():
+    @Option.namespace
+    class PKG:
+        A: str = "a"
+        B = Value(1) >> str
+
+    assert PKG.A() == "a"
+    assert PKG.B() == "1"
+
+    with pytest.raises(TypeError):
+        @Option.namespace
+        class _:
+            A = object()
+
+
+
+def test_namespace_doc():
+    @Option.namespace
+    class PKG:
+        A: str
+        class MODULE:
+            B = Option.auto(1, doc="B")
+
+    assert PKG.__doc__ == 'Namespace PKG:\n  Option PKG.A\n  Namespace PKG.MODULE:\n    Option PKG.MODULE.B (default 1): B'
+
+
+def test_set():
+    option = Option('A.B')
+    options = {'A': {'B': 0}, 'C': 1}
+
+    new = option.set(options, 2)
+    assert new is not options
+    assert new == {'A': {'B': 2}, 'C': 1}
+
+
+def test_type_validation():
+    store: TypeValidationRequest = TypeValidationRequest(None, Any, {})
+
+    def handle_type_validation(request: TypeValidationRequest):
+        nonlocal store
+        store = request
+        return request.value
+
+    implicit = Option[int]('A')
+    explicit = Option('A', type=int)
+
+    with labrea.runtime.current_runtime().handle(TypeValidationRequest, handle_type_validation):
+        implicit({'A': 1})
+        assert store.type is int
+        assert store.value == 1
+
+        implicit.validate({'A': 2})
+        assert store.type is int
+        assert store.value == 2
+
+        explicit({'A': 3})
+        assert store.type is int
+        assert store.value == 3
+
+        explicit.validate({'A': 4})
+        assert store.type is int
+        assert store.value == 4
