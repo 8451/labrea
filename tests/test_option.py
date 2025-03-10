@@ -1,5 +1,5 @@
 from labrea.exceptions import KeyNotFoundError
-from labrea.option import AllOptions, Option, WithOptions, WithDefaultOptions
+from labrea.option import AllOptions, Option, WithOptions, WithDefaultOptions, UnrecognizedNamespaceMemberWarning
 from labrea.template import Template
 from labrea.types import Value
 import pytest
@@ -217,15 +217,15 @@ def test_namespace_full():
     @Option.namespace("PKG")
     class PKG:
         A: str
+        B: int = 1
 
-    inner = {"A": "a"}
-    options = {"PKG": inner}
+    options = {"PKG": {"A": "a"}}
 
-    assert PKG(options) == inner
+    assert PKG(options) == {"A": "a", "B": 1}
     PKG.validate(options)
-    assert PKG.keys(options) == {"PKG"}
-    assert PKG.explain(options) == {"PKG"}
-    assert PKG.explain() == set()
+    assert PKG.keys(options) == {"PKG.A"}
+    assert PKG.explain(options) == {"PKG.A"}
+    assert PKG.explain() == {"PKG.A"}
 
     assert repr(PKG) == "Namespace('PKG')"
 
@@ -264,6 +264,17 @@ def test_namespace_auto():
     assert PKG.B.__doc__ == "B"
 
 
+def test_namespace_extra():
+    @Option.namespace
+    class PKG:
+        A: int
+
+    options = {"PKG": {"A": 1, "B": 2}}
+
+    with pytest.warns(UnrecognizedNamespaceMemberWarning):
+        PKG.validate(options)
+
+
 def test_namespace_default():
     @Option.namespace
     class PKG:
@@ -286,6 +297,9 @@ def test_namespace_doc():
         A: str
         class MODULE:
             B = Option.auto(1, doc="B")
+        class _HIDDEN_MODULE:
+            C: str
+            _D = str
 
     assert PKG.__doc__ == 'Namespace PKG:\n  Option PKG.A\n  Namespace PKG.MODULE:\n    Option PKG.MODULE.B (default 1): B'
 
