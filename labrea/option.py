@@ -11,6 +11,7 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    cast,
     overload,
 )
 
@@ -22,11 +23,11 @@ from confectioner.templating import (
     set_dotted_key,
 )
 
-from . import type_validation
 from ._missing import MISSING, MaybeMissing
 from .application import FunctionApplication
 from .exceptions import KeyNotFoundError
 from .template import Template
+from .type_validation import TypeValidationRequest
 from .types import JSON, Evaluatable, MaybeEvaluatable, Options, Value
 
 A = TypeVar("A", covariant=True, bound="JSON")
@@ -74,14 +75,14 @@ class Option(Evaluatable[A]):
 
     key: str
     default: MaybeMissing[Evaluatable[A]]
-    type: MaybeMissing[Type[A]]
+    type: Type[A]
 
     def __init__(
         self,
         key: str,
         default: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
         default_factory: MaybeMissing[Callable[[], A]] = MISSING,
-        type: MaybeMissing[Type[A]] = MISSING,
+        type: Type[A] = cast(Type, Any),
         doc: str = "",
     ) -> None:
         self.key = key
@@ -113,7 +114,7 @@ class Option(Evaluatable[A]):
                 raise KeyNotFoundError(self.key, self)
             value = self.default.evaluate(options)
 
-        type_validation.validate(self, value, self.type, options)
+        TypeValidationRequest(value, self.type, options).run()
         return value
 
     def validate(self, options: Options) -> None:
