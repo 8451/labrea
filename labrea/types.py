@@ -68,11 +68,15 @@ class Validatable(ABC):
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
 
-        def validate(self, options: Options) -> None:
-            return ValidateRequest(self, options).run()
+        if not hasattr(cls.validate, "__labrea_wrapper__"):
 
-        cls.__labrea_validate__ = cls.validate
-        cls.validate = validate
+            def validate(self, options: Options) -> None:
+                return ValidateRequest(self, options).run()
+
+            setattr(validate, "__labrea_wrapper__", True)
+
+            cls.__labrea_validate__ = cls.validate
+            cls.validate = validate
 
 
 class Cacheable(ABC):
@@ -120,11 +124,15 @@ class Cacheable(ABC):
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
 
-        def keys(self, options: Options) -> Set[str]:
-            return KeysRequest(self, options).run()
+        if not hasattr(cls.keys, "__labrea_wrapper__"):
 
-        cls.__labrea_keys__ = cls.keys
-        cls.keys = keys
+            def keys(self, options: Options) -> Set[str]:
+                return KeysRequest(self, options).run()
+
+            setattr(keys, "__labrea_wrapper__", True)
+
+            cls.__labrea_keys__ = cls.keys
+            cls.keys = keys
 
 
 class Explainable(ABC):
@@ -165,11 +173,15 @@ class Explainable(ABC):
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
 
-        def explain(self, options: Optional[Options] = None) -> Set[str]:
-            return ExplainRequest(self, options or {}).run()
+        if not hasattr(cls.explain, "__labrea_wrapper__"):
 
-        cls.__labrea_explain__ = cls.explain
-        cls.explain = explain
+            def explain(self, options: Optional[Options] = None) -> Set[str]:
+                return ExplainRequest(self, options or {}).run()
+
+            setattr(explain, "__labrea_wrapper__", True)
+
+            cls.__labrea_explain__ = cls.explain
+            cls.explain = explain
 
 
 class Evaluatable(Generic[A], Cacheable, Explainable, Validatable, ABC):
@@ -382,11 +394,15 @@ class Evaluatable(Generic[A], Cacheable, Explainable, Validatable, ABC):
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
 
-        def evaluate(self, options: Options) -> A:
-            return EvaluateRequest(self, options).run()
+        if not hasattr(cls.evaluate, "__labrea_wrapper__"):
 
-        cls.__labrea_evaluate__ = cls.evaluate
-        cls.evaluate = evaluate
+            def evaluate(self, options: Options) -> A:
+                return EvaluateRequest(self, options).run()
+
+            setattr(evaluate, "__labrea_wrapper__", True)
+
+            cls.__labrea_evaluate__ = cls.evaluate
+            cls.evaluate = evaluate
 
 
 class Value(Evaluatable[A]):
