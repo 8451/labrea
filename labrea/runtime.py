@@ -6,9 +6,20 @@ else:
     from typing import Self
 
 import threading
-from typing import Callable, Dict, Generic, Mapping, Optional, Type, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Dict,
+    Generic,
+    Mapping,
+    Optional,
+    Type,
+    TypeVar,
+    Union,
+)
 
-from .types import Options
+if TYPE_CHECKING:
+    from .types import Options
 
 A = TypeVar("A", covariant=True)
 R = TypeVar("R", covariant=True, bound="Request")
@@ -29,7 +40,7 @@ class Request(Generic[A]):
     the runtime to execute the side effects in a controlled manner.
     """
 
-    options: Options
+    options: "Options"
 
     def run(self) -> A:
         """Runs the request using the current runtime, returning the result.

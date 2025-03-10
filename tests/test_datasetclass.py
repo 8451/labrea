@@ -1,7 +1,7 @@
 import pytest
 
 from labrea import datasetclass, Option
-from labrea.exceptions import KeyNotFoundError
+from labrea.exceptions import KeyNotFoundError, EvaluationError
 
 
 @datasetclass
@@ -25,9 +25,8 @@ def test_evaluate():
     assert x.b is True
     assert x.c == '3'
 
-    with pytest.raises(KeyNotFoundError) as exc_info:
+    with pytest.raises(EvaluationError) as exc_info:
         X({'A': 1})
-        assert exc_info.value.key == 'C'
 
 
 def test_validate():
