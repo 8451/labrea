@@ -9,7 +9,6 @@ import inspect
 from typing import (
     Any,
     Callable,
-    Generic,
     Iterable,
     Iterator,
     Optional,
@@ -94,15 +93,7 @@ def _identity(x):
     return x
 
 
-class _Identity(Generic[A], PipelineStep[A, A]):
-    def __new__(cls) -> "_Identity[A]":
-        return super().__new__(cls)
-
-    def __init__(self) -> None:
-        super().__init__(Value(_identity), "Identity")
-
-
-Identity: _Identity = _Identity()
+Identity = PipelineStep(Value(_identity))
 
 
 class Pipeline(
