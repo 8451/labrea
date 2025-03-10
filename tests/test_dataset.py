@@ -291,3 +291,12 @@ def test_pickle():
     x = dataset(Option('X'))
 
     assert isinstance(pickle.loads(pickle.dumps(x)), Dataset)
+
+
+def test_dataset_kwargs():
+    @dataset.where(x=Option('X'))
+    def y(**kwargs) -> dict:
+        return kwargs
+
+
+    assert y({'X': 1, 'Z': 2}) == {'x': 1}

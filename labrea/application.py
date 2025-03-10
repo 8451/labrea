@@ -138,13 +138,24 @@ class FunctionApplication(Generic[P, A], Evaluatable[A]):
         signature = inspect.signature(__func)
         eval_kwargs: Dict[str, Evaluatable["P.kwargs"]] = {}
 
+        has_kwargs = any(
+            param.kind == param.VAR_KEYWORD for param in signature.parameters.values()
+        )
+
         for param in signature.parameters.values():
             default = kwargs.get(param.name, param.default)
-            if default is param.empty:
+            if param.kind == param.VAR_KEYWORD:
+                continue
+            elif default is param.empty:
                 raise TypeError(
                     f"Cannot lift function {__func} with non-defaulted parameters"
                 )
             eval_kwargs[param.name] = Evaluatable.ensure(default)
+
+        if has_kwargs:
+            for key, value in kwargs.items():
+                if key not in eval_kwargs:
+                    eval_kwargs[key] = Evaluatable.ensure(value)
 
         return FunctionApplication(__func, **eval_kwargs)
 
