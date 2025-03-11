@@ -119,21 +119,24 @@ class Option(Evaluatable[A]):
         self.__doc__ = doc
 
     def _enforce_domain(self, value: Any, options: Options) -> None:
-        if self.domain is not MISSING:
-            domain = self.domain.evaluate(options)
-            if callable(domain) and not domain(value):
-                raise ValueError(
-                    f"Value {value!r} for option {self.key} does not satisfy {self.domain!r}"
-                )
-            elif isinstance(domain, Container) and value not in domain:
-                raise ValueError(
-                    f"Value {value!r} for option {self.key} not in domain {domain!r}"
-                )
-            elif not callable(domain) and not isinstance(domain, Container):
-                warnings.warn(
-                    f"Domain {domain!r} for option {self.key} is not valid",
-                    RuntimeWarning,
-                )
+        if self.domain is MISSING:
+            return
+
+        domain = self.domain.evaluate(options)
+        if not callable(domain) and not isinstance(domain, Container):
+            warnings.warn(
+                f"Domain {domain!r} for option {self.key} is not valid",
+                RuntimeWarning,
+            )
+            return
+        if callable(domain) and not domain(value):
+            raise ValueError(
+                f"Value {value!r} for option {self.key} does not satisfy {self.domain!r}"
+            )
+        if isinstance(domain, Container) and value not in domain:
+            raise ValueError(
+                f"Value {value!r} for option {self.key} not in domain {domain!r}"
+            )
 
     def evaluate(self, options: Options) -> A:
         """Retrieves the key from the options dictionary.
