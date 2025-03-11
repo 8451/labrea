@@ -5,8 +5,8 @@ build-backend = "hatchling.build"
 [project]
 name = "labrea"
 authors = [
-    {name = "Austin Warner", email = "austin.warner@8451.com"},
-    {name = "Michael Stoepel", email = "michael.stoepel@8451.com"},
+    { name = "Austin Warner", email = "austin.warner@8451.com" },
+    { name = "Michael Stoepel", email = "michael.stoepel@8451.com" },
 ]
 description = "A framework for declarative, functional dataset definitions."
 readme = "README.md"
@@ -28,6 +28,7 @@ classifiers = [
 dependencies = [
     "typing_extensions>=4.0; python_version<\"3.11\"",
     "confectioner>=1.0,<2.0",
+    "pydantic",
 ]
 dynamic = ["version"]
 
@@ -43,12 +44,7 @@ documentation = "https://8451.github.io/labrea"
 bugs = "https://github.com/8451/labrea/issues"
 
 [project.optional-dependencies]
-test = [
-    "coverage",
-    "coverage-badge",
-    "pytest",
-    "pytest-cov",
-]
+test = ["coverage", "coverage-badge", "pytest", "pytest-cov"]
 doc = [
     "nbsphinx",
     "recommonmark",
@@ -70,9 +66,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = [
-    "tests/"
-]
+testpaths = ["tests/"]
 
 [tool.mypy]
 plugins = ["labrea.mypy.plugin"]

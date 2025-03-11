@@ -48,6 +48,7 @@ def partial(
     Evaluatable[Callable[..., A]]
         An Evaluatable that returns a partially applied function.
 
+
     Example Usage
     -------------
     >>> from labrea import Option
@@ -193,8 +194,6 @@ def into(
     >>>
     >>> (Option('A') >> F.into(lambda x, y: x + y))({'A': [1, 2]})
     3
-    >>> (Option('A') >> F.into(lambda x, y: x + y))({'A': {'x': 1, 'y': 2}})
-    3
     """
 
     @pipeline_step
@@ -253,6 +252,7 @@ def map_items(
     PipelineStep[Mapping[K1, V1], Mapping[K2, V2]]
         A pipeline step that applies the function to the items of the mapping.
 
+
     Example Usage
     -------------
     >>> from labrea import Option
@@ -289,6 +289,7 @@ def map_keys(
     PipelineStep[Mapping[K1, V1], Mapping[K2, V1]]
         A pipeline step that applies the function to the keys of the mapping.
 
+
     Example Usage
     -------------
     >>> from labrea import Option
@@ -319,6 +320,7 @@ def map_values(
     PipelineStep[Mapping[K1, V1], Mapping[K1, V2]]
         A pipeline step that applies the function to the values of the mapping.
 
+
     Example Usage
     -------------
     >>> from labrea import Option
@@ -348,6 +350,7 @@ def filter_items(
     -------
     PipelineStep[Mapping[K1, V1], Mapping[K1, V1]]
         A pipeline step that filters the items of the mapping using the predicate function.
+
 
     Example Usage
     -------------
@@ -385,6 +388,7 @@ def filter_keys(
     PipelineStep[Mapping[K1, V1], Mapping[K1, V1]]
         A pipeline step that filters the keys of the mapping using the predicate function.
 
+
     Example Usage
     -------------
     >>> from labrea import Option
@@ -414,6 +418,7 @@ def filter_values(
     -------
     PipelineStep[Mapping[K1, V1], Mapping[K1, V1]]
         A pipeline step that filters the values of the mapping using the predicate function.
+
 
     Example Usage
     -------------
