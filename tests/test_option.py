@@ -322,7 +322,6 @@ def test_type_validation():
     def handle_type_validation(request: TypeValidationRequest):
         nonlocal store
         store = request
-        return request.value
 
     implicit = Option[int]('A')
     explicit = Option('A', type=int)
@@ -341,5 +340,35 @@ def test_type_validation():
         assert store.value == 3
 
         explicit.validate({'A': 4})
+        assert store.type is int
+        assert store.value == 4
+
+
+def test_type_validation_namespace():
+    store: TypeValidationRequest = TypeValidationRequest(None, Any, {})
+
+    def handle_type_validation(request: TypeValidationRequest):
+        nonlocal store
+        store = request
+
+    @Option.namespace
+    class PKG:
+        IMPLICIT: int
+        EXPLICIT = Option.auto(type=int)
+
+    with labrea.runtime.current_runtime().handle(TypeValidationRequest, handle_type_validation):
+        PKG.IMPLICIT({'PKG': {'IMPLICIT': 1}})
+        assert store.type is int
+        assert store.value == 1
+
+        PKG.IMPLICIT.validate({'PKG': {'IMPLICIT': 2}})
+        assert store.type is int
+        assert store.value == 2
+
+        PKG.EXPLICIT({'PKG': {'EXPLICIT': 3}})
+        assert store.type is int
+        assert store.value == 3
+
+        PKG.EXPLICIT.validate({'PKG': {'EXPLICIT': 4}})
         assert store.type is int
         assert store.value == 4

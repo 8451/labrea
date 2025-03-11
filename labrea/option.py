@@ -229,6 +229,7 @@ class Option(Evaluatable[A]):
     def auto(
         default: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
         doc: str = "",
+        type: Type[A] = cast(Type, Any),
     ) -> "Option[A]":
         """Create an option in a namespace with an inferred key
 
@@ -252,7 +253,7 @@ class Option(Evaluatable[A]):
         >>> MY_PACKAGE.A({'MY_PACKAGE': {'A': 100}})
         '100'  # str transformation applied
         """
-        return _Auto(default, doc)  # type: ignore
+        return _Auto(default, doc, type)  # type: ignore
 
     def set(self, options: Options, value: JSON) -> Options:
         """Set the value of the option in the options dictionary.
@@ -523,8 +524,8 @@ class Namespace(Evaluatable[Options]):
         key = f"{parent}.{name}" if parent else name
 
         members: Dict[str, Union[Option, _Auto, Namespace]] = {}
-        for name_ in getattr(__namespace, "__annotations__", {}):
-            members[name_] = Option(f"{key}.{name_}")
+        for name_, type_ in getattr(__namespace, "__annotations__", {}).items():
+            members[name_] = Option(f"{key}.{name_}", type=type_)
 
         for name_, value in __namespace.__dict__.items():
             if isinstance(value, Namespace):
@@ -535,7 +536,10 @@ class Namespace(Evaluatable[Options]):
                         f"Namespace {key} has nested option {name_}: {value.key}"
                     )
                 members[name_] = Option(
-                    f"{key}.{value.key}", default=value.default, doc=value.__doc__ or ""
+                    f"{key}.{value.key}",
+                    default=value.default,
+                    doc=value.__doc__ or "",
+                    type=value.type,
                 )
             elif isinstance(value, _Auto):
                 members[name_] = value
@@ -575,20 +579,23 @@ class Namespace(Evaluatable[Options]):
 class _Auto(Generic[A]):
     default: MaybeMissing[MaybeEvaluatable[A]]
     doc: str
+    type: Type[A]
     transformations: List[Callable]
 
     def __init__(
         self,
         default: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
         doc: str = "",
+        type: Type[A] = cast(Type, Any),
         *transformations: Callable,
     ) -> None:
         self.default = default
         self.doc = doc
+        self.type = type
         self.transformations = list(transformations)
 
     def option(self, key: str) -> Option[A]:
-        return Option(key, self.default, doc=self.doc)
+        return Option(key, self.default, doc=self.doc, type=self.type)
 
     def build(self, key: str, bare: bool = False) -> Evaluatable[A]:
         option: Evaluatable = self.option(key)
@@ -601,4 +608,6 @@ class _Auto(Generic[A]):
         return option
 
     def __rshift__(self, func: MaybeEvaluatable[Callable[[A], B]]) -> Evaluatable[B]:
-        return _Auto(self.default, self.doc, *self.transformations, func)  # type: ignore
+        return _Auto(  # type: ignore
+            self.default, self.doc, self.type, *self.transformations, func
+        )
