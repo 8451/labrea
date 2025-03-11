@@ -65,6 +65,15 @@ class Option(Evaluatable[A]):
         providing a default value directly.
     doc : str
         The docstring for the option.
+    type: Type[A]
+        The expected type of the option. Third-party packages can handle the
+        :class:`labrea.type_validation.TypeValidationRequest` to enforce
+        types
+    domain: MaybeMissing[MaybeEvaluatable[_Domain]]
+        A domain representing valid values for the option. The domain can be
+        a predicate function, a container of valid values, or an Evaluatable
+        that returns a predicate function or container of valid values
+        (e.g. a pipeline step).
 
 
     Example Usage
@@ -88,7 +97,7 @@ class Option(Evaluatable[A]):
         default: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
         default_factory: MaybeMissing[Callable[[], A]] = MISSING,
         type: Type[A] = cast(Type, Any),
-        domain: MaybeMissing[_Domain] = MISSING,
+        domain: MaybeMissing[MaybeEvaluatable[_Domain]] = MISSING,
         doc: str = "",
     ) -> None:
         self.key = key
