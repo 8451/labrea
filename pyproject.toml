@@ -28,7 +28,6 @@ classifiers = [
 dependencies = [
     "typing_extensions>=4.0; python_version<\"3.11\"",
     "confectioner>=1.0,<2.0",
-    "pydantic",
 ]
 dynamic = ["version"]
 
