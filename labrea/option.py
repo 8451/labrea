@@ -279,6 +279,7 @@ class Option(Evaluatable[A]):
         default: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
         doc: str = "",
         type: Type[A] = cast(Type, Any),
+        domain: MaybeMissing[MaybeEvaluatable[_Domain]] = MISSING,
     ) -> "Option[A]":
         """Create an option in a namespace with an inferred key
 
@@ -302,7 +303,7 @@ class Option(Evaluatable[A]):
         >>> MY_PACKAGE.A({'MY_PACKAGE': {'A': 100}})
         '100'  # str transformation applied
         """
-        return _Auto(default, doc, type)  # type: ignore
+        return _Auto(default, doc, type, domain)  # type: ignore
 
     def set(self, options: Options, value: JSON) -> Options:
         """Set the value of the option in the options dictionary.
@@ -629,6 +630,7 @@ class _Auto(Generic[A]):
     default: MaybeMissing[MaybeEvaluatable[A]]
     doc: str
     type: Type[A]
+    domain: MaybeMissing[MaybeEvaluatable[_Domain]]
     transformations: List[Callable]
 
     def __init__(
@@ -636,15 +638,19 @@ class _Auto(Generic[A]):
         default: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
         doc: str = "",
         type: Type[A] = cast(Type, Any),
+        domain: MaybeMissing[MaybeEvaluatable[_Domain]] = MISSING,
         *transformations: Callable,
     ) -> None:
         self.default = default
         self.doc = doc
         self.type = type
+        self.domain = domain
         self.transformations = list(transformations)
 
     def option(self, key: str) -> Option[A]:
-        return Option(key, self.default, doc=self.doc, type=self.type)
+        return Option(
+            key, self.default, doc=self.doc, type=self.type, domain=self.domain
+        )
 
     def build(self, key: str, bare: bool = False) -> Evaluatable[A]:
         option: Evaluatable = self.option(key)
@@ -658,5 +664,5 @@ class _Auto(Generic[A]):
 
     def __rshift__(self, func: MaybeEvaluatable[Callable[[A], B]]) -> Evaluatable[B]:
         return _Auto(  # type: ignore
-            self.default, self.doc, self.type, *self.transformations, func
+            self.default, self.doc, self.type, self.domain, *self.transformations, func
         )

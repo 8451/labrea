@@ -259,12 +259,14 @@ def test_namespace_explicit():
 def test_namespace_auto():
     @Option.namespace
     class PKG:
-        A = Option.auto(doc="A as string") >> str
-        B = Option.auto(doc="B")
+        A = Option.auto(doc="A as string", type=int, domain=[1]) >> str
+        B = Option.auto(doc="B", type=int, domain=[1])
 
     assert PKG.A({"PKG": {"A": 1}}) == "1"
     assert PKG.A.__doc__ == "A as string"
     assert PKG.B.__doc__ == "B"
+    assert PKG.B.type is int
+    assert PKG.B.domain() == [1]
 
 
 def test_namespace_extra():
