@@ -1,5 +1,5 @@
 from typing import Any
-from labrea.exceptions import KeyNotFoundError
+from labrea.exceptions import EvaluationError, KeyNotFoundError
 from labrea.option import AllOptions, Option, WithOptions, WithDefaultOptions, UnrecognizedNamespaceMemberWarning
 from labrea.template import Template
 from labrea.type_validation import TypeValidationRequest
@@ -372,3 +372,41 @@ def test_type_validation_namespace():
         PKG.EXPLICIT.validate({'PKG': {'EXPLICIT': 4}})
         assert store.type is int
         assert store.value == 4
+
+
+def test_domain_container():
+    X = Option('X', domain=[1, 2, 3])
+
+    good = {'X': 2}
+    bad = {'X': 4}
+
+    assert X(good) == 2
+    X.validate(good)
+
+    with pytest.raises(EvaluationError):
+        X(bad)
+    with pytest.raises(EvaluationError):
+        X.validate(bad)
+
+
+def test_domain_callable():
+    X = Option('X', domain=lambda x: x > 2)
+
+    good = {'X': 3}
+    bad = {'X': 2}
+
+    assert X(good) == 3
+    X.validate(good)
+
+    with pytest.raises(EvaluationError):
+        X(bad)
+    with pytest.raises(EvaluationError):
+        X.validate(bad)
+
+
+def test_domain_invalid():
+    with pytest.raises(TypeError):
+        Option('X', domain=1)
+
+    with pytest.warns(RuntimeWarning):
+        Option('X', domain=Value(1))({"X": 1})

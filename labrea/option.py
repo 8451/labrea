@@ -3,6 +3,7 @@ import warnings
 from typing import (
     Any,
     Callable,
+    Container,
     Dict,
     Generic,
     List,
@@ -33,6 +34,8 @@ from .types import JSON, Evaluatable, MaybeEvaluatable, Options, Value
 
 A = TypeVar("A", covariant=True, bound="JSON")
 B = TypeVar("B", covariant=True)
+_Domain = Union[Container[A], Callable[[A], bool]]
+Domain = Evaluatable[_Domain]
 
 
 class Option(Evaluatable[A]):
@@ -77,6 +80,7 @@ class Option(Evaluatable[A]):
     key: str
     default: MaybeMissing[Evaluatable[A]]
     type: Type[A]
+    domain: MaybeMissing[Domain]
 
     def __init__(
         self,
@@ -84,6 +88,7 @@ class Option(Evaluatable[A]):
         default: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
         default_factory: MaybeMissing[Callable[[], A]] = MISSING,
         type: Type[A] = cast(Type, Any),
+        domain: MaybeMissing[_Domain] = MISSING,
         doc: str = "",
     ) -> None:
         self.key = key
@@ -98,7 +103,37 @@ class Option(Evaluatable[A]):
 
         self.type = type
 
+        if domain is not MISSING:
+            if not callable(domain) and not isinstance(
+                domain, (Container, Evaluatable)
+            ):
+                raise TypeError(
+                    f"{domain!r} cannot be used as a domain. "
+                    f"Domain must be a callable, Container, "
+                    f"or aan Evaluatable returning a callable or Container."
+                )
+            self.domain = Evaluatable.ensure(domain)
+        else:
+            self.domain = MISSING
+
         self.__doc__ = doc
+
+    def _enforce_domain(self, value: Any, options: Options) -> None:
+        if self.domain is not MISSING:
+            domain = self.domain.evaluate(options)
+            if callable(domain) and not domain(value):
+                raise ValueError(
+                    f"Value {value!r} for option {self.key} does not satisfy {self.domain!r}"
+                )
+            elif isinstance(domain, Container) and value not in domain:
+                raise ValueError(
+                    f"Value {value!r} for option {self.key} not in domain {domain!r}"
+                )
+            elif not callable(domain) and not isinstance(domain, Container):
+                warnings.warn(
+                    f"Domain {domain!r} for option {self.key} is not valid",
+                    RuntimeWarning,
+                )
 
     def evaluate(self, options: Options) -> A:
         """Retrieves the key from the options dictionary.
@@ -116,6 +151,8 @@ class Option(Evaluatable[A]):
             value = self.default.evaluate(options)
 
         TypeValidationRequest(value, self.type, options).run()
+        self._enforce_domain(value, options)
+
         return value
 
     def validate(self, options: Options) -> None:
