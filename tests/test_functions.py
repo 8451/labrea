@@ -75,3 +75,80 @@ def test_filter_values():
     f = Option('A') >> dict >> lf.filter_values(lambda v: v % 2 == 0) >> dict
 
     assert f({'A': [[1, 1], [2, 2], [3, 3], [4, 4]]}) == {2: 2, 4: 4}
+
+
+def test_eq():
+    e = Option('A') >> lf.eq(1)
+
+    assert e({'A': 1}) == True
+    assert e({'A': 2}) == False
+
+
+def test_ne():
+    e = Option('A') >> lf.ne(1)
+
+    assert e({'A': 1}) == False
+    assert e({'A': 2}) == True
+
+
+def test_lt():
+    e = Option('A') >> lf.lt(1)
+
+    assert e({'A': 0}) == True
+    assert e({'A': 1}) == False
+    assert e({'A': 2}) == False
+
+
+def test_le():
+    e = Option('A') >> lf.le(1)
+
+    assert e({'A': 0}) == True
+    assert e({'A': 1}) == True
+    assert e({'A': 2}) == False
+
+
+def test_gt():
+    e = Option('A') >> lf.gt(1)
+
+    assert e({'A': 0}) == False
+    assert e({'A': 1}) == False
+    assert e({'A': 2}) == True
+
+
+def test_ge():
+    e = Option('A') >> lf.ge(1)
+
+    assert e({'A': 0}) == False
+    assert e({'A': 1}) == True
+    assert e({'A': 2}) == True
+
+
+def test_instance_of():
+    e = Option('A') >> lf.instance_of(int)
+
+    assert e({'A': 1}) == True
+    assert e({'A': '1'}) == False
+
+
+def test_all():
+    a = Option('A') >> lf.all(lf.gt(1), lf.lt(2))
+
+    assert a({'A': 1}) == False
+    assert a({'A': 1.5}) == True
+    assert a({'A': 2}) == False
+
+
+def test_any():
+    a = Option('A') >> lf.any(lf.le(1), lf.ge(2))
+
+    assert a({'A': 1}) == True
+    assert a({'A': 1.5}) == False
+    assert a({'A': 2}) == True
+
+
+def test_is_not():
+    a = Option('A') >> lf.is_not(lf.eq(1))
+
+    assert a({'A': 0}) == True
+    assert a({'A': 1}) == False
+    assert a({'A': 2}) == True

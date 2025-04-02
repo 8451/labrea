@@ -11,6 +11,7 @@ import itertools
 from types import MappingProxyType
 from typing import Any, Callable, Hashable, Iterable, Mapping, Tuple, TypeVar, Union
 
+from . import collections
 from ._missing import MISSING, MaybeMissing
 from .application import PartialApplication
 from .pipeline import Pipeline, PipelineStep, pipeline_step
@@ -431,4 +432,355 @@ def filter_values(
     return PipelineStep(
         filter_items(partial(lambda k, v, f: f(v), f=func)),
         f"filter_values({func!r})",
+    )
+
+
+def eq(value: Any) -> PipelineStep[Any, bool]:
+    """Create a pipeline step that checks if the input is equal to a value.
+
+    Arguments
+    ---------
+    value : Any
+        The value to compare the input to.
+
+    Returns
+    -------
+    PipelineStep[Any, bool]
+        A pipeline step that checks if the input is equal to the value.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.eq(1))({'A': 1})
+    True
+    """
+    return PipelineStep(
+        partial(lambda x, v: x == v, v=value),
+        f"eq({value!r})",
+    )
+
+
+def ne(value: Any) -> PipelineStep[Any, bool]:
+    """Create a pipeline step that checks if the input is not equal to a value.
+
+    Arguments
+    ---------
+    value : Any
+        The value to compare the input to.
+
+    Returns
+    -------
+    PipelineStep[Any, bool]
+        A pipeline step that checks if the input is not equal to the value.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.ne(1))({'A': 1})
+    False
+    """
+    return PipelineStep(
+        partial(lambda x, v: x != v, v=value),
+        f"ne({value!r})",
+    )
+
+
+def gt(value: Any) -> PipelineStep[Any, bool]:
+    """Create a pipeline step that checks if the input is greater than a value.
+
+    Arguments
+    ---------
+    value : Any
+        The value to compare the input to.
+
+    Returns
+    -------
+    PipelineStep[Any, bool]
+        A pipeline step that checks if the input is greater than the value.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.gt(1))({'A': 2})
+    True
+    """
+    return PipelineStep(
+        partial(lambda x, v: x > v, v=value),
+        f"gt({value!r})",
+    )
+
+
+def ge(value: Any) -> PipelineStep[Any, bool]:
+    """Create a pipeline step that checks if the input is greater than or equal to a value.
+
+    Arguments
+    ---------
+    value : Any
+        The value to compare the input to.
+
+    Returns
+    -------
+    PipelineStep[Any, bool]
+        A pipeline step that checks if the input is greater than or equal to the value.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.ge(1))({'A': 1})
+    True
+    """
+    return PipelineStep(
+        partial(lambda x, v: x >= v, v=value),
+        f"ge({value!r})",
+    )
+
+
+def lt(value: Any) -> PipelineStep[Any, bool]:
+    """Create a pipeline step that checks if the input is less than a value.
+
+    Arguments
+    ---------
+    value : Any
+        The value to compare the input to.
+
+    Returns
+    -------
+    PipelineStep[Any, bool]
+        A pipeline step that checks if the input is less than the value.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.lt(1))({'A': 0})
+    True
+    """
+    return PipelineStep(
+        partial(lambda x, v: x < v, v=value),
+        f"lt({value!r})",
+    )
+
+
+def le(value: Any) -> PipelineStep[Any, bool]:
+    """Create a pipeline step that checks if the input is less than or equal to a value.
+
+    Arguments
+    ---------
+    value : Any
+        The value to compare the input to.
+
+    Returns
+    -------
+    PipelineStep[Any, bool]
+        A pipeline step that checks if the input is less than or equal to the value.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.le(1))({'A': 1})
+    True
+    """
+    return PipelineStep(
+        partial(lambda x, v: x <= v, v=value),
+        f"le({value!r})",
+    )
+
+
+def has_remainder(
+    divisor: MaybeEvaluatable[int], reminder: MaybeEvaluatable[int]
+) -> PipelineStep[int, bool]:
+    """Create a pipeline step that checks if the input has a remainder when divided by a divisor.
+
+    Arguments
+    ---------
+    divisor : MaybeEvaluatable[int]
+        The divisor to divide the input by. This can be an Evaluatable that returns
+        a divisor, or a constant divisor.
+    reminder : MaybeEvaluatable[int]
+        The reminder to check if the input has when divided by the divisor. This can
+        be an Evaluatable that returns a reminder, or a constant reminder.
+
+    Returns
+    -------
+    PipelineStep[int, bool]
+        A pipeline step that checks if the input has a reminder when divided by the divisor.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.has_remainder(2, 1))({'A': 3})
+    True
+    """
+    return PipelineStep(
+        partial(
+            lambda x, d, r: x % d == r,
+            d=Evaluatable.ensure(divisor),
+            r=Evaluatable.ensure(reminder),
+        ),
+        f"has_remainder({divisor!r}, {reminder!r})",
+    )
+
+
+positive = gt(0)
+positive.__doc__ = "A pipeline step that checks if the input is positive."
+negative = lt(0)
+negative.__doc__ = "A pipeline step that checks if the input is negative."
+non_positive = le(0)
+non_positive.__doc__ = "A pipeline step that checks if the input is non-positive."
+non_negative = ge(0)
+non_negative.__doc__ = "A pipeline step that checks if the input is non-negative."
+is_even = has_remainder(2, 0)
+is_even.__doc__ = "A pipeline step that checks if the input is even."
+is_odd = has_remainder(2, 1)
+is_odd.__doc__ = "A pipeline step that checks if the input is odd."
+
+
+def instance_of(*types: MaybeEvaluatable[type]) -> PipelineStep[Any, bool]:
+    """Create a pipeline step that checks if the input is an instance of a type.
+
+    Arguments
+    ---------
+    *types : MaybeEvaluatable[type]
+        The types to check if the input is an instance of. These can be
+        Evaluatables that return types, or constant types.
+
+    Returns
+    -------
+    PipelineStep[Any, bool]
+        A pipeline step that checks if the input is an instance of the type.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.instance_of(int))({'A': 1})
+    True
+    """
+    return PipelineStep(
+        partial(
+            lambda x, t: isinstance(x, t),
+            t=collections.evaluatable_tuple(
+                *builtins.map(Evaluatable.ensure, types)  # type: ignore [arg-type]
+            ),
+        ),
+        f"instance_of({', '.join(builtins.map(repr, types))})",
+    )
+
+
+def all(*funcs: MaybeEvaluatable[Callable[[Any], bool]]) -> PipelineStep[Any, bool]:
+    """Create a pipeline step that checks if all functions return True for the input.
+
+    Arguments
+    ---------
+    *funcs : MaybeEvaluatable[Callable[[Any], bool]]
+        The functions to apply to the input. These can be Evaluatables that return
+        functions, or constant functions.
+
+    Returns
+    -------
+    PipelineStep[Any, bool]
+        A pipeline step that checks if all functions return True for the input.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.all(lambda x: x > 0, lambda x: x < 10))({'A': 5})
+    True
+    """
+    return PipelineStep(
+        partial(
+            lambda x, fs: builtins.all(f(x) for f in fs),
+            fs=collections.evaluatable_tuple(
+                *builtins.map(Evaluatable.ensure, funcs)  # type: ignore [arg-type]
+            ),
+        ),
+        f"all({', '.join(builtins.map(repr, funcs))})",
+    )
+
+
+def any(*funcs: MaybeEvaluatable[Callable[[Any], bool]]) -> PipelineStep[Any, bool]:
+    """Create a pipeline step that checks if any functions return True for the input.
+
+    Arguments
+    ---------
+    *funcs : MaybeEvaluatable[Callable[[Any], bool]]
+        The functions to apply to the input. These can be Evaluatables that return
+        functions, or constant functions.
+
+    Returns
+    -------
+    PipelineStep[Any, bool]
+        A pipeline step that checks if any functions return True for the input.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.any(lambda x: x < 0, lambda x: x > 10))({'A': 5})
+    False
+    """
+    return PipelineStep(
+        partial(
+            lambda x, fs: builtins.any(f(x) for f in fs),
+            fs=collections.evaluatable_tuple(
+                *builtins.map(Evaluatable.ensure, funcs)  # type: ignore [arg-type]
+            ),
+        ),
+        f"any({', '.join(builtins.map(repr, funcs))})",
+    )
+
+
+def is_not(func: MaybeEvaluatable[Callable[[Any], bool]]) -> PipelineStep[Any, bool]:
+    """Create a pipeline step that negates the result of a function.
+
+    Arguments
+    ---------
+    func : MaybeEvaluatable[Callable[[Any], bool]]
+        The function to negate the result of. This can be an Evaluatable that
+        returns a function, or a constant function.
+
+    Returns
+    -------
+    PipelineStep[Any, bool]
+        A pipeline step that negates the result of the function.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.not(lambda x: x < 0))({'A': 5})
+    True
+    """
+    return PipelineStep(
+        partial(lambda x, f: not f(x), f=Evaluatable.ensure(func)),
+        f"is_not({func!r})",
     )
