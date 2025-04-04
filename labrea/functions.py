@@ -8,6 +8,7 @@ else:
 import builtins
 import functools
 import itertools
+import typing
 from types import MappingProxyType
 from typing import (
     Any,
@@ -24,7 +25,7 @@ from typing import (
 )
 
 from . import collections
-from ._missing import MISSING, MaybeMissing
+from ._missing import MISSING, MaybeMissing, Missing
 from .application import PartialApplication
 from .pipeline import Pipeline, PipelineStep, pipeline_step
 from .types import Evaluatable, MaybeEvaluatable
@@ -39,6 +40,7 @@ V2 = TypeVar("V2")
 P = ParamSpec("P")
 X = TypeVar("X", contravariant=True)
 Y = TypeVar("Y", covariant=True)
+Z = TypeVar("Z")
 
 
 class _Addable(Protocol[X, Y]):
@@ -63,6 +65,10 @@ class _Negatable(Protocol[Y]):
 
 class _Modable(Protocol[X, Y]):
     def __mod__(self, other: X) -> Y: ...
+
+
+class _Indexable(Protocol[X, Y]):
+    def __getitem__(self, index: X) -> Y: ...
 
 
 def partial(
@@ -668,6 +674,110 @@ def symmetric_difference(
     return PipelineStep(
         partial(lambda x, c: set(x) ^ set(c), c=Evaluatable.ensure(collection)),
         f"symmetric_difference({collection!r})",
+    )
+
+
+def _get(container: _Indexable[X, Y], key: X, default: MaybeMissing[Z]) -> Union[Y, Z]:
+    try:
+        return container[key]
+    except (KeyError, IndexError) as e:
+        if default is MISSING:
+            raise e
+        return default
+
+
+@typing.overload
+def get(
+    __x: MaybeEvaluatable[X], default: Missing = MISSING
+) -> PipelineStep[_Indexable[X, Y], Y]: ...
+
+
+@typing.overload
+def get(
+    __x: MaybeEvaluatable[X], default: Z
+) -> PipelineStep[_Indexable[X, Y], Union[Y, Z]]: ...
+
+
+def get(
+    __x: MaybeEvaluatable[X], default: MaybeMissing[Z] = MISSING
+) -> PipelineStep[_Indexable[X, Y], Union[Y, Z]]:
+    """Create a pipeline step that gets a value from the input at the given key/index
+
+    Arguments
+    ---------
+    __x : X
+        The key/index to get the value from the input. This can be an Evaluatable that returns a value,
+        or a constant value.
+    default : MaybeMissing[Y], optional
+        The default value to return if the key/index is not found in the input. This can be an
+        Evaluatablethat returns a value, or a constant value. If not provided, an exception will
+        be raised if the key/index is not found.
+
+    Returns
+    -------
+    PipelineStep[_Indexable[X, Y], Y]
+        A pipeline step that gets the value from the input at the given key/index.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.get(1))({'A': ['a', 'b', 'c'])]
+    'b'
+    """
+    return PipelineStep(
+        partial(_get, key=__x, default=default),
+        f"get({__x!r})",
+    )
+
+
+@typing.overload
+def get_from(
+    __x: MaybeEvaluatable[_Indexable[X, Y]], default: Missing
+) -> PipelineStep[X, Y]: ...
+
+
+@typing.overload
+def get_from(
+    __x: MaybeEvaluatable[_Indexable[X, Y]], default: Z
+) -> PipelineStep[X, Union[Y, Z]]: ...
+
+
+def get_from(
+    __x: MaybeEvaluatable[_Indexable[X, Y]], default: MaybeMissing[Z] = MISSING
+) -> PipelineStep[X, Union[Y, Z]]:
+    """Create a pipeline step that gets a value from the input at the given key/index from the left.
+
+    This will reverse the operand order compared to :code:`get`, which is useful
+    when indexing is not commutative.
+
+    Arguments
+    ---------
+    __x : _Indexable[X, Y]
+        The key/index to get the value from the input. This can be an Evaluatable that returns a value,
+        or a constant value.
+    default : MaybeMissing[Z], optional
+        The default value to return if the key/index is not found in the input. This can be an Evaluatable
+
+    Returns
+    -------
+    PipelineStep[X, Y]
+        A pipeline step that gets the value from the input at the given key/index.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.get_from(['a', 'b', 'c']))({'A': 1})
+    'b'
+    """
+    return PipelineStep(
+        partial(_get, __x, default=default),
+        f"get_from({__x!r})",
     )
 
 

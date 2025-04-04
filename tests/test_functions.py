@@ -113,6 +113,20 @@ def test_symmetric_difference():
     assert a({'A': [0, 1]}) == {0, 2}
 
 
+def test_get():
+    a = Option('A') >> lf.get('B')
+    b = Option('A') >> lf.get('B', None)
+    c = Option('A') >> lf.get(1)
+    d = Option('A') >> lf.get(1, default=100)
+
+    assert a({'A': {'B': 'b'}}) == 'b'
+    assert b({'A': {'B': 'b'}}) == 'b'
+    assert b({'A': {'C': 'c'}}) is None
+    assert c({'A': [1, 2]}) == 2
+    assert d({'A': [1, 2]}) == 2
+    assert d({'A': [1]}) == 100
+
+
 def test_add():
     a = Option('A') >> lf.add(1)
 
