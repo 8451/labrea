@@ -486,7 +486,7 @@ class Namespace(Evaluatable[Options]):
         for name in self._members:
             self[name].validate(options)
 
-        section = Option[Options](self._key)(options)
+        section = Option[Options](self._key, {})(options)
         for name in section:
             if name not in self._members:
                 warnings.warn(
