@@ -750,8 +750,7 @@ def get_from(
 ) -> PipelineStep[X, Union[Y, Z]]:
     """Create a pipeline step that gets a value from the input at the given key/index from the left.
 
-    This will reverse the operand order compared to :code:`get`, which is useful
-    when indexing is not commutative.
+    This will reverse the operand order compared to :code:`get`.
 
     Arguments
     ---------
