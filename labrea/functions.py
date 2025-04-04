@@ -1630,3 +1630,71 @@ def disjoint_from(
         invert(intersects(iterable)),
         f"disjoint_from({iterable!r})",
     )
+
+
+def get_attribute(__name: MaybeEvaluatable[str]) -> PipelineStep[Any, Any]:
+    """Create a pipeline step that gets an attribute from the input.
+
+    Arguments
+    ---------
+    __name : MaybeEvaluatable[str]
+        The name of the attribute to get. This can be an Evaluatable that returns a string,
+        or a constant string.
+
+    Returns
+    -------
+    PipelineStep[Any, Any]
+        A pipeline step that gets the attribute from the input.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.get_attribute('upper'))({'A': 'hello'})
+    'HELLO'
+    """
+    return PipelineStep(
+        partial(lambda name, obj: getattr(obj, name), __name),
+        f"get_attribute({__name!r})",
+    )
+
+
+def _call_method(name: str, args: tuple, kwargs: dict, obj: Any) -> Any:
+    return getattr(obj, name)(*args, **kwargs)
+
+
+def call_method(
+    __name: MaybeEvaluatable[str], *args: Any, **kwargs: Any
+) -> PipelineStep[Any, Any]:
+    """Create a pipeline step that calls a method on the input.
+
+    Arguments
+    ---------
+    __name : MaybeEvaluatable[str]
+        The name of the method to call. This can be an Evaluatable that returns a string,
+        or a constant string.
+    *args : Any
+        The positional arguments to pass to the method.
+    **kwargs : Any
+        The keyword arguments to pass to the method.
+
+    Returns
+    -------
+    PipelineStep[Any, Any]
+        A pipeline step that calls the method on the input.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.call_method('upper'))({'A': 'hello'})
+    'HELLO'
+    """
+    return PipelineStep(
+        partial(_call_method, __name, args, kwargs),
+        f"call_method({__name!r}, {args!r}, {kwargs!r})",
+    )

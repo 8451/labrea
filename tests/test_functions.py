@@ -1,4 +1,5 @@
 from labrea.option import Option
+from labrea.types import Value
 import labrea.functions as lf
 
 
@@ -373,3 +374,26 @@ def test_does_not_contain():
 
     assert a({'A': [1, 2, 3]}) == False
     assert a({'A': [2, 3]}) == True
+
+
+def test_get_attribute():
+    class Test:
+        def __init__(self, value):
+            self.value = value
+
+    a = Value(Test(1)) >> lf.get_attribute('value')
+
+    assert a() == 1
+
+
+def test_call_method():
+    class Test:
+        def __init__(self, value):
+            self.value = value
+
+        def method(self, x):
+            return self.value + x
+
+    a = Value(Test(1)) >> lf.call_method('method', 2)
+
+    assert a() == 3
