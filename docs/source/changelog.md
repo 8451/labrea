@@ -1,17 +1,22 @@
 # Changelog
 
 ## Version 2.1.0
-- Add helper functions in `labrea.functions`:
+- Add many helper functions in `labrea.functions`:
   + `partial`
     - Analog of `functools.partial`
   + `into`
     - Analog of `*` unpacking but for an evaluatable that returns an iterable
+  + `flatten`
+    - Flatten an interable of iterables
   + `flatmap`
     - Map then flatten result
   + `map_items`, `map_keys`, and `map_values`
     - Analogs of `map` but for mapping types
   + `filter_items`, `filter_keys`, and `filter_values`
     - Analogs of `filter` but for mapping types
+  + `concat`
+    - Concatenate two or more iterables
+
 - Modify `PartialApplication` type to work even if multiple arguments are missing
 - Add `@Option.namespace` decorator for creating option namespaces
 

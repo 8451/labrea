@@ -129,6 +129,9 @@ Generic
 ~~~~~~~
 .. autofunction:: labrea.functions.partial
 .. autofunction:: labrea.functions.into
+.. autofunction:: labrea.functions.ensure
+.. autofunction:: labrea.functions.get_attribute
+.. autofunction:: labrea.functions.call_method
 
 Collections
 ~~~~~~~~~~~
@@ -150,15 +153,18 @@ Collections
 .. autofunction:: labrea.functions.difference
 .. autofunction:: labrea.functions.symmetric_difference
 .. autofunction:: labrea.functions.merge
+.. autofunction:: labrea.functions.get
+.. autofunction:: labrea.functions.get_from
+.. autofunction:: labrea.functions.length
 
 Math
 ~~~~
 .. autofunction:: labrea.functions.add
 .. autofunction:: labrea.functions.subtract
 .. autofunction:: labrea.functions.multiply
-.. autofunction:: labrea.functions.divide
-.. autofunction:: labrea.functions.multiply_by
+.. autofunction:: labrea.functions.left_multiply
 .. autofunction:: labrea.functions.divide_by
+.. autofunction:: labrea.functions.divide_into
 .. autofunction:: labrea.functions.negate
 .. autofunction:: labrea.functions.modulo
 
@@ -186,8 +192,8 @@ Predicates
 .. autofunction:: labrea.functions.instance_of
 .. autofunction:: labrea.functions.is_in
 .. autofunction:: labrea.functions.is_not_in
-.. autofunction:: labrea.functions.is_one_of
-.. autofunction:: labrea.functions.is_not_one_of
+.. autofunction:: labrea.functions.one_of
+.. autofunction:: labrea.functions.none_of
 .. autofunction:: labrea.functions.contains
 .. autofunction:: labrea.functions.does_not_contain
 .. autofunction:: labrea.functions.intersects
