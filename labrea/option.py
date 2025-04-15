@@ -1,7 +1,9 @@
 import functools
+import warnings
 from typing import (
     Any,
     Callable,
+    Container,
     Dict,
     Generic,
     List,
@@ -32,6 +34,8 @@ from .types import JSON, Evaluatable, MaybeEvaluatable, Options, Value
 
 A = TypeVar("A", covariant=True, bound="JSON")
 B = TypeVar("B", covariant=True)
+_Domain = Union[Container[A], Callable[[A], bool]]
+Domain = Evaluatable[_Domain]
 
 
 class Option(Evaluatable[A]):
@@ -61,6 +65,15 @@ class Option(Evaluatable[A]):
         providing a default value directly.
     doc : str
         The docstring for the option.
+    type: Type[A]
+        The expected type of the option. Third-party packages can handle the
+        :class:`labrea.type_validation.TypeValidationRequest` to enforce
+        types
+    domain: MaybeMissing[MaybeEvaluatable[_Domain]]
+        A domain representing valid values for the option. The domain can be
+        a predicate function, a container of valid values, or an Evaluatable
+        that returns a predicate function or container of valid values
+        (e.g. a pipeline step).
 
 
     Example Usage
@@ -76,6 +89,7 @@ class Option(Evaluatable[A]):
     key: str
     default: MaybeMissing[Evaluatable[A]]
     type: Type[A]
+    domain: MaybeMissing[Domain]
 
     def __init__(
         self,
@@ -83,6 +97,7 @@ class Option(Evaluatable[A]):
         default: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
         default_factory: MaybeMissing[Callable[[], A]] = MISSING,
         type: Type[A] = cast(Type, Any),
+        domain: MaybeMissing[MaybeEvaluatable[_Domain]] = MISSING,
         doc: str = "",
     ) -> None:
         self.key = key
@@ -97,7 +112,40 @@ class Option(Evaluatable[A]):
 
         self.type = type
 
+        if domain is not MISSING:
+            if not callable(domain) and not isinstance(
+                domain, (Container, Evaluatable)
+            ):
+                raise TypeError(
+                    f"{domain!r} cannot be used as a domain. "
+                    f"Domain must be a callable, Container, "
+                    f"or aan Evaluatable returning a callable or Container."
+                )
+            self.domain = Evaluatable.ensure(domain)
+        else:
+            self.domain = MISSING
+
         self.__doc__ = doc
+
+    def _enforce_domain(self, value: Any, options: Options) -> None:
+        if self.domain is MISSING:
+            return
+
+        domain = self.domain.evaluate(options)
+        if not callable(domain) and not isinstance(domain, Container):
+            warnings.warn(
+                f"Domain {domain!r} for option {self.key} is not valid",
+                RuntimeWarning,
+            )
+            return
+        if callable(domain) and not domain(value):
+            raise ValueError(
+                f"Value {value!r} for option {self.key} does not satisfy {self.domain!r}"
+            )
+        if isinstance(domain, Container) and value not in domain:
+            raise ValueError(
+                f"Value {value!r} for option {self.key} not in domain {domain!r}"
+            )
 
     def evaluate(self, options: Options) -> A:
         """Retrieves the key from the options dictionary.
@@ -115,6 +163,8 @@ class Option(Evaluatable[A]):
             value = self.default.evaluate(options)
 
         TypeValidationRequest(value, self.type, options).run()
+        self._enforce_domain(value, options)
+
         return value
 
     def validate(self, options: Options) -> None:
@@ -228,6 +278,8 @@ class Option(Evaluatable[A]):
     def auto(
         default: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
         doc: str = "",
+        type: Type[A] = cast(Type, Any),
+        domain: MaybeMissing[MaybeEvaluatable[_Domain]] = MISSING,
     ) -> "Option[A]":
         """Create an option in a namespace with an inferred key
 
@@ -251,7 +303,7 @@ class Option(Evaluatable[A]):
         >>> MY_PACKAGE.A({'MY_PACKAGE': {'A': 100}})
         '100'  # str transformation applied
         """
-        return _Auto(default, doc)  # type: ignore
+        return _Auto(default, doc, type, domain)  # type: ignore
 
     def set(self, options: Options, value: JSON) -> Options:
         """Set the value of the option in the options dictionary.
@@ -403,6 +455,10 @@ AllOptions = _AllOptions()
 AllOptions.__doc__ = """An object that evaluates to the entire options dictionary."""
 
 
+class UnrecognizedNamespaceMemberWarning(Warning):
+    """Error raised when a passed option is not recognized in a namespace."""
+
+
 class Namespace(Evaluatable[Options]):
     """Namespace for options that allows for better documentation and organization.
 
@@ -424,16 +480,25 @@ class Namespace(Evaluatable[Options]):
         self.__doc__ = self._build_doc()
 
     def evaluate(self, options: Options) -> Options:
-        return self._full.evaluate(options)
+        return get_dotted_key(self._key, self._populate({}, options))
 
     def validate(self, options: Options) -> None:
-        self._full.validate(options)
+        for name in self._members:
+            self[name].validate(options)
+
+        section = Option[Options](self._key, {})(options)
+        for name in section:
+            if name not in self._members:
+                warnings.warn(
+                    f"Unrecognized option {name!r} in namespace {self._key}",
+                    UnrecognizedNamespaceMemberWarning,
+                )
 
     def keys(self, options: Options) -> Set[str]:
-        return self._full.keys(options)
+        return set().union(*(self[name].keys(options) for name in self._members))
 
     def explain(self, options: Optional[Options] = None) -> Set[str]:
-        return self._full.explain(options)
+        return set().union(*(self[name].explain(options) for name in self._members))
 
     def __getitem__(self, key: str) -> Evaluatable:
         item = self._members[key]
@@ -449,6 +514,16 @@ class Namespace(Evaluatable[Options]):
 
     def __repr__(self) -> str:
         return f"Namespace({self._key!r})"
+
+    def _populate(self, result: Options, options: Options) -> Options:
+        for name in self._members:
+            member = self[name]
+            if isinstance(member, Namespace):
+                result = member._populate(result, options)
+            elif isinstance(member, Option):
+                result = member.set(result, member(options))
+
+        return result
 
     @staticmethod
     def _build_doc_option(option: Option) -> str:
@@ -471,13 +546,15 @@ class Namespace(Evaluatable[Options]):
         options: List[Option] = []
         namespaces: List[Namespace] = []
 
-        for key, value in members:
+        for name, value in members:
+            if name.startswith("_"):
+                continue
             if isinstance(value, Namespace):
                 namespaces.append(value)
             elif isinstance(value, Option):
                 options.append(value)
             elif isinstance(value, _Auto):
-                options.append(value.option(f"{self._key}.{key}"))
+                options.append(value.option(f"{self._key}.{name}"))
 
         header = f"Namespace {self._key}:\n  "
         option_docs = (
@@ -497,8 +574,8 @@ class Namespace(Evaluatable[Options]):
         key = f"{parent}.{name}" if parent else name
 
         members: Dict[str, Union[Option, _Auto, Namespace]] = {}
-        for name_ in getattr(__namespace, "__annotations__", {}):
-            members[name_] = Option(f"{key}.{name_}")
+        for name_, type_ in getattr(__namespace, "__annotations__", {}).items():
+            members[name_] = Option(f"{key}.{name_}", type=type_)
 
         for name_, value in __namespace.__dict__.items():
             if isinstance(value, Namespace):
@@ -509,7 +586,10 @@ class Namespace(Evaluatable[Options]):
                         f"Namespace {key} has nested option {name_}: {value.key}"
                     )
                 members[name_] = Option(
-                    f"{key}.{value.key}", default=value.default, doc=value.__doc__ or ""
+                    f"{key}.{value.key}",
+                    default=value.default,
+                    doc=value.__doc__ or "",
+                    type=value.type,
                 )
             elif isinstance(value, _Auto):
                 members[name_] = value
@@ -549,20 +629,28 @@ class Namespace(Evaluatable[Options]):
 class _Auto(Generic[A]):
     default: MaybeMissing[MaybeEvaluatable[A]]
     doc: str
+    type: Type[A]
+    domain: MaybeMissing[MaybeEvaluatable[_Domain]]
     transformations: List[Callable]
 
     def __init__(
         self,
         default: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
         doc: str = "",
+        type: Type[A] = cast(Type, Any),
+        domain: MaybeMissing[MaybeEvaluatable[_Domain]] = MISSING,
         *transformations: Callable,
     ) -> None:
         self.default = default
         self.doc = doc
+        self.type = type
+        self.domain = domain
         self.transformations = list(transformations)
 
     def option(self, key: str) -> Option[A]:
-        return Option(key, self.default, doc=self.doc)
+        return Option(
+            key, self.default, doc=self.doc, type=self.type, domain=self.domain
+        )
 
     def build(self, key: str, bare: bool = False) -> Evaluatable[A]:
         option: Evaluatable = self.option(key)
@@ -575,4 +663,6 @@ class _Auto(Generic[A]):
         return option
 
     def __rshift__(self, func: MaybeEvaluatable[Callable[[A], B]]) -> Evaluatable[B]:
-        return _Auto(self.default, self.doc, *self.transformations, func)  # type: ignore
+        return _Auto(  # type: ignore
+            self.default, self.doc, self.type, self.domain, *self.transformations, func
+        )

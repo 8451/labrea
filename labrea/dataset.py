@@ -7,6 +7,7 @@ else:
 
 import functools
 import logging
+import typing
 from typing import (
     Any,
     Callable,
@@ -18,7 +19,6 @@ from typing import (
     Set,
     TypeVar,
     Union,
-    overload,
 )
 
 from confectioner import mix
@@ -30,6 +30,7 @@ from .computation import CallbackEffect, ChainedEffect, Computation, Effect
 from .logging import Logged
 from .option import Option, WithDefaultOptions, WithOptions
 from .overload import Overloaded
+from .pipeline import Pipeline
 from .types import Evaluatable, MaybeEvaluatable, Options, Value
 
 A = TypeVar("A", covariant=True)
@@ -75,6 +76,7 @@ class Dataset(Evaluatable[A]):
     cache: Cache[A]
     options: Options
     default_options: Options
+    callback: Pipeline[A, A]
     _effects_disabled: bool
 
     def __init__(
@@ -84,25 +86,29 @@ class Dataset(Evaluatable[A]):
         cache: Cache[A],
         options: Options,
         default_options: Options,
+        callback: Pipeline[A, A] = Pipeline(),
     ):
         self.overloads = overloads
         self.effects = effects.copy()
         self.cache = cache
         self.options = options
         self.default_options = default_options
+        self.callback = callback
         self._effects_disabled = False
 
     @property
     def _composed(self) -> Evaluatable[A]:
+        calculation: Evaluatable[A] = self.overloads.apply(self.callback)
         computation = Computation(
-            self.overloads,
+            calculation,
             ChainedEffect(*self.effects),
         )
+        base = calculation if self._effects_disabled else computation
         return WithDefaultOptions(
             WithOptions(
                 cached(
                     Logged(
-                        self.overloads if self._effects_disabled else computation,
+                        base,
                         level=logging.INFO,
                         name=self.__module__,
                         msg=f"Labrea: Evaluating {self!r}",
@@ -147,7 +153,7 @@ class Dataset(Evaluatable[A]):
     def overload(
         self,
         alias: Union[Hashable, List[Hashable]],
-    ) -> Callable[[Callable[P, A]], FunctionApplication[P, A]]:
+    ) -> Callable[[Callable[..., A]], "Dataset[A]"]:
         """Overloads the dataset with a new implementation. Used as a decorator.
 
         Overloading a dataset allows you to provide a new implementation for the dataset.
@@ -200,8 +206,9 @@ class Dataset(Evaluatable[A]):
         if not isinstance(alias, list):
             alias = [alias]
 
-        def decorator(func: Callable[P, A]) -> FunctionApplication[P, A]:
-            overload_ = FunctionApplication.lift(func)
+        def decorator(func: Callable[..., A]) -> Dataset[A]:
+            overload_ = func if isinstance(func, Dataset) else dataset(func)
+
             for key in alias:
                 self.register(key, overload_)
             return overload_
@@ -386,6 +393,7 @@ class DatasetFactory(Generic[A]):
     defaults: Dict[str, Evaluatable[Any]]
     options: Options
     default_options: Options
+    callback: MaybeEvaluatable[Callable[[A], A]]
     abstract: bool
 
     def __init__(
@@ -396,6 +404,7 @@ class DatasetFactory(Generic[A]):
         defaults: Optional[Dict[str, Any]] = None,
         abstract: bool = False,
         options: Optional[Options] = None,
+        callback: MaybeEvaluatable[Callable[[A], A]] = Pipeline(),
         default_options: Optional[Options] = None,
     ):
         self.effects = effects or []
@@ -406,6 +415,7 @@ class DatasetFactory(Generic[A]):
         self.abstract = abstract
         self.options = options or {}
         self.default_options = default_options or {}
+        self.callback = callback
 
         if dispatch is None:
             self.dispatch = Value(MISSING)
@@ -414,7 +424,7 @@ class DatasetFactory(Generic[A]):
         else:
             self.dispatch = dispatch
 
-    @overload
+    @typing.overload
     def __call__(
         self,
         definition: Callable[..., A],
@@ -427,9 +437,10 @@ class DatasetFactory(Generic[A]):
         abstract: Optional[bool] = ...,
         options: Optional[Options] = ...,
         default_options: Optional[Options] = ...,
+        callback: Optional[MaybeEvaluatable[Callable[[A], A]]] = ...,
     ) -> Dataset[A]: ...  # pragma: no cover
 
-    @overload
+    @typing.overload
     def __call__(
         self,
         /,
@@ -441,9 +452,10 @@ class DatasetFactory(Generic[A]):
         abstract: Optional[bool] = ...,
         options: Optional[Options] = ...,
         default_options: Optional[Options] = ...,
+        callback: Optional[MaybeEvaluatable[Callable[[A], A]]] = ...,
     ) -> "DatasetFactory[A]": ...  # pragma: no cover
 
-    @overload
+    @typing.overload
     def __call__(
         self,
         definition: None,
@@ -456,6 +468,7 @@ class DatasetFactory(Generic[A]):
         abstract: Optional[bool] = ...,
         options: Optional[Options] = ...,
         default_options: Optional[Options] = ...,
+        callback: Optional[MaybeEvaluatable[Callable[[A], A]]] = ...,
     ) -> "DatasetFactory[A]": ...  # pragma: no cover
 
     def __call__(
@@ -470,6 +483,7 @@ class DatasetFactory(Generic[A]):
         abstract: Optional[bool] = None,
         options: Optional[Options] = None,
         default_options: Optional[Options] = None,
+        callback: Optional[MaybeEvaluatable[Callable[[A], A]]] = None,
     ) -> Union["DatasetFactory[A]", Dataset[A]]:
         _effects = [
             effect if isinstance(effect, Effect) else CallbackEffect(effect)
@@ -483,6 +497,7 @@ class DatasetFactory(Generic[A]):
             abstract=abstract,
             options=options,
             default_options=default_options,
+            callback=callback,
         )
 
         if definition is not None:
@@ -518,6 +533,7 @@ class DatasetFactory(Generic[A]):
             cache=cache,
             options=self.options,
             default_options=self.default_options,
+            callback=Pipeline() + self.callback,
         )
 
         functools.update_wrapper(_dataset, definition, updated=())
@@ -536,6 +552,7 @@ class DatasetFactory(Generic[A]):
         abstract: Optional[bool] = None,
         options: Optional[Options] = None,
         default_options: Optional[Options] = None,
+        callback: Optional[MaybeEvaluatable[Callable[[A], A]]] = None,
     ) -> "DatasetFactory":
         return DatasetFactory(
             effects=[*self.effects, *(effects or [])],
@@ -545,6 +562,7 @@ class DatasetFactory(Generic[A]):
             abstract=abstract if abstract is not None else self.abstract,
             options=options or self.options,
             default_options=default_options or self.default_options,
+            callback=callback or self.callback,
         )
 
     @property

@@ -39,7 +39,7 @@ def test_handle():
 
     with handle(EchoRequest, void):
         with handle(EchoRequest, echo):
-            assert EchoRequest("hello").run() is "hello"
+            assert EchoRequest("hello").run() == "hello"
 
     with handle({EchoRequest: void}):
         assert EchoRequest("hello").run() is None

@@ -1,4 +1,3 @@
-import hashlib
 import json
 from abc import ABC, abstractmethod
 from copy import deepcopy
@@ -18,6 +17,7 @@ from typing import (
 from confectioner.templating import get_dotted_key
 
 from .exceptions import EvaluationError, InsufficientInformationError
+from .runtime import Request
 
 JSONScalar = Union[str, int, float, bool, None]
 JSON = Union[JSONScalar, Mapping[str, "JSON"], Sequence["JSON"]]
@@ -62,6 +62,22 @@ class Validatable(ABC):
         """
         raise NotImplementedError  # pragma: nocover
 
+    def __labrea_validate__(self, options: Options) -> None:
+        raise NotImplementedError
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+
+        if not hasattr(cls.validate, "__labrea_wrapper__"):
+
+            def validate(self, options: Options) -> None:
+                return ValidateRequest(self, options).run()
+
+            setattr(validate, "__labrea_wrapper__", True)
+
+            cls.__labrea_validate__ = cls.validate
+            cls.validate = validate
+
 
 class Cacheable(ABC):
     """Abstract base class for objects that can be cached."""
@@ -98,15 +114,25 @@ class Cacheable(ABC):
 
     def fingerprint(self, options: Options) -> bytes:
         """Return a fingerprint, which is a unique identifier for a given evaluation."""
-        fingerprint = hashlib.blake2b(digest_size=64)
+        return json.dumps(
+            [{key: get_dotted_key(key, options)} for key in sorted(self.keys(options))]
+        ).encode()
 
-        for key in sorted(self.keys(options)):
-            fingerprint.update(key.encode())
-            fingerprint.update(
-                json.dumps(get_dotted_key(key, options), sort_keys=True).encode()
-            )
+    def __labrea_keys__(self, options: Options) -> Set[str]:
+        raise NotImplementedError
 
-        return fingerprint.digest()
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+
+        if not hasattr(cls.keys, "__labrea_wrapper__"):
+
+            def keys(self, options: Options) -> Set[str]:
+                return KeysRequest(self, options).run()
+
+            setattr(keys, "__labrea_wrapper__", True)
+
+            cls.__labrea_keys__ = cls.keys
+            cls.keys = keys
 
 
 class Explainable(ABC):
@@ -140,6 +166,22 @@ class Explainable(ABC):
         This method should be called recursively on all child objects where
         applicable.
         """
+
+    def __labrea_explain__(self, options: Optional[Options] = None) -> Set[str]:
+        raise NotImplementedError
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+
+        if not hasattr(cls.explain, "__labrea_wrapper__"):
+
+            def explain(self, options: Optional[Options] = None) -> Set[str]:
+                return ExplainRequest(self, options or {}).run()
+
+            setattr(explain, "__labrea_wrapper__", True)
+
+            cls.__labrea_explain__ = cls.explain
+            cls.explain = explain
 
 
 class Evaluatable(Generic[A], Cacheable, Explainable, Validatable, ABC):
@@ -346,6 +388,22 @@ class Evaluatable(Generic[A], Cacheable, Explainable, Validatable, ABC):
     ) -> "Evaluatable[B]":
         return self.apply(other)
 
+    def __labrea_evaluate__(self, options: Options) -> A:
+        raise NotImplementedError
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+
+        if not hasattr(cls.evaluate, "__labrea_wrapper__"):
+
+            def evaluate(self, options: Options) -> A:
+                return EvaluateRequest(self, options).run()
+
+            setattr(evaluate, "__labrea_wrapper__", True)
+
+            cls.__labrea_evaluate__ = cls.evaluate
+            cls.evaluate = evaluate
+
 
 class Value(Evaluatable[A]):
     """Simple wrapper for a plain value.
@@ -485,3 +543,92 @@ class Bind(Generic[A, B], Evaluatable[B]):
 
 
 MaybeEvaluatable = Union[Evaluatable[X], X]
+
+
+class EvaluateRequest(Request[A]):
+    """Request to evaluate an Evaluatable object.
+
+    This request is used to evaluate an Evaluatable object with a given options dictionary.
+    By default, the Evaluatable object is evaluated using the :code:`evaluate` method.
+    """
+
+    evaluatable: Evaluatable[A]
+    options: Options
+
+    def __init__(self, evaluatable: Evaluatable, options: Options):
+        self.evaluatable = evaluatable
+        self.options = options
+
+
+class ValidateRequest(Request[None]):
+    """Request to validate a Validatable object.
+
+    This request is used to validate a Validatable object with a given options dictionary.
+    By default, the Validatable object is validated using the :code:`validate` method.
+    """
+
+    validatable: Validatable
+    options: Options
+
+    def __init__(self, validatable: Validatable, options: Options):
+        self.validatable = validatable
+        self.options = options
+
+
+class KeysRequest(Request[Set[str]]):
+    """Request to get the keys that a Cacheable object depends on.
+
+    This request is used to get the keys that a Cacheable object depends on with a given options
+    dictionary. By default, the Cacheable object is evaluated using the :code:`keys` method.
+    """
+
+    cacheable: Cacheable
+    options: Options
+
+    def __init__(self, cacheable: Cacheable, options: Options):
+        self.cacheable = cacheable
+        self.options = options
+
+
+class ExplainRequest(Request[Set[str]]):
+    """Request to get the keys that an Explainable object depends on.
+
+    This request is used to get the keys that an Explainable object depends on with a given options
+    dictionary. By default, the Explainable object is evaluated using the :code:`explain` method.
+    """
+
+    explainable: Explainable
+    options: Options
+
+    def __init__(self, explainable: Explainable, options: Options):
+        self.explainable = explainable
+        self.options = options
+
+
+@EvaluateRequest.handle
+def _evaluate_request(request: EvaluateRequest[A]) -> A:
+    try:
+        return request.evaluatable.__labrea_evaluate__(request.options)
+    except EvaluationError as e:
+        if e.source is request.evaluatable:
+            raise e
+        raise EvaluationError(
+            f"Error during evaluation of {e.source}", request.evaluatable
+        ) from e
+    except Exception as e:
+        raise EvaluationError("Error during evaluation", request.evaluatable) from e
+
+
+@ValidateRequest.handle
+def _validate_request(request: ValidateRequest) -> None:
+    return request.validatable.__labrea_validate__(request.options)
+
+
+@KeysRequest.handle
+def _keys_request(request: KeysRequest) -> Set[str]:
+    return request.cacheable.__labrea_keys__(request.options)
+
+
+@ExplainRequest.handle
+def _explain_request(request: ExplainRequest) -> Set[str]:
+    return request.explainable.__labrea_explain__(request.options)

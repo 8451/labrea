@@ -1,6 +1,6 @@
 from labrea import Option
 from labrea.application import FunctionApplication, PartialApplication
-from labrea.exceptions import KeyNotFoundError
+from labrea.exceptions import EvaluationError, KeyNotFoundError
 import pytest
 
 
@@ -15,7 +15,7 @@ def test_application():
     app = FunctionApplication(add, a, b)
 
     assert app.evaluate({'A': 1, 'B': 2}) == 3
-    with pytest.raises(KeyNotFoundError):
+    with pytest.raises(EvaluationError):
         app.evaluate({'A': 1})
 
     app.validate({'A': 1, 'B': 2})
@@ -64,7 +64,7 @@ def test_partial_application():
     app = PartialApplication(add, b)
 
     assert app.evaluate({'B': 2})(1) == 3
-    with pytest.raises(KeyNotFoundError):
+    with pytest.raises(EvaluationError):
         app.evaluate({})
 
     app.validate({'B': 2})

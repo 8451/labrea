@@ -9,7 +9,6 @@ import inspect
 from typing import (
     Any,
     Callable,
-    Generic,
     Iterable,
     Iterator,
     Optional,
@@ -90,15 +89,11 @@ class PipelineStep(Evaluatable[Callable[[A], B]], Transformation[A, B]):
         return isinstance(other, PipelineStep) and self.step == other.step
 
 
-class _Identity(Generic[A], PipelineStep[A, A]):
-    def __new__(cls) -> "_Identity[A]":
-        return super().__new__(cls)
-
-    def __init__(self) -> None:
-        super().__init__(Value(lambda x: x), "Identity")
+def _identity(x):
+    return x
 
 
-Identity: _Identity = _Identity()
+Identity = PipelineStep(Value(_identity))
 
 
 class Pipeline(

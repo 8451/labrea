@@ -1,20 +1,77 @@
 # Changelog
 
 ## Version 2.1.0
-- Add helper functions in `labrea.functions`:
+- Add many helper functions in `labrea.functions`:
   + `partial`
     - Analog of `functools.partial`
   + `into`
     - Analog of `*` unpacking but for an evaluatable that returns an iterable
+  + `ensure`
+    - Make an assertion before continuing to next step
+  + `get_attribute`
+    - Get attribute from an object
+  + `call_method`
+    - Call a method on an object
+  + `flatten`
+    - Flatten an interable of iterables
   + `flatmap`
     - Map then flatten result
   + `map_items`, `map_keys`, and `map_values`
     - Analogs of `map` but for mapping types
   + `filter_items`, `filter_keys`, and `filter_values`
     - Analogs of `filter` but for mapping types
-- Modify `PartialApplication` type to work even if multiple arguments are missing
+  + `concat`, `append`
+    - Add items to an interable
+  + `intersect`, `union`, `difference`, `symmetric_difference`
+    - Set operations
+  + `merge`
+    - Merge two dictionaries
+  + `get`, `get_from`
+    - Get a key from an indexable object
+  + `length`
+  + `add`, `subtract`, `multiply`, `divide_by`, `left_multiply`, `divide_into`, `negate`, `modulo`
+    - Basic math operations
+  + `eg`, `ne`, `lt`, `le`, `gt`, `ge`
+    - Basic comparison operations
+  + `positive`, `negative`, `non_positive`, `non_negative`
+    - Common comparisons
+  + `is_none`, `is_not_none`
+    - Check if an object is None
+  + `has_remainder`, `even`, `odd`
+    - Checking modulo of a number
+  + `any`, `all`
+    - Check if multiple predicates hold
+  + `invert`
+    - Invert a boolean value
+  + `instance_of`
+    - Check if an object is an instance of a class
+  + `is_in`, `is_not_in`, `one_of`, `none_of`, `contains`, `does_not_contain`, `intersects`, `disjoint_from`
+    - Check if a value is another collection
+- Add optional `type` and `domain` arguments to the `Option` constructor
+  + `type` is a type hint for the value of the option
+    - By default, not enforced at runtime
+    - An optional `labrea-type-validation` package is planned to enforce with pydantic
+    - Can use `Option[Type]("KEY")` syntax instead
+  + `domain` is one of
+    - A container of valid values
+    - A predicate function
+    - An evaluatable that returns one of the above
 - Add `@Option.namespace` decorator for creating option namespaces
-
+  + Also `Option.auto` helper method for creating options within a namespace
+- Add `Option.set` method for setting the value of an option in a dictionary
+- Add `callback` argument to `@dataset` decorator for providing a callback function to be called after the dataset is evaluated
+  - This callback is inherited by all overloads of the dataset
+- Add the ability to stack the `Dataset.overload` decorator with the `@dataset` decorator
+  - This allows for a nested overload tree to be defined
+- Add new `TypeValidationRequest` for validating types
+  - `Option`s will run this request when evaluated, but by default no handler is provided
+- Add request types for the core `.evaluate`, `.validate`, `.keys`, and `.explain` methods
+  - By default these just call the class' implementation
+  - Can be handled to provide custom behavior, such as mocking
+- Improved logging for the evaluation traceback
+- Modify `PartialApplication` type to work even if multiple arguments are missing
+- Allow `dataset.where` to be used with functions with `**kwargs`
+- Fix a bug that cause caching to be susceptible to hash collisions.
 
 ## Version 2.0.4
 - Make the `Dataset` type pickleable

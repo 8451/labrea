@@ -4,7 +4,7 @@ If you would like to add new functionality or fix a bug, we welcome contribution
 an [issue on the repo](https://github.com/8451/labrea/issues/new/choose). If you would like to develop the
 solution yourself, us the following flow:
 
-1. Read the [style guide](#style-guide) below
+1. Read the style guide below
 2. Tag @8451/cobra-owners in the issue and request to be assigned the issue
    - If this is your first time contributing, ask to be granted write access to the repo
 3. Create a new branch based off of [develop](https://github.com/8451/labrea/tree/develop)
@@ -19,8 +19,8 @@ solution yourself, us the following flow:
 ## Style Guide
 
 ### Pre-Commit
-The repo has [pre-commit](https://pre-commit.com/) configured to enforce much (but not all) of the style guide 
-automatically. When developing locally, please perform the one-time setup using `pip install pre-commit` followed by 
+The repo has [pre-commit](https://pre-commit.com/) configured to enforce much (but not all) of the style guide
+automatically. When developing locally, please perform the one-time setup using `pip install pre-commit` followed by
 `pre-commit install` before making any commits.
 
 ### PEP 8

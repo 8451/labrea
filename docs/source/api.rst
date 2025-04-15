@@ -124,18 +124,82 @@ Pipelines
 
 Pipeline Helper Functions
 -------------------------
+
+Generic
+~~~~~~~
+.. autofunction:: labrea.functions.partial
+.. autofunction:: labrea.functions.into
+.. autofunction:: labrea.functions.ensure
+.. autofunction:: labrea.functions.get_attribute
+.. autofunction:: labrea.functions.call_method
+
+Collections
+~~~~~~~~~~~
 .. autofunction:: labrea.functions.map
 .. autofunction:: labrea.functions.filter
 .. autofunction:: labrea.functions.reduce
+.. autofunction:: labrea.functions.flatten
 .. autofunction:: labrea.functions.flatmap
-.. autofunction:: labrea.functions.partial
-.. autofunction:: labrea.functions.into
 .. autofunction:: labrea.functions.map_items
 .. autofunction:: labrea.functions.map_keys
 .. autofunction:: labrea.functions.map_values
 .. autofunction:: labrea.functions.filter_items
 .. autofunction:: labrea.functions.filter_keys
 .. autofunction:: labrea.functions.filter_values
+.. autofunction:: labrea.functions.concat
+.. autofunction:: labrea.functions.append
+.. autofunction:: labrea.functions.intersect
+.. autofunction:: labrea.functions.union
+.. autofunction:: labrea.functions.difference
+.. autofunction:: labrea.functions.symmetric_difference
+.. autofunction:: labrea.functions.merge
+.. autofunction:: labrea.functions.get
+.. autofunction:: labrea.functions.get_from
+.. autofunction:: labrea.functions.length
+
+Math
+~~~~
+.. autofunction:: labrea.functions.add
+.. autofunction:: labrea.functions.subtract
+.. autofunction:: labrea.functions.multiply
+.. autofunction:: labrea.functions.left_multiply
+.. autofunction:: labrea.functions.divide_by
+.. autofunction:: labrea.functions.divide_into
+.. autofunction:: labrea.functions.negate
+.. autofunction:: labrea.functions.modulo
+
+
+Predicates
+~~~~~~~~~~
+.. autofunction:: labrea.functions.eq
+.. autofunction:: labrea.functions.ne
+.. autofunction:: labrea.functions.lt
+.. autofunction:: labrea.functions.le
+.. autofunction:: labrea.functions.gt
+.. autofunction:: labrea.functions.ge
+.. autofunction:: labrea.functions.positive
+.. autofunction:: labrea.functions.negative
+.. autofunction:: labrea.functions.non_positive
+.. autofunction:: labrea.functions.non_negative
+.. autofunction:: labrea.functions.is_none
+.. autofunction:: labrea.functions.is_not_none
+.. autofunction:: labrea.functions.has_remainder
+.. autofunction:: labrea.functions.even
+.. autofunction:: labrea.functions.odd
+.. autofunction:: labrea.functions.any
+.. autofunction:: labrea.functions.all
+.. autofunction:: labrea.functions.invert
+.. autofunction:: labrea.functions.instance_of
+.. autofunction:: labrea.functions.is_in
+.. autofunction:: labrea.functions.is_not_in
+.. autofunction:: labrea.functions.one_of
+.. autofunction:: labrea.functions.none_of
+.. autofunction:: labrea.functions.contains
+.. autofunction:: labrea.functions.does_not_contain
+.. autofunction:: labrea.functions.intersects
+.. autofunction:: labrea.functions.disjoint_from
+
+
 
 Templates
 ---------

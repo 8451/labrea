@@ -1,6 +1,6 @@
 from typing import Any
-from labrea.exceptions import KeyNotFoundError
-from labrea.option import AllOptions, Option, WithOptions, WithDefaultOptions
+from labrea.exceptions import EvaluationError, KeyNotFoundError
+from labrea.option import AllOptions, Option, WithOptions, WithDefaultOptions, UnrecognizedNamespaceMemberWarning
 from labrea.template import Template
 from labrea.type_validation import TypeValidationRequest
 from labrea.types import Value
@@ -220,15 +220,15 @@ def test_namespace_full():
     @Option.namespace("PKG")
     class PKG:
         A: str
+        B: int = 1
 
-    inner = {"A": "a"}
-    options = {"PKG": inner}
+    options = {"PKG": {"A": "a"}}
 
-    assert PKG(options) == inner
+    assert PKG(options) == {"A": "a", "B": 1}
     PKG.validate(options)
-    assert PKG.keys(options) == {"PKG"}
-    assert PKG.explain(options) == {"PKG"}
-    assert PKG.explain() == set()
+    assert PKG.keys(options) == {"PKG.A"}
+    assert PKG.explain(options) == {"PKG.A"}
+    assert PKG.explain() == {"PKG.A"}
 
     assert repr(PKG) == "Namespace('PKG')"
 
@@ -259,12 +259,25 @@ def test_namespace_explicit():
 def test_namespace_auto():
     @Option.namespace
     class PKG:
-        A = Option.auto(doc="A as string") >> str
-        B = Option.auto(doc="B")
+        A = Option.auto(doc="A as string", type=int, domain=[1]) >> str
+        B = Option.auto(doc="B", type=int, domain=[1])
 
     assert PKG.A({"PKG": {"A": 1}}) == "1"
     assert PKG.A.__doc__ == "A as string"
     assert PKG.B.__doc__ == "B"
+    assert PKG.B.type is int
+    assert PKG.B.domain() == [1]
+
+
+def test_namespace_extra():
+    @Option.namespace
+    class PKG:
+        A: int
+
+    options = {"PKG": {"A": 1, "B": 2}}
+
+    with pytest.warns(UnrecognizedNamespaceMemberWarning):
+        PKG.validate(options)
 
 
 def test_namespace_default():
@@ -289,6 +302,9 @@ def test_namespace_doc():
         A: str
         class MODULE:
             B = Option.auto(1, doc="B")
+        class _HIDDEN_MODULE:
+            C: str
+            _D = str
 
     assert PKG.__doc__ == 'Namespace PKG:\n  Option PKG.A\n  Namespace PKG.MODULE:\n    Option PKG.MODULE.B (default 1): B'
 
@@ -308,7 +324,6 @@ def test_type_validation():
     def handle_type_validation(request: TypeValidationRequest):
         nonlocal store
         store = request
-        return request.value
 
     implicit = Option[int]('A')
     explicit = Option('A', type=int)
@@ -329,3 +344,71 @@ def test_type_validation():
         explicit.validate({'A': 4})
         assert store.type is int
         assert store.value == 4
+
+
+def test_type_validation_namespace():
+    store: TypeValidationRequest = TypeValidationRequest(None, Any, {})
+
+    def handle_type_validation(request: TypeValidationRequest):
+        nonlocal store
+        store = request
+
+    @Option.namespace
+    class PKG:
+        IMPLICIT: int
+        EXPLICIT = Option.auto(type=int)
+
+    with labrea.runtime.current_runtime().handle(TypeValidationRequest, handle_type_validation):
+        PKG.IMPLICIT({'PKG': {'IMPLICIT': 1}})
+        assert store.type is int
+        assert store.value == 1
+
+        PKG.IMPLICIT.validate({'PKG': {'IMPLICIT': 2}})
+        assert store.type is int
+        assert store.value == 2
+
+        PKG.EXPLICIT({'PKG': {'EXPLICIT': 3}})
+        assert store.type is int
+        assert store.value == 3
+
+        PKG.EXPLICIT.validate({'PKG': {'EXPLICIT': 4}})
+        assert store.type is int
+        assert store.value == 4
+
+
+def test_domain_container():
+    X = Option('X', domain=[1, 2, 3])
+
+    good = {'X': 2}
+    bad = {'X': 4}
+
+    assert X(good) == 2
+    X.validate(good)
+
+    with pytest.raises(EvaluationError):
+        X(bad)
+    with pytest.raises(EvaluationError):
+        X.validate(bad)
+
+
+def test_domain_callable():
+    X = Option('X', domain=lambda x: x > 2)
+
+    good = {'X': 3}
+    bad = {'X': 2}
+
+    assert X(good) == 3
+    X.validate(good)
+
+    with pytest.raises(EvaluationError):
+        X(bad)
+    with pytest.raises(EvaluationError):
+        X.validate(bad)
+
+
+def test_domain_invalid():
+    with pytest.raises(TypeError):
+        Option('X', domain=1)
+
+    with pytest.warns(RuntimeWarning):
+        Option('X', domain=Value(1))({"X": 1})
