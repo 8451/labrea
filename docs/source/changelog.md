@@ -58,6 +58,7 @@
     - An evaluatable that returns one of the above
 - Add `@Option.namespace` decorator for creating option namespaces
   + Also `Option.auto` helper method for creating options within a namespace
+- Add `Option.set` method for setting the value of an option in a dictionary
 - Add `callback` argument to `@dataset` decorator for providing a callback function to be called after the dataset is evaluated
   - This callback is inherited by all overloads of the dataset
 - Add the ability to stack the `Dataset.overload` decorator with the `@dataset` decorator
@@ -69,6 +70,7 @@
   - Can be handled to provide custom behavior, such as mocking
 - Improved logging for the evaluation traceback
 - Modify `PartialApplication` type to work even if multiple arguments are missing
+- Allow `dataset.where` to be used with functions with `**kwargs`
 - Fix a bug that cause caching to be susceptible to hash collisions.
 
 ## Version 2.0.4
