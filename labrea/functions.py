@@ -44,19 +44,19 @@ Z = TypeVar("Z")
 
 
 class _Addable(Protocol[X, Y]):
-    def __add__(self, other: X) -> Y: ...
+    def __add__(self, __other: X) -> Y: ...
 
 
 class _Subtractable(Protocol[X, Y]):
-    def __sub__(self, other: X) -> Y: ...
+    def __sub__(self, __other: X) -> Y: ...
 
 
 class _Multiplicable(Protocol[X, Y]):
-    def __mul__(self, other: X) -> Y: ...
+    def __mul__(self, __other: X) -> Y: ...
 
 
 class _Divisible(Protocol[X, Y]):
-    def __truediv__(self, other: X) -> Y: ...
+    def __truediv__(self, __other: X) -> Y: ...
 
 
 class _Negatable(Protocol[Y]):
@@ -64,11 +64,11 @@ class _Negatable(Protocol[Y]):
 
 
 class _Modable(Protocol[X, Y]):
-    def __mod__(self, other: X) -> Y: ...
+    def __mod__(self, __other: X) -> Y: ...
 
 
 class _Indexable(Protocol[X, Y]):
-    def __getitem__(self, index: X) -> Y: ...
+    def __getitem__(self, __index: X) -> Y: ...
 
 
 def partial(
@@ -1629,6 +1629,52 @@ def disjoint_from(
     return PipelineStep(
         invert(intersects(iterable)),
         f"disjoint_from({iterable!r})",
+    )
+
+
+def _ensure(value: A, predicate: Callable[[A], bool], msg: str) -> A:
+    assert predicate(value), msg
+    return value
+
+
+def ensure(
+    __predicate: MaybeEvaluatable[Callable[[A], bool]],
+    __msg: MaybeMissing[MaybeEvaluatable[str]] = MISSING,
+) -> PipelineStep[A, A]:
+    """Create a pipeline step that checks if the input satisfies a predicate.
+
+    Arguments
+    ---------
+    __predicate : MaybeEvaluatable[Callable[[A], bool]]
+        The predicate to check if the input satisfies. This can be an Evaluatable
+        that returns a predicate, or a constant predicate.
+    __msg : MaybeMissing[MaybeEvaluatable[str]], optional
+        The message to use if the predicate fails. This can be an Evaluatable
+        that returns a message, or a constant message. If not provided, a default
+        message will be used.
+
+    Returns
+    -------
+    PipelineStep[A, A]
+        A pipeline step that checks if the input satisfies the predicate.
+
+
+    Example Usage
+    -------------
+    >>> from labrea import Option
+    >>> import labrea.functions as F
+    >>>
+    >>> (Option('A') >> F.ensure(lambda x: x > 0))({'A': 1})
+    1
+    """
+    __msg = __msg if __msg is not MISSING else f"Predicate {__predicate!r} failed"
+    return PipelineStep(
+        partial(
+            _ensure,
+            predicate=Evaluatable.ensure(__predicate),
+            msg=Evaluatable.ensure(__msg),
+        ),
+        f"ensure({__predicate!r})",
     )
 
 
