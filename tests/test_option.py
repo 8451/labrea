@@ -385,9 +385,9 @@ def test_domain_container():
     assert X(good) == 2
     X.validate(good)
 
-    with pytest.raises(EvaluationError):
+    with pytest.raises(ValueError):
         X(bad)
-    with pytest.raises(EvaluationError):
+    with pytest.raises(ValueError):
         X.validate(bad)
 
 
@@ -400,9 +400,9 @@ def test_domain_callable():
     assert X(good) == 3
     X.validate(good)
 
-    with pytest.raises(EvaluationError):
+    with pytest.raises(ValueError):
         X(bad)
-    with pytest.raises(EvaluationError):
+    with pytest.raises(ValueError):
         X.validate(bad)
 
 
