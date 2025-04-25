@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 2.1.1
+- Fix bug introduced in 2.1.0 where exceptions raised during `.evaluate` are all masked as `EvaluationError`
+
 ## Version 2.1.0
 - Add many helper functions in `labrea.functions`:
   + `partial`
