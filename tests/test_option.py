@@ -176,6 +176,18 @@ def test_with_options():
     assert repr(w) == "WithOptions(Option('A'), {'A': 42})"
 
 
+def test_with_dynamic_options():
+    dyn = {
+        'A': {
+            'B': Option('C'),
+            'D': [Option('E')]
+        }
+    }
+
+    assert WithOptions(Option('A.B'), dyn)({'C': 1, 'E': 2}) == 1
+    assert WithOptions(Option('A.D'), dyn)({'C': 1, 'E': 2}) == [2]
+
+
 def test_with_default_options():
     w = WithDefaultOptions(Option('A'), {'A': 42})
 

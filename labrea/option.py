@@ -36,6 +36,10 @@ A = TypeVar("A", covariant=True, bound="JSON")
 B = TypeVar("B", covariant=True)
 _Domain = Union[Container[A], Callable[[A], bool]]
 Domain = Evaluatable[_Domain]
+_DynamicJSON = Union[
+    MaybeEvaluatable[JSON], Mapping[str, "_DynamicJSON"], List["_DynamicJSON"]
+]
+DynamicOptions = Mapping[str, _DynamicJSON]
 
 
 class Option(Evaluatable[A]):
@@ -333,6 +337,92 @@ class Option(Evaluatable[A]):
         return mix(options, new)  # type: ignore
 
 
+class _DynamicOption(Evaluatable[JSON]):
+    option: _DynamicJSON
+
+    def __init__(self, option: _DynamicJSON) -> None:
+        self.option = option
+
+    def evaluate(self, options: Options) -> JSON:
+        if isinstance(self.option, Evaluatable):
+            return self.option.evaluate(options)
+        elif isinstance(self.option, Mapping):
+            return {
+                key: _DynamicOption(value).evaluate(options)
+                for key, value in self.option.items()
+            }
+        elif isinstance(self.option, list):
+            return [_DynamicOption(value).evaluate(options) for value in self.option]
+        else:
+            return self.option
+
+    def validate(self, options: Options) -> None:
+        if isinstance(self.option, Evaluatable):
+            self.option.validate(options)
+        elif isinstance(self.option, Mapping):
+            for value in self.option.values():
+                _DynamicOption(value).validate(options)
+        elif isinstance(self.option, list):
+            for value in self.option:
+                _DynamicOption(value).validate(options)
+
+    def keys(self, options: Options) -> Set[str]:
+        if isinstance(self.option, Evaluatable):
+            return self.option.keys(options)
+        elif isinstance(self.option, Mapping):
+            return set().union(
+                *(_DynamicOption(value).keys(options) for value in self.option.values())
+            )
+        elif isinstance(self.option, list):
+            return set().union(
+                *(_DynamicOption(value).keys(options) for value in self.option)
+            )
+        else:
+            return set()
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        if isinstance(self.option, Evaluatable):
+            return self.option.explain(options)
+        elif isinstance(self.option, Mapping):
+            return set().union(
+                *(
+                    _DynamicOption(value).explain(options)
+                    for value in self.option.values()
+                )
+            )
+        elif isinstance(self.option, list):
+            return set().union(
+                *(_DynamicOption(value).explain(options) for value in self.option)
+            )
+        else:
+            return set()
+
+    def __repr__(self) -> str:
+        return f"_DynamicOption({self.option!r})"
+
+
+class _DynamicOptions(Evaluatable[Options]):
+    options: Mapping[str, _DynamicJSON]
+
+    def __init__(self, options: DynamicOptions) -> None:
+        self.options = options
+
+    def evaluate(self, options: Options) -> Options:
+        return _DynamicOption(self.options).evaluate(options)  # type: ignore
+
+    def validate(self, options: Options) -> None:
+        _DynamicOption(self.options).validate(options)
+
+    def keys(self, options: Options) -> Set[str]:
+        return _DynamicOption(self.options).keys(options)
+
+    def explain(self, options: Optional[Options] = None) -> Set[str]:
+        return _DynamicOption(self.options).explain(options)
+
+    def __repr__(self) -> str:
+        return f"_DynamicOptions({self.options!r})"
+
+
 class WithOptions(Evaluatable[B]):
     """A class that wraps an Evaluatable object and provides default options.
 
@@ -354,21 +444,21 @@ class WithOptions(Evaluatable[B]):
     """
 
     evaluatable: Evaluatable[B]
-    options: Options
+    options: _DynamicOptions
     force: bool
 
     def __init__(
-        self, evaluatable: Evaluatable[B], options: Options, force: bool = True
+        self, evaluatable: Evaluatable[B], options: DynamicOptions, force: bool = True
     ) -> None:
         self.evaluatable = evaluatable
-        self.options = options
+        self.options = _DynamicOptions(options)
         self.force = force
 
     def _options(self, options: Options) -> Options:
         return (
-            mix(options, self.options)  # type: ignore
+            mix(options, self.options(options))  # type: ignore
             if self.force
-            else mix(self.options, options)  # type: ignore
+            else mix(self.options(options), options)  # type: ignore
         )
 
     def evaluate(self, options: Options) -> B:
@@ -377,6 +467,7 @@ class WithOptions(Evaluatable[B]):
 
     def validate(self, options: Options) -> None:
         """Validate the wrapped Evaluatable object with the provided options."""
+        self.options.validate(options)
         self.evaluatable.validate(self._options(options))
 
     def keys(self, options: Options) -> Set[str]:
@@ -385,7 +476,7 @@ class WithOptions(Evaluatable[B]):
             key
             for key in self.evaluatable.keys(self._options(options))
             if not (
-                dotted_key_exists(key, self.options)
+                dotted_key_exists(key, self.options(options))
                 and (self.force or not dotted_key_exists(key, options))
             )
         }
@@ -397,16 +488,16 @@ class WithOptions(Evaluatable[B]):
             key
             for key in self.evaluatable.explain(self._options(options))
             if not (
-                dotted_key_exists(key, self.options)
+                dotted_key_exists(key, self.options(options))
                 and (self.force or not dotted_key_exists(key, options))
             )
         }
 
     def __repr__(self) -> str:
         return (
-            f"WithOptions({self.evaluatable!r}, {self.options!r})"
+            f"WithOptions({self.evaluatable!r}, {self.options.options!r})"
             if self.force
-            else f"WithDefaultOptions({self.evaluatable!r}, {self.options!r})"
+            else f"WithDefaultOptions({self.evaluatable!r}, {self.options.options!r})"
         )
 
 
