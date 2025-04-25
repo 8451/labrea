@@ -177,15 +177,16 @@ def test_with_options():
 
 
 def test_with_dynamic_options():
-    dyn = {
+    dynamic = {
         'A': {
-            'B': Option('C'),
-            'D': [Option('E')]
+            'B': Option('X'),
+            'D': [Option('Y'), Option('Z')]
         }
     }
+    options = {'X': 1, 'Y': 2, 'Z': 3}
 
-    assert WithOptions(Option('A.B'), dyn)({'C': 1, 'E': 2}) == 1
-    assert WithOptions(Option('A.D'), dyn)({'C': 1, 'E': 2}) == [2]
+    assert WithOptions(Option('A.B'), dynamic)(options) == 1
+    assert WithOptions(Option('A.D'), dynamic)(options) == [2, 3]
 
 
 def test_with_default_options():
