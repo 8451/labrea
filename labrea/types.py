@@ -605,18 +605,28 @@ class ExplainRequest(Request[Set[str]]):
         self.options = options
 
 
+class CaughtEvaluationError(EvaluationError):
+    """An evaluation error that has been caught and re-raised.
+
+    This error is used to indicate that an evaluation error has been caught and re-raised.
+    It is used to provide additional context about the error, such as the source of the error.
+    """
+
+    def __init__(
+        self, msg: str, source: Evaluatable, cause: Optional[BaseException]
+    ) -> None:
+        super().__init__(msg, source)
+        self.__cause__ = cause
+
+
 @EvaluateRequest.handle
 def _evaluate_request(request: EvaluateRequest[A]) -> A:
     try:
         return request.evaluatable.__labrea_evaluate__(request.options)
-    except EvaluationError as e:
-        if e.source is request.evaluatable:
-            raise e
-        raise EvaluationError(
-            f"Error during evaluation of {e.source}", request.evaluatable
-        ) from e
     except Exception as e:
-        raise EvaluationError("Error during evaluation", request.evaluatable) from e
+        raise e from CaughtEvaluationError(
+            "Error during evaluation", request.evaluatable, e.__cause__
+        )
 
 
 @ValidateRequest.handle
