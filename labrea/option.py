@@ -501,7 +501,9 @@ class WithOptions(Evaluatable[B]):
         )
 
 
-def WithDefaultOptions(evaluatable: Evaluatable[B], options: Options) -> WithOptions[B]:
+def WithDefaultOptions(
+    evaluatable: Evaluatable[B], options: DynamicOptions
+) -> WithOptions[B]:
     """Wrap an Evaluatable object with default options.
 
     This is a convenience function for creating a WithOptions object

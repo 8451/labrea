@@ -28,7 +28,7 @@ from .application import FunctionApplication
 from .cache import Cache, MemoryCache, NoCache, cached
 from .computation import CallbackEffect, ChainedEffect, Computation, Effect
 from .logging import Logged
-from .option import Option, WithDefaultOptions, WithOptions
+from .option import DynamicOptions, Option, WithDefaultOptions, WithOptions
 from .overload import Overloaded
 from .pipeline import Pipeline
 from .types import Evaluatable, MaybeEvaluatable, Options, Value
@@ -74,8 +74,8 @@ class Dataset(Evaluatable[A]):
     overloads: Overloaded[A]
     effects: List[Effect[A]]
     cache: Cache[A]
-    options: Options
-    default_options: Options
+    options: DynamicOptions
+    default_options: DynamicOptions
     callback: Pipeline[A, A]
     _effects_disabled: bool
 
@@ -84,8 +84,8 @@ class Dataset(Evaluatable[A]):
         overloads: Overloaded[A],
         effects: List[Effect[A]],
         cache: Cache[A],
-        options: Options,
-        default_options: Options,
+        options: DynamicOptions,
+        default_options: DynamicOptions,
         callback: Pipeline[A, A] = Pipeline(),
     ):
         self.overloads = overloads
@@ -316,7 +316,7 @@ class Dataset(Evaluatable[A]):
         """
         self._effects_disabled = False
 
-    def with_options(self, options: Options) -> "Dataset[A]":
+    def with_options(self, options: DynamicOptions) -> "Dataset[A]":
         """Returns a new dataset with the provided options pre-set.
 
         The provided options are pre-set, and cannot be overridden by the user. This
@@ -350,7 +350,7 @@ class Dataset(Evaluatable[A]):
             self.default_options,
         )
 
-    def with_default_options(self, options: Options) -> "Dataset[A]":
+    def with_default_options(self, options: DynamicOptions) -> "Dataset[A]":
         """Returns a new dataset with the provided options as default.
 
         The provided options are set as the default options for the dataset. These options
@@ -391,8 +391,8 @@ class DatasetFactory(Generic[A]):
     cache: Union[Cache[A], Callable[..., Cache[A]], None]
     dispatch: Evaluatable[Hashable]
     defaults: Dict[str, Evaluatable[Any]]
-    options: Options
-    default_options: Options
+    options: DynamicOptions
+    default_options: DynamicOptions
     callback: MaybeEvaluatable[Callable[[A], A]]
     abstract: bool
 
@@ -403,9 +403,9 @@ class DatasetFactory(Generic[A]):
         dispatch: Union[Evaluatable[Hashable], str, None] = None,
         defaults: Optional[Dict[str, Any]] = None,
         abstract: bool = False,
-        options: Optional[Options] = None,
+        options: Optional[DynamicOptions] = None,
         callback: MaybeEvaluatable[Callable[[A], A]] = Pipeline(),
-        default_options: Optional[Options] = None,
+        default_options: Optional[DynamicOptions] = None,
     ):
         self.effects = effects or []
         self.cache = cache
@@ -435,8 +435,8 @@ class DatasetFactory(Generic[A]):
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
         defaults: Optional[Dict[str, Any]] = ...,
         abstract: Optional[bool] = ...,
-        options: Optional[Options] = ...,
-        default_options: Optional[Options] = ...,
+        options: Optional[DynamicOptions] = ...,
+        default_options: Optional[DynamicOptions] = ...,
         callback: Optional[MaybeEvaluatable[Callable[[A], A]]] = ...,
     ) -> Dataset[A]: ...  # pragma: no cover
 
@@ -450,8 +450,8 @@ class DatasetFactory(Generic[A]):
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
         defaults: Optional[Dict[str, Any]] = ...,
         abstract: Optional[bool] = ...,
-        options: Optional[Options] = ...,
-        default_options: Optional[Options] = ...,
+        options: Optional[DynamicOptions] = ...,
+        default_options: Optional[DynamicOptions] = ...,
         callback: Optional[MaybeEvaluatable[Callable[[A], A]]] = ...,
     ) -> "DatasetFactory[A]": ...  # pragma: no cover
 
@@ -466,8 +466,8 @@ class DatasetFactory(Generic[A]):
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = ...,
         defaults: Optional[Dict[str, Any]] = ...,
         abstract: Optional[bool] = ...,
-        options: Optional[Options] = ...,
-        default_options: Optional[Options] = ...,
+        options: Optional[DynamicOptions] = ...,
+        default_options: Optional[DynamicOptions] = ...,
         callback: Optional[MaybeEvaluatable[Callable[[A], A]]] = ...,
     ) -> "DatasetFactory[A]": ...  # pragma: no cover
 
@@ -481,8 +481,8 @@ class DatasetFactory(Generic[A]):
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = None,
         defaults: Optional[Dict[str, Any]] = None,
         abstract: Optional[bool] = None,
-        options: Optional[Options] = None,
-        default_options: Optional[Options] = None,
+        options: Optional[DynamicOptions] = None,
+        default_options: Optional[DynamicOptions] = None,
         callback: Optional[MaybeEvaluatable[Callable[[A], A]]] = None,
     ) -> Union["DatasetFactory[A]", Dataset[A]]:
         _effects = [
@@ -550,8 +550,8 @@ class DatasetFactory(Generic[A]):
         dispatch: Optional[Union[Evaluatable[Hashable], str]] = None,
         defaults: Optional[Dict[str, Any]] = None,
         abstract: Optional[bool] = None,
-        options: Optional[Options] = None,
-        default_options: Optional[Options] = None,
+        options: Optional[DynamicOptions] = None,
+        default_options: Optional[DynamicOptions] = None,
         callback: Optional[MaybeEvaluatable[Callable[[A], A]]] = None,
     ) -> "DatasetFactory":
         return DatasetFactory(
