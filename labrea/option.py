@@ -34,6 +34,8 @@ from .types import JSON, Evaluatable, MaybeEvaluatable, Options, Value
 
 A = TypeVar("A", covariant=True, bound="JSON")
 B = TypeVar("B", covariant=True)
+T = TypeVar("T", bound=JSON)
+T_type = TypeVar("T_type", bound=Type)
 _Domain = Union[Container[A], Callable[[A], bool]]
 Domain = Evaluatable[_Domain]
 
@@ -226,18 +228,18 @@ class Option(Evaluatable[A]):
 
     @overload
     @staticmethod
-    def namespace(__namespace: Type) -> "Namespace": ...  # pragma: no cover
+    def namespace(__namespace: T_type) -> T_type: ...  # pragma: no cover
 
     @overload
     @staticmethod
     def namespace(
         __namespace: str,
-    ) -> Callable[[Type], "Namespace"]: ...  # pragma: no cover
+    ) -> Callable[[T_type], T_type]: ...  # pragma: no cover
 
     @staticmethod
     def namespace(
-        __namespace: Union[Type, str],
-    ) -> Union["Namespace", Callable[[Type], "Namespace"]]:
+        __namespace: Union[T_type, str],
+    ) -> Union["Namespace", Callable[[T_type], T_type]]:
         """Create an option namespace from a class definition
 
         This allows all of the options for a module to be grouped together. Namespaces can contain
@@ -271,16 +273,16 @@ class Option(Evaluatable[A]):
                 Option MY_PACKAGE.MODULE-2.A (default 10)
         """
         if isinstance(__namespace, str):
-            return lambda cls: Namespace._from_type(cls, name=__namespace)
+            return lambda cls: Namespace._from_type(cls, name=__namespace)  # type: ignore[return-value]
         return Namespace._from_type(__namespace)
 
     @staticmethod
     def auto(
         default: MaybeMissing[MaybeEvaluatable[A]] = MISSING,
         doc: str = "",
-        type: Type[A] = cast(Type, Any),
+        type: Type[T] = cast(Type, Any),
         domain: MaybeMissing[MaybeEvaluatable[_Domain]] = MISSING,
-    ) -> "Option[A]":
+    ) -> "Option[T]":
         """Create an option in a namespace with an inferred key
 
         Sometimes when creating a namespace, we want to add an option with a docstring or some
