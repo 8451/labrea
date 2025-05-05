@@ -19,6 +19,7 @@ from typing import (
     Set,
     TypeVar,
     Union,
+    cast,
 )
 
 from confectioner import mix
@@ -98,27 +99,31 @@ class Dataset(Evaluatable[A]):
 
     @property
     def _composed(self) -> Evaluatable[A]:
-        calculation: Evaluatable[A] = self.overloads.apply(self.callback)
-        computation = Computation(
-            calculation,
-            ChainedEffect(*self.effects),
+        composed: Evaluatable[A] = (
+            self.overloads
+            if self.overloads.dispatch != Value(MISSING)
+            else cast(Evaluatable[A], self.overloads.default)
         )
-        base = calculation if self._effects_disabled else computation
-        return WithDefaultOptions(
-            WithOptions(
-                cached(
-                    Logged(
-                        base,
-                        level=logging.INFO,
-                        name=self.__module__,
-                        msg=f"Labrea: Evaluating {self!r}",
-                    ),
-                    self.cache,
-                ),
-                self.options,
-            ),
-            self.default_options,
+
+        composed = Logged(
+            composed,
+            level=logging.INFO,
+            name=self.__module__,
+            msg=f"Labrea: Evaluating {self!r}",
         )
+
+        if not (isinstance(self.callback, Pipeline) and self.callback.empty):
+            composed = self.overloads.apply(self.callback)
+        if self.effects and not self._effects_disabled:
+            composed = Computation(composed, ChainedEffect(*self.effects))
+        if not isinstance(self.cache, NoCache):
+            composed = cached(composed, self.cache)
+        if self.options:
+            composed = WithOptions(composed, self.options)
+        if self.default_options:
+            composed = WithDefaultOptions(composed, self.default_options)
+
+        return composed
 
     def evaluate(self, options: Options) -> A:
         """Evaluates the dataset using the provided options."""
