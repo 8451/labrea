@@ -2,6 +2,7 @@
 
 ## Version 2.1.2
 - Update type-hint for `@Option.namespace` to make namespaces easier to use with type checkers
+- Optimize `Dataset.evaluate` to avoid a large number of redundant function calls
 
 ## Version 2.1.1
 - Fix bug introduced in 2.1.0 where exceptions raised during `.evaluate` are all masked as `EvaluationError`
