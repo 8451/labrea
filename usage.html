@@ -1,0 +1,982 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Usage &mdash; labrea 2.1.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=b3e23499"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Labrea API" href="api.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            labrea
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#motivation">Motivation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#datasets">Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#additional-features">Additional Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#caching-results">Caching Results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default-values-to-options">Default Values to Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#switches">Switches</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#coalesce">Coalesce</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#overloads">Overloads</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#abstract-datasets">Abstract Datasets</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#interfaces">Interfaces</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#interface-definition">Interface Definition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#development-implementation">Development Implementation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#production-implementation">Production Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#collections">Collections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#map">Map</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#in-line-transformations">In-Line Transformations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pipelines">Pipelines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helper-pipelines">Helper Pipelines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#templates">Templates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dataset-classes">Dataset Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#typing">Typing</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#subscripting">Subscripting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mypy-plugin">MyPy Plugin</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">labrea</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Usage</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/usage.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h1>
+<p>Labrea exposes a declarative way to define the data that your application uses,
+the relationships between different datasets, and the user inputs necessary for
+those datasets.</p>
+<section id="motivation">
+<h2>Motivation<a class="headerlink" href="#motivation" title="Link to this heading"></a></h2>
+<p>Imagine that you have a csv file that contains a list of stores, their regions,
+and their total sales across multiple days, where each day is a different row.
+You read in the csv as a Pandas dataframe, and then in different parts of your
+program you need the set of distinct store codes, the distinct regions, and
+the date range captured by the file. You write functions like so to read in the
+data and derive these values.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="k">def</span> <span class="nf">read_input</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">get_distinct_stores</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;store_id&#39;</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">get_distinct_regions</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;region_id&#39;</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">get_min_date</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">get_max_date</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">get_date_range</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="n">get_min_date</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">get_max_date</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This is ok, but there is a subtle problem with the way this is written. Each of
+our <code class="docutils literal notranslate"><span class="pre">get_*</span></code> functions are all designed to use the output of read_input, but there
+is no explicit dependency being declared anywhere. The only way to know that
+<code class="docutils literal notranslate"><span class="pre">get_distinct_stores</span></code> should take the output of <code class="docutils literal notranslate"><span class="pre">read_input</span></code> is through comments.
+As an application grows, these kinds of implicit dependencies can lead to a lack
+of maintainability and bugs that are hard to identify the cause of.</p>
+<p>One option would be to move the <code class="docutils literal notranslate"><span class="pre">read_input</span></code> call inside each of our <code class="docutils literal notranslate"><span class="pre">get_*</span></code>
+functions, like so:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Set</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="k">def</span> <span class="nf">read_input</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">get_distinct_stores</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">read_input</span><span class="p">(</span><span class="n">path</span><span class="p">)[</span><span class="s1">&#39;store_id&#39;</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">get_distinct_regions</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">read_input</span><span class="p">(</span><span class="n">path</span><span class="p">)[</span><span class="s1">&#39;region_id&#39;</span><span class="p">])</span>
+
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>This helps make our dependencies more clear, but at the cost of greatly increased
+coupling. Imagine we change <code class="docutils literal notranslate"><span class="pre">read_input</span></code> to take a <code class="docutils literal notranslate"><span class="pre">fmt</span></code> parameter, which specifies
+if the file is a csv or an excel file. We would have to add that <code class="docutils literal notranslate"><span class="pre">fmt</span></code> parameter
+to the signature of <em>every</em> one of our <code class="docutils literal notranslate"><span class="pre">get_*</span></code> functions, which greatly hurts
+maintainability. Additionally, the performance of our code took a hit because
+the inputs are being read in every time read_input is called, even though it’s
+the same data being used in each <code class="docutils literal notranslate"><span class="pre">get_*</span></code> call.</p>
+</section>
+<section id="datasets">
+<h2>Datasets<a class="headerlink" href="#datasets" title="Link to this heading"></a></h2>
+<p>The way Labrea handles this is with <code class="docutils literal notranslate"><span class="pre">Dataset</span></code>s. A <code class="docutils literal notranslate"><span class="pre">Dataset</span></code> is a defined as a
+function that takes some input parameters (called <code class="docutils literal notranslate"><span class="pre">Option</span></code>s), and has explicit
+dependencies on other datasets. When the dataset is created (by passing a
+config dictionary of <code class="docutils literal notranslate"><span class="pre">Option</span></code>s), all the dependencies are resolved automatically
+for you.</p>
+<p>This is how we would handle our problem from before using Labrea.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">Option</span>
+
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">input_data</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;INPUT.PATH&#39;</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">distinct_stores</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">input_data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;store_id&#39;</span><span class="p">])</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">distinct_regions</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">input_data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;region_id&#39;</span><span class="p">])</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">min_date</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">input_data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">])</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">max_date</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">input_data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">])</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">date_range</span><span class="p">(</span>
+        <span class="n">min_date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span> <span class="o">=</span> <span class="n">min_date</span><span class="p">,</span> 
+        <span class="n">max_date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span> <span class="o">=</span> <span class="n">max_date</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="n">min_date</span><span class="p">,</span> <span class="n">max_date</span>
+
+
+<span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;INPUT&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;PATH&#39;</span><span class="p">:</span> <span class="s1">&#39;/path/to/input.csv&#39;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">distinct_regions</span><span class="p">(</span><span class="n">options</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;014&#39;</span><span class="p">,</span> <span class="s1">&#39;620&#39;</span><span class="p">,</span> <span class="s1">&#39;706&#39;</span><span class="p">}</span> 
+</pre></div>
+</div>
+<p>All of our functions have been converted into <code class="docutils literal notranslate"><span class="pre">Dataset</span></code>s using the <code class="docutils literal notranslate"><span class="pre">&#64;dataset</span></code>
+decorator. The inputs to our functions all have defaults which are either
+<code class="docutils literal notranslate"><span class="pre">Option</span></code>s, or other <code class="docutils literal notranslate"><span class="pre">Dataset</span></code>s. These <code class="docutils literal notranslate"><span class="pre">Dataset</span></code>s take a dictionary of options as
+their input, extract the necessary options using the <code class="docutils literal notranslate"><span class="pre">Option</span></code>s, and recursively
+calculate any dependent datasets before calling the body of the function.</p>
+<p>This allows us to decouple the implementations of each of our functions, while
+also explicitly declaring any dependencies from one piece of data to the next.
+It also helps with our issue of upstream dependencies taking new arguments. If
+we wanted to take that <code class="docutils literal notranslate"><span class="pre">fmt</span></code> argument in <code class="docutils literal notranslate"><span class="pre">input_data</span></code>, we can add it like so,
+with no impact to the rest of our datasets.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Set</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">Option</span>
+
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">input_data</span><span class="p">(</span>
+        <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;INPUT.PATH&#39;</span><span class="p">),</span>
+        <span class="n">fmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;INPUT.FMT&#39;</span><span class="p">,</span> <span class="s1">&#39;csv&#39;</span><span class="p">)</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s1">&#39;csv&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s1">&#39;excel&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Only csv and excel files are accepted.&#39;</span><span class="p">)</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">distinct_stores</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">input_data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;store_id&#39;</span><span class="p">])</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">distinct_regions</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">input_data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;region_id&#39;</span><span class="p">])</span>
+
+
+<span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;INPUT&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;PATH&#39;</span><span class="p">:</span> <span class="s1">&#39;/path/to/input.xlsx&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;FMT&#39;</span><span class="p">:</span> <span class="s1">&#39;excel&#39;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">distinct_regions</span><span class="p">(</span><span class="n">options</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;014&#39;</span><span class="p">,</span> <span class="s1">&#39;620&#39;</span><span class="p">,</span> <span class="s1">&#39;706&#39;</span><span class="p">}</span> 
+</pre></div>
+</div>
+</section>
+<section id="additional-features">
+<h2>Additional Features<a class="headerlink" href="#additional-features" title="Link to this heading"></a></h2>
+<section id="caching-results">
+<h3>Caching Results<a class="headerlink" href="#caching-results" title="Link to this heading"></a></h3>
+<p>By default, when a dataset is evaluated with some inputs the result is cached
+in memory, so if the same inputs are provided it does not need to be
+recalculated. This might be undesirable (for example if your dataset should
+return random data on each call); you can disable this using the
+<code class="docutils literal notranslate"><span class="pre">&#64;dataset.nocache</span></code> decorator.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">random</span>
+
+<span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">Option</span>
+
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">same_random_number_every_time</span><span class="p">(</span>
+        <span class="n">minimum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;MIN&#39;</span><span class="p">),</span>
+        <span class="n">maximum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;MAX&#39;</span><span class="p">)</span>
+<span class="p">):</span>
+  <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="p">(</span><span class="n">maximum</span> <span class="o">-</span> <span class="n">minimum</span><span class="p">)</span> <span class="o">+</span> <span class="n">minimum</span>
+
+
+<span class="nd">@dataset</span><span class="o">.</span><span class="n">nocache</span>
+<span class="k">def</span> <span class="nf">new_random_number_every_time</span><span class="p">(</span>
+        <span class="n">minimum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;MIN&#39;</span><span class="p">),</span>
+        <span class="n">maximum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;MAX&#39;</span><span class="p">)</span>
+<span class="p">):</span>
+  <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="p">(</span><span class="n">maximum</span> <span class="o">-</span> <span class="n">minimum</span><span class="p">)</span> <span class="o">+</span> <span class="n">minimum</span>
+
+
+<span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;MIN&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s1">&#39;MAX&#39;</span><span class="p">:</span> <span class="mi">2</span>
+<span class="p">}</span>
+
+<span class="n">same_random_number_every_time</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>  <span class="c1">## 1.8286543357828648</span>
+<span class="n">same_random_number_every_time</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>  <span class="c1">## 1.8286543357828648</span>
+
+<span class="n">new_random_number_every_time</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>  <span class="c1">## 1.226523659380299</span>
+<span class="n">new_random_number_every_time</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>  <span class="c1">## 1.907915105351007</span>
+</pre></div>
+</div>
+</section>
+<section id="default-values-to-options">
+<h3>Default Values to Options<a class="headerlink" href="#default-values-to-options" title="Link to this heading"></a></h3>
+<p>Options can take a default value. If the value is a string, you can use
+<a class="reference external" href="https://github.com/8451/confectioner">confectioner</a>-style templating syntax to impute
+a default based on other config entries.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">Option</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="s1">&#39;b&#39;</span>
+<span class="p">}</span>
+
+<span class="n">Option</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)(</span><span class="n">config</span><span class="p">)</span>          <span class="c1">## 1</span>
+<span class="n">Option</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{A}</span><span class="s1">/</span><span class="si">{V}</span><span class="s1">&#39;</span><span class="p">)(</span><span class="n">config</span><span class="p">)</span>  <span class="c1">## &#39;a/b&#39;</span>
+</pre></div>
+</div>
+</section>
+<section id="switches">
+<h3>Switches<a class="headerlink" href="#switches" title="Link to this heading"></a></h3>
+<p>Sometimes your dataset might have different dependencies depending on some
+input parameter or other condition. We can express this simply using <code class="docutils literal notranslate"><span class="pre">switch</span></code>es.</p>
+<p>In this example, we have different logic for cloud vs on-prem, and can
+express that this way. <code class="docutils literal notranslate"><span class="pre">switch</span></code> takes a string representing the option we want
+to switch over, a dictionary mapping config values to corresponding datasets,
+and (optionally) a default value if the config value is missing or does not
+appear in our mapping.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">switch</span>
+
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">cloud_inputs</span><span class="p">():</span>
+    <span class="o">...</span>
+
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">onprem_inputs</span><span class="p">():</span>
+    <span class="o">...</span>
+
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">final_data</span><span class="p">(</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="n">switch</span><span class="p">(</span>
+            <span class="s1">&#39;ENVIRONMENT&#39;</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;CLOUD&#39;</span><span class="p">:</span> <span class="n">cloud_inputs</span><span class="p">,</span>
+                <span class="s1">&#39;ONPREM&#39;</span><span class="p">:</span> <span class="n">onprem_inputs</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+<span class="p">):</span>
+    <span class="o">...</span>
+
+
+<span class="n">final_data</span><span class="p">({</span><span class="s1">&#39;ENVIRONMENT&#39;</span><span class="p">:</span> <span class="s1">&#39;CLOUD&#39;</span><span class="p">})</span>  <span class="c1">## uses cloud_inputs as inputs arg</span>
+<span class="n">final_data</span><span class="p">({</span><span class="s1">&#39;ENVIRONMENT&#39;</span><span class="p">:</span> <span class="s1">&#39;ONPREM&#39;</span><span class="p">})</span>  <span class="c1">## uses onprem_inputs as inputs arg</span>
+</pre></div>
+</div>
+<p>The first argument to <code class="docutils literal notranslate"><span class="pre">switch</span></code> can also be another dataset. In this example, we
+could automatically determine the environment in another dataset rather than
+pass it explicitly in the config.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">switch</span>
+
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">inferred_environment</span><span class="p">():</span>
+    <span class="o">...</span>
+
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">final_data</span><span class="p">(</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="n">switch</span><span class="p">(</span>
+            <span class="n">inferred_environment</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;CLOUD&#39;</span><span class="p">:</span> <span class="n">cloud_inputs</span><span class="p">,</span>
+                <span class="s1">&#39;ONPREM&#39;</span><span class="p">:</span> <span class="n">onprem_inputs</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+<span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="coalesce">
+<h3>Coalesce<a class="headerlink" href="#coalesce" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Coalesce</span></code> allows you to provide a sequence of <code class="docutils literal notranslate"><span class="pre">Dataset</span></code>s (or <code class="docutils literal notranslate"><span class="pre">Option</span></code>s, <code class="docutils literal notranslate"><span class="pre">Switch</span></code>es, etc.), and use
+the first one that can evaluate.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">Coalesce</span><span class="p">,</span> <span class="n">Option</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">Coalesce</span><span class="p">(</span><span class="n">Option</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">),</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;V&#39;</span><span class="p">),</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">))</span>
+
+<span class="n">x</span><span class="p">({</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="n">x</span><span class="p">({</span><span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">})</span> <span class="o">==</span> <span class="mi">2</span>
+<span class="n">x</span><span class="p">({</span><span class="s1">&#39;C&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span> <span class="o">==</span> <span class="mi">3</span>
+<span class="n">x</span><span class="p">({</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">})</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="n">x</span><span class="p">({</span><span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span> <span class="o">==</span> <span class="mi">2</span>
+<span class="n">x</span><span class="p">()</span>  <span class="c1">## EvaluationError</span>
+
+
+<span class="n">y</span> <span class="o">=</span> <span class="n">Coalesce</span><span class="p">(</span><span class="n">Option</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">),</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;V&#39;</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+<span class="n">y</span><span class="p">({</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="n">y</span><span class="p">({</span><span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">})</span> <span class="o">==</span> <span class="mi">2</span>
+<span class="n">y</span><span class="p">({</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">})</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="n">y</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span>
+</pre></div>
+</div>
+</section>
+<section id="overloads">
+<h3>Overloads<a class="headerlink" href="#overloads" title="Link to this heading"></a></h3>
+<p>You can write multiple implementations to the same dataset using the <code class="docutils literal notranslate"><span class="pre">.overload</span></code> method of the dataset.
+For example, if you want to write a unit test where you mock up reading in some external data, you
+could write an overload that provides mock data.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+<span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">Option</span>
+
+
+<span class="nd">@dataset</span><span class="p">(</span><span class="n">dispatch</span><span class="o">=</span><span class="s1">&#39;INPUT.SOURCE&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">input_data</span><span class="p">(</span>
+        <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;INPUT.PATH&#39;</span><span class="p">)</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+
+<span class="nd">@input_data</span><span class="o">.</span><span class="n">overload</span><span class="p">(</span><span class="n">alias</span><span class="o">=</span><span class="s1">&#39;MOCK&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">mock_input_data</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Now, we can control which implementation is used by setting the <code class="docutils literal notranslate"><span class="pre">INPUT.SOURCE</span></code> option in our config.
+By default, if nothing is provided, we use the default implementation in the body of <code class="docutils literal notranslate"><span class="pre">input_data</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">input_data</span><span class="p">({</span><span class="s1">&#39;INPUT&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;PATH&#39;</span><span class="p">:</span> <span class="s1">&#39;/input/data/path&#39;</span><span class="p">}})</span>  <span class="c1">## Use default implementation</span>
+<span class="n">input_data</span><span class="p">({</span><span class="s1">&#39;INPUT&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;SOURCE&#39;</span><span class="p">:</span> <span class="s1">&#39;MOCK&#39;</span><span class="p">}})</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">]</span> 
+<span class="n">input_data</span><span class="p">({</span><span class="s1">&#39;INPUT&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;SOURCE&#39;</span><span class="p">:</span> <span class="s1">&#39;UNKNOWN_SOURCE&#39;</span><span class="p">}})</span>  <span class="c1">## Error</span>
+</pre></div>
+</div>
+<section id="abstract-datasets">
+<h4>Abstract Datasets<a class="headerlink" href="#abstract-datasets" title="Link to this heading"></a></h4>
+<p>We can also have datasets that have no default implementation, called abstract datasets.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+<span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">abstractdataset</span><span class="p">,</span> <span class="n">Option</span>
+
+<span class="nd">@abstractdataset</span><span class="p">(</span><span class="n">dispatch</span><span class="o">=</span><span class="s1">&#39;INPUT.SOURCE&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">input_data</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="o">...</span>
+
+
+<span class="nd">@input_data</span><span class="o">.</span><span class="n">overload</span><span class="p">(</span><span class="n">alias</span><span class="o">=</span><span class="s1">&#39;FLAT_FILE&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">flat_file_input_data</span><span class="p">(</span>
+        <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;INPUT.PATH&#39;</span><span class="p">)</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+
+<span class="nd">@input_data</span><span class="o">.</span><span class="n">overload</span><span class="p">(</span><span class="n">alias</span><span class="o">=</span><span class="s1">&#39;MOCK&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">mock_input_data</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="interfaces">
+<h3>Interfaces<a class="headerlink" href="#interfaces" title="Link to this heading"></a></h3>
+<p>We can write collections of multiple datasets whose implementations are connected using interfaces.
+For example, you may want your application to pull from a SQL database in production, but from a CSV
+file in development. You can define an interface that specifies the datasets that need to be implemented,
+and then provide different implementations for each environment.</p>
+<section id="interface-definition">
+<h4>Interface Definition<a class="headerlink" href="#interface-definition" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">abstractdataset</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">interface</span><span class="p">,</span> <span class="n">Option</span>
+
+<span class="nd">@interface</span><span class="p">(</span><span class="n">dispatch</span><span class="o">=</span><span class="s1">&#39;ENVIRONMENT&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">DataSource</span><span class="p">:</span>
+    <span class="nd">@staticmethod</span>  <span class="c1"># Adding staticmethod appeases linters/IDEs that don&#39;t understand interfaces</span>
+    <span class="nd">@abstractdataset</span>
+    <span class="k">def</span> <span class="nf">store</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a dataframe of store data.&quot;&quot;&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@abstractdataset</span>
+    <span class="k">def</span> <span class="nf">region</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a dataframe of region data.&quot;&quot;&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@dataset</span>
+    <span class="k">def</span> <span class="nf">store_ids</span><span class="p">(</span>
+            <span class="n">store_</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="vm">__func__</span>  <span class="c1"># Use .__func__ to refer to the abstract dataset itself</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Derives the set of store ids from the store dataframe. This implementation is shared across all environments</span>
+<span class="sd">        by default, but can be overridden if necessary.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">store_</span><span class="p">[</span><span class="s1">&#39;store_id&#39;</span><span class="p">])</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@dataset</span>
+    <span class="k">def</span> <span class="nf">region_ids</span><span class="p">(</span>
+            <span class="n">region_</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="vm">__func__</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">region_</span><span class="p">[</span><span class="s1">&#39;region_id&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="development-implementation">
+<h4>Development Implementation<a class="headerlink" href="#development-implementation" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@DataSource</span><span class="o">.</span><span class="n">implementation</span><span class="p">(</span><span class="n">alias</span><span class="o">=</span><span class="s1">&#39;DEVELOPMENT&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">DevDataSource</span><span class="p">:</span>
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@dataset</span>
+    <span class="k">def</span> <span class="nf">store</span><span class="p">(</span>
+            <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;DEV.STORE.PATH&#39;</span><span class="p">)</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@dataset</span>
+    <span class="k">def</span> <span class="nf">region</span><span class="p">(</span>
+            <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;DEV.REGION.PATH&#39;</span><span class="p">)</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="production-implementation">
+<h4>Production Implementation<a class="headerlink" href="#production-implementation" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">open_connection</span><span class="p">(</span><span class="n">connection_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="o">...</span>
+
+
+<span class="nd">@DataSource</span><span class="o">.</span><span class="n">implementation</span><span class="p">(</span><span class="n">alias</span><span class="o">=</span><span class="s1">&#39;PRODUCTION&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ProdDataSource</span><span class="p">:</span>
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@dataset</span>
+    <span class="k">def</span> <span class="nf">store</span><span class="p">(</span>
+            <span class="n">connection_string</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;PROD.CONNECTION_STRING&#39;</span><span class="p">)</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">open_connection</span><span class="p">(</span><span class="n">connection_string</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="s1">&#39;SELECT * FROM stores&#39;</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@dataset</span>
+    <span class="k">def</span> <span class="nf">region</span><span class="p">(</span>
+            <span class="n">connection_string</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;PROD.CONNECTION_STRING&#39;</span><span class="p">)</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">open_connection</span><span class="p">(</span><span class="n">connection_string</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="s1">&#39;SELECT * FROM regions&#39;</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, in your code, you can use <code class="docutils literal notranslate"><span class="pre">DataSource.store</span></code> and <code class="docutils literal notranslate"><span class="pre">DataSource.region</span></code> like normal datasets, and
+the implementation will be chosen based on the <code class="docutils literal notranslate"><span class="pre">ENVIRONMENT</span></code> option in your config.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">num_stores</span><span class="p">(</span>
+        <span class="n">store_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">DataSource</span><span class="o">.</span><span class="n">store_ids</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">store_ids</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="collections">
+<h3>Collections<a class="headerlink" href="#collections" title="Link to this heading"></a></h3>
+<p>Labrea provides a few helper functions for creating collections of datasets. For example,
+you might have a list of datasets that you want to provide as a single input to another
+dataset. You can use the <code class="docutils literal notranslate"><span class="pre">evaluatable_list</span></code> function to accomplist this.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">evaluatable_list</span><span class="p">,</span> <span class="n">dataset</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">x</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="mi">1</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">y</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="mi">2</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">z</span><span class="p">(</span>
+        <span class="n">x_and_y</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">evaluatable_list</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="n">x_and_y</span>
+
+
+<span class="n">z</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">evaluatable_tuple</span></code> and <code class="docutils literal notranslate"><span class="pre">evaluatable_set</span></code> functions work similarly. There is also a <code class="docutils literal notranslate"><span class="pre">evaluatable_dict</span></code>
+function that takes a dictionary mapping (static) keys to labrea objects.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">evaluatable_dict</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">z</span><span class="p">(</span>
+        <span class="n">xy_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">evaluatable_dict</span><span class="p">({</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y</span><span class="p">})</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="n">xy_dict</span>
+
+<span class="n">z</span><span class="p">()</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="map">
+<h3>Map<a class="headerlink" href="#map" title="Link to this heading"></a></h3>
+<p>Sometimes you want to use a dataset multiple times with different options. This can be accomplished using the
+<code class="docutils literal notranslate"><span class="pre">Map</span></code> type. <code class="docutils literal notranslate"><span class="pre">Map</span></code> takes a dataset and a dictionary mapping option keys to labrea objects that return lists
+(or other iterables) of values. When the <code class="docutils literal notranslate"><span class="pre">Map</span></code> object is evaluated, it will call the dataset with each of the
+values in the dictionary, and return an iterable of tuples, where the first element is the options set on that
+iteration, and the second element is the value. Like the build-in <code class="docutils literal notranslate"><span class="pre">map</span></code>, this iterable is lazy and is not a
+list.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">Option</span><span class="p">,</span> <span class="n">Map</span>
+
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">x_plus_y</span><span class="p">(</span>
+        <span class="n">x</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">),</span>
+        <span class="n">y</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">)</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+
+
+<span class="n">mapped</span> <span class="o">=</span> <span class="n">Map</span><span class="p">(</span><span class="n">x_plus_y</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;X_LIST&#39;</span><span class="p">)})</span>
+
+<span class="k">for</span> <span class="n">keys</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">mapped</span><span class="p">({</span><span class="s1">&#39;X_LIST&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">}):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+<span class="c1">## {&#39;X&#39;: 1} 11</span>
+<span class="c1">## {&#39;X&#39;: 2} 12</span>
+<span class="c1">## {&#39;X&#39;: 3} 13</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Map</span></code> objects have a <code class="docutils literal notranslate"><span class="pre">.values</span></code> property that can be used to only get the values.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">mapped</span><span class="o">.</span><span class="n">values</span><span class="p">({</span><span class="s1">&#39;X_LIST&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">}):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    
+<span class="c1">## 11</span>
+<span class="c1">## 12</span>
+<span class="c1">## 13</span>
+</pre></div>
+</div>
+</section>
+<section id="in-line-transformations">
+<h3>In-Line Transformations<a class="headerlink" href="#in-line-transformations" title="Link to this heading"></a></h3>
+<p>Sometimes you want to perform a transformation on a dataset (or other object) that is not worth creating
+a new dataset for. A common example is an Option that you want to parse as a date. You can use the
+<code class="docutils literal notranslate"><span class="pre">&gt;&gt;</span></code> operator (or the equivalent <code class="docutils literal notranslate"><span class="pre">.apply()</span></code> method) to perform this transformation in-line. The <code class="docutils literal notranslate"><span class="pre">&gt;&gt;</span></code>
+operator is shared by all Labrea objects.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">Option</span>
+<span class="kn">import</span> <span class="nn">datetime</span> <span class="k">as</span> <span class="nn">dt</span>
+
+<span class="n">start_date</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;START_DATE&#39;</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span>
+
+<span class="n">start_date</span><span class="p">({</span><span class="s1">&#39;START_DATE&#39;</span><span class="p">:</span> <span class="s1">&#39;2022-01-01&#39;</span><span class="p">})</span> <span class="o">==</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2022</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="pipelines">
+<h3>Pipelines<a class="headerlink" href="#pipelines" title="Link to this heading"></a></h3>
+<p>Labrea datasets are really useful when you know the dependency tree in advance. However, sometimes
+you want to write code that performs some transformation on an arbitrary input, and perhaps you want
+to perform a series of these transformations in an arbitrary order. To accomplish this, Labrea exposes
+a <code class="docutils literal notranslate"><span class="pre">Pipeline</span></code> class, where each step is created using the <code class="docutils literal notranslate"><span class="pre">&#64;pipeline_step</span></code> decorator.</p>
+<p>Pipelines look similar to datasets, but their first argument is always the input to the pipeline, and
+should not have a default value. To combine pipeline steps into a pipeline, use the <code class="docutils literal notranslate"><span class="pre">+</span></code> operator. Pipelines
+can be evaluated like a dataset, and it will return a function of 1 variable. If you want to run the pipeline
+on a value, use the <code class="docutils literal notranslate"><span class="pre">.transform(input,</span> <span class="pre">options)</span></code> method.</p>
+<p>For example, if you were building a feature engineering pipeline, you could write a series of functions
+that take a dataframe and add new columns, and then chain different subsets of these functions together
+to create different feature sets.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">pipeline_step</span><span class="p">,</span> <span class="n">Option</span><span class="p">,</span> <span class="n">dataset</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">store_sales</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;PATH.STORE_SALES&#39;</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">store_square_footage</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;PATH.STORE_SQFT&#39;</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+
+<span class="nd">@pipeline_step</span>
+<span class="k">def</span> <span class="nf">add_sales</span><span class="p">(</span>
+        <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">sales</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">store_sales</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">sales</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;store_id&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@pipeline_step</span>
+<span class="k">def</span> <span class="nf">add_square_footage</span><span class="p">(</span>
+        <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">sqft</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">store_square_footage</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">sqft</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;store_id&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@pipeline_step</span>
+<span class="k">def</span> <span class="nf">add_sales_per_sqft</span><span class="p">(</span>
+        <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">sales</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">store_sales</span><span class="p">,</span>
+        <span class="n">sqft</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">store_square_footage</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">sales</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;store_id&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">sqft</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;store_id&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;sales_per_sqft&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;sales&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;sqft&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;sales&#39;</span><span class="p">,</span> <span class="s1">&#39;sqft&#39;</span><span class="p">])</span>
+
+
+<span class="n">basic_features</span> <span class="o">=</span> <span class="n">add_sales</span> <span class="o">+</span> <span class="n">add_square_footage</span>
+<span class="n">derived_features</span> <span class="o">=</span> <span class="n">add_sales_per_sqft</span>
+<span class="n">all_features</span> <span class="o">=</span> <span class="n">basic_features</span> <span class="o">+</span> <span class="n">derived_features</span>
+
+
+<span class="n">stores</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;/path/to/stores.csv&#39;</span><span class="p">)</span>
+<span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;PATH.STORE_SALES&#39;</span><span class="p">:</span> <span class="s1">&#39;/path/to/store_sales.csv&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;PATH.STORE_SQFT&#39;</span><span class="p">:</span> <span class="s1">&#39;/path/to/store_sqft.csv&#39;</span>
+<span class="p">}</span>
+
+<span class="n">basic_features</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">stores</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+<span class="c1">## Returns a dataframe with columns from stores and new columns sales and sqft</span>
+
+<span class="n">derived_features</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">stores</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+<span class="c1">## Returns a dataframe with columns from stores and a new column sales_per_sqft</span>
+
+<span class="n">all_features</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">stores</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+<span class="c1">## Returns a dataframe with columns from stores and new columns sales, sqft, and sales_per_sqft</span>
+</pre></div>
+</div>
+<p>Pipelines can also be used as inline transformations on other Labrea objects.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">Option</span><span class="p">,</span> <span class="n">pipeline_step</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">letters</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;j&#39;</span><span class="p">]</span>
+
+
+<span class="nd">@pipeline_step</span>
+<span class="k">def</span> <span class="nf">take_first_n</span><span class="p">(</span>
+        <span class="n">lst</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">)</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="n">lst</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span>
+
+
+<span class="n">first_n_letters</span> <span class="o">=</span> <span class="n">letters</span> <span class="o">&gt;&gt;</span> <span class="n">take_first_n</span>
+
+<span class="n">first_n_letters</span><span class="p">({</span><span class="s1">&#39;N&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="helper-pipelines">
+<h3>Helper Pipelines<a class="headerlink" href="#helper-pipelines" title="Link to this heading"></a></h3>
+<p>Labrea provides a few helper functions for creating common pipeline steps. These are
+<code class="docutils literal notranslate"><span class="pre">map</span></code>, <code class="docutils literal notranslate"><span class="pre">filter</span></code>, and <code class="docutils literal notranslate"><span class="pre">reduce</span></code>, all under the <code class="docutils literal notranslate"><span class="pre">labrea.functions</span></code> module.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">dataset</span>
+<span class="kn">import</span> <span class="nn">labrea.functions</span> <span class="k">as</span> <span class="nn">lf</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">numbers</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
+
+<span class="n">sum_squared_evens</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">numbers</span> <span class="o">&gt;&gt;</span> 
+        <span class="n">lf</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;&gt;</span> 
+        <span class="n">lf</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">&gt;&gt;</span> 
+        <span class="n">lf</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">sum_squared_evens</span><span class="p">()</span> <span class="o">==</span> <span class="mi">220</span>
+</pre></div>
+</div>
+</section>
+<section id="templates">
+<h3>Templates<a class="headerlink" href="#templates" title="Link to this heading"></a></h3>
+<p>Similar to the built-in f-strings, Labrea provides a <code class="docutils literal notranslate"><span class="pre">Template</span></code> type for
+string interpolation. This can be useful for creating strings that depend on
+config values, or for creating strings that depend on the results of other
+datasets.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">Option</span><span class="p">,</span> <span class="n">Template</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">b_dataset</span><span class="p">(</span>
+        <span class="n">b</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">)</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">b</span>
+
+<span class="n">template</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span>
+    <span class="s1">&#39;</span><span class="si">{A}</span><span class="s1"> {:b:}&#39;</span><span class="p">,</span>
+    <span class="n">b</span><span class="o">=</span><span class="n">b_dataset</span>
+<span class="p">)</span>
+
+<span class="n">template</span><span class="p">({</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="s1">&#39;Hello&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">:</span> <span class="s1">&#39;World!&#39;</span><span class="p">})</span>  <span class="c1">## &#39;Hello World!&#39;</span>
+</pre></div>
+</div>
+</section>
+<section id="dataset-classes">
+<h3>Dataset Classes<a class="headerlink" href="#dataset-classes" title="Link to this heading"></a></h3>
+<p>You may want to write classes with more complex behavior that use datasets
+and options as their inputs. Similar to the built-in dataclasses, we can use
+the <code class="docutils literal notranslate"><span class="pre">&#64;datasetclass</span></code> decorator to create a class whose <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method takes
+an options dictionary and automatically evaluates dependencies like a dataset.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">datasetclass</span><span class="p">,</span> <span class="n">Option</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">input_data</span><span class="p">(</span>
+        <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;INPUT.PATH&#39;</span><span class="p">),</span>
+        <span class="n">fmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;INPUT.FMT&#39;</span><span class="p">,</span> <span class="s1">&#39;csv&#39;</span><span class="p">)</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s1">&#39;csv&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s1">&#39;excel&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Only csv and excel files are accepted.&#39;</span><span class="p">)</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">distinct_stores</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">input_data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;store_id&#39;</span><span class="p">])</span>
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">distinct_regions</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">input_data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;region_id&#39;</span><span class="p">])</span>
+
+
+<span class="nd">@datasetclass</span>
+<span class="k">class</span> <span class="nc">MyClass</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">input_data</span>
+    <span class="n">stores</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">distinct_stores</span>
+    <span class="n">region</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">distinct_regions</span>
+    
+    <span class="k">def</span> <span class="nf">lookup_store</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">store_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">store_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stores</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;store_id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">store_id</span><span class="p">]]</span>
+
+<span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;INPUT.PATH&#39;</span><span class="p">:</span> <span class="s1">&#39;/path/to/input.xlsx&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;INPUT.FMT&#39;</span><span class="p">:</span> <span class="s1">&#39;excel&#39;</span>
+<span class="p">}</span>
+
+<span class="n">my_data</span> <span class="o">=</span> <span class="n">MyClass</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+
+<span class="n">my_data</span><span class="o">.</span><span class="n">regions</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;region_1&#39;</span><span class="p">,</span> <span class="s1">&#39;region_2&#39;</span><span class="p">,</span> <span class="s1">&#39;region_3&#39;</span><span class="p">}</span> 
+<span class="n">my_data</span><span class="o">.</span><span class="n">lookup_store</span><span class="p">(</span><span class="s1">&#39;&lt;my_store&gt;&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="typing">
+<h3>Typing<a class="headerlink" href="#typing" title="Link to this heading"></a></h3>
+<p>By default, labrea code is not going to pass a type checker (like MyPy) since
+the default arguments to datasets do not match the type annotations. For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">Option</span>
+
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">add</span><span class="p">(</span>
+        <span class="n">x</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">),</span>
+        <span class="n">y</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">)</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+</pre></div>
+</div>
+<p>This will fail a type check because <code class="docutils literal notranslate"><span class="pre">Option('X')</span></code> is not an <code class="docutils literal notranslate"><span class="pre">int</span></code>, it’s an
+<code class="docutils literal notranslate"><span class="pre">Option</span></code> object. However, when defining datasets, we can appease the type checker
+by adding <code class="docutils literal notranslate"><span class="pre">.result</span></code> to the end of all of our <code class="docutils literal notranslate"><span class="pre">Option</span></code>s like so:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">Option</span>
+
+
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">add</span><span class="p">(</span>
+        <span class="n">x</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">,</span>
+        <span class="n">y</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Option</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">result</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+</pre></div>
+</div>
+<p>This will signal to the type checker that <code class="docutils literal notranslate"><span class="pre">Option('X').result</span></code> should be treated
+as the resulting value of the <code class="docutils literal notranslate"><span class="pre">Option</span></code>, rather than the option value itself.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">.result</span></code> property is shared among all Labrea types (<code class="docutils literal notranslate"><span class="pre">Option</span></code>, <code class="docutils literal notranslate"><span class="pre">Dataset</span></code>,
+etc.). Whenever you are defining a dataset or DatasetClass, use the <code class="docutils literal notranslate"><span class="pre">.result</span></code>
+suffix on all your dependencies to pass type checking.</p>
+<section id="subscripting">
+<h4>Subscripting<a class="headerlink" href="#subscripting" title="Link to this heading"></a></h4>
+<p>For <code class="docutils literal notranslate"><span class="pre">Option</span></code>s, you can explicitly tell the type checker what the resulting
+type should be using <code class="docutils literal notranslate"><span class="pre">Option[&lt;type&gt;](...).result</span></code> syntax. This can be useful
+if you want to share options across datasets and ensure that the types all
+match.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">labrea</span> <span class="kn">import</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">Option</span>
+
+<span class="n">X</span> <span class="o">=</span> <span class="n">Option</span><span class="p">[</span><span class="nb">int</span><span class="p">](</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+
+
+<span class="c1">## PASSES</span>
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">double</span><span class="p">(</span>
+        <span class="n">x</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">result</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="mi">2</span><span class="o">*</span><span class="n">x</span>
+
+<span class="c1">## PASSES</span>
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">halve</span><span class="p">(</span>
+        <span class="n">x</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">result</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">x</span><span class="o">/</span><span class="mf">2.0</span>
+
+<span class="c1">## FAILS</span>
+<span class="nd">@dataset</span>
+<span class="k">def</span> <span class="nf">first_char</span><span class="p">(</span>
+        <span class="n">x</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">result</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="mypy-plugin">
+<h4>MyPy Plugin<a class="headerlink" href="#mypy-plugin" title="Link to this heading"></a></h4>
+<p>MyPy has trouble understanding the way the decorators for interfaces and dataset classes work.
+A MyPy plugin is provided to help with this. To use it, add the following to your <code class="docutils literal notranslate"><span class="pre">mypy.ini</span></code> file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">mypy</span><span class="p">]</span>
+<span class="n">plugins</span> <span class="o">=</span> <span class="n">labrea</span><span class="o">.</span><span class="n">mypy</span><span class="o">.</span><span class="n">plugin</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api.html" class="btn btn-neutral float-right" title="Labrea API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, 84.51 LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

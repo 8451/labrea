@@ -1,0 +1,207 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contributing &mdash; labrea 2.1.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=b3e23499"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Changelog" href="changelog.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            labrea
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#style-guide">Style Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pre-commit">Pre-Commit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pep-8">PEP 8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#imports">Imports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#typing">Typing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#naming">Naming</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#documentation">Documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#functional-programming">Functional Programming</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">labrea</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Contributing</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/contributing.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="contributing">
+<h1>Contributing<a class="headerlink" href="#contributing" title="Link to this heading"></a></h1>
+<p>If you would like to add new functionality or fix a bug, we welcome contributions. All change requests should start with
+an <a class="reference external" href="https://github.com/8451/labrea/issues/new/choose">issue on the repo</a>. If you would like to develop the
+solution yourself, us the following flow:</p>
+<ol class="arabic simple">
+<li><p>Read the style guide below</p></li>
+<li><p>Tag &#64;8451/cobra-owners in the issue and request to be assigned the issue</p>
+<ul class="simple">
+<li><p>If this is your first time contributing, ask to be granted write access to the repo</p></li>
+</ul>
+</li>
+<li><p>Create a new branch based off of <a class="reference external" href="https://github.com/8451/labrea/tree/develop">develop</a></p>
+<ul class="simple">
+<li><p>Give your branch a name starting with <code class="docutils literal notranslate"><span class="pre">feature/</span></code>, <code class="docutils literal notranslate"><span class="pre">bug/</span></code> or <code class="docutils literal notranslate"><span class="pre">misc/</span></code></p></li>
+</ul>
+</li>
+<li><p>Clone the repo in your favorite IDE, check out your new branch, and add your changes</p></li>
+<li><p>Run the tests to ensure nothing breaks</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.[test]</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pytest</span></code></p></li>
+</ul>
+</li>
+<li><p>Push the changes on your branch to the repo, and open a Pull Request where the base branch is <code class="docutils literal notranslate"><span class="pre">develop</span></code></p>
+<ul class="simple">
+<li><p>Request a review from &#64;8451/cobra-owners</p></li>
+</ul>
+</li>
+</ol>
+<section id="style-guide">
+<h2>Style Guide<a class="headerlink" href="#style-guide" title="Link to this heading"></a></h2>
+<section id="pre-commit">
+<h3>Pre-Commit<a class="headerlink" href="#pre-commit" title="Link to this heading"></a></h3>
+<p>The repo has <a class="reference external" href="https://pre-commit.com/">pre-commit</a> configured to enforce much (but not all) of the style guide
+automatically. When developing locally, please perform the one-time setup using <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pre-commit</span></code> followed by
+<code class="docutils literal notranslate"><span class="pre">pre-commit</span> <span class="pre">install</span></code> before making any commits.</p>
+</section>
+<section id="pep-8">
+<h3>PEP 8<a class="headerlink" href="#pep-8" title="Link to this heading"></a></h3>
+<p>We try to follow <a class="reference external" href="https://peps.python.org/pep-0008/">PEP 8</a> wherever possible. Feel free to familiarize yourself
+with it, but most IDEs will automatically help you. Alternatively, you can use a code formatter like
+<a class="reference external" href="https://pypi.org/project/black/">black</a> to format your code for you.</p>
+</section>
+<section id="imports">
+<h3>Imports<a class="headerlink" href="#imports" title="Link to this heading"></a></h3>
+<p>Imports should take place at the top of the file and be broken into 4 sections, each section with a single empty line between
+them. The sections are:</p>
+<ol class="arabic simple">
+<li><p>Standard library imports (i.e. typing, regex, math)</p></li>
+<li><p>3rd-party library imports (i.e. numpy, pandas)</p></li>
+<li><p>Relative imports (importing other modules from the <code class="docutils literal notranslate"><span class="pre">labrea</span></code> package)</p></li>
+</ol>
+<p>For sections 1-3, prefer using the fully-qualified namespace over an unqualified import (<code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">json</span></code> over
+<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">json</span> <span class="pre">import</span> <span class="pre">load</span></code>). An exception to this rule is imports from the typing library (<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">typing</span> <span class="pre">import</span> <span class="pre">List</span></code>).</p>
+<p>When importing another module from <code class="docutils literal notranslate"><span class="pre">labrea</span></code>, write it like <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">.</span> <span class="pre">import</span> <span class="pre">core</span></code>.</p>
+<p>Under no circumstances should <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">module</span> <span class="pre">import</span> <span class="pre">*</span></code> be used.</p>
+</section>
+<section id="typing">
+<h3>Typing<a class="headerlink" href="#typing" title="Link to this heading"></a></h3>
+<p>All function definitions should be fully type-hinted (arguments and return value). Where applicable, use
+generic types from the <code class="docutils literal notranslate"><span class="pre">typing</span></code> library like <code class="docutils literal notranslate"><span class="pre">List[str]</span></code> vs <code class="docutils literal notranslate"><span class="pre">list</span></code>. If a function does not return anything, mark the
+return type as <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</section>
+<section id="naming">
+<h3>Naming<a class="headerlink" href="#naming" title="Link to this heading"></a></h3>
+<p>Prefer long, descriptive function names over short abbreviated names. For example, <code class="docutils literal notranslate"><span class="pre">load_config</span></code> is preferred over
+<code class="docutils literal notranslate"><span class="pre">ld_cfg</span></code>.</p>
+<p>Function and variable names should be lowercase with underscores separating words (<code class="docutils literal notranslate"><span class="pre">my_function</span></code>). Class names should be
+camel case (<code class="docutils literal notranslate"><span class="pre">MyClass</span></code>). Constants should be all uppercase with underscores separating words (<code class="docutils literal notranslate"><span class="pre">MY_CONSTANT</span></code>).</p>
+<p>Any function, variable, or constant that is not intended to be used outside of the module it is defined in should be
+prefixed with an underscore (<code class="docutils literal notranslate"><span class="pre">_my_private_function</span></code>).</p>
+</section>
+<section id="documentation">
+<h3>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h3>
+<p>All public-facing functions should be documented using docstrings in the
+<a class="reference external" href="https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard">Numpy Style</a>.</p>
+</section>
+<section id="functional-programming">
+<h3>Functional Programming<a class="headerlink" href="#functional-programming" title="Link to this heading"></a></h3>
+<p>We strongly prefer Functional Programming over Object-Oriented programming. OOP is used specifically to store
+configuration data in an object for later use. Regardless of paradigm, there is a preference for stateless programming
+and avoiding in-place data mutation where possible. For example, when combining two lists, prefer <code class="docutils literal notranslate"><span class="pre">list_a</span> <span class="pre">+</span> <span class="pre">list_b</span></code>
+over <code class="docutils literal notranslate"><span class="pre">list_a.extend(list_b)</span></code>.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="changelog.html" class="btn btn-neutral float-left" title="Changelog" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, 84.51 LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

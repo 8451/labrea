@@ -1,0 +1,518 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Changelog &mdash; labrea 2.1.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=b3e23499"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Contributing" href="contributing.html" />
+    <link rel="prev" title="Labrea API" href="api.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            labrea
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#version-2-1-2">Version 2.1.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-2-1-1">Version 2.1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-2-1-0">Version 2.1.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-2-0-4">Version 2.0.4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-2-0-3">Version 2.0.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-2-0-2">Version 2.0.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-2-0-1">Version 2.0.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-2-0-0">Version 2.0.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#breaking-changes">Breaking Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#new-features">New Features</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-4-0">Version 1.4.0</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">labrea</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Changelog</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/changelog.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="changelog">
+<h1>Changelog<a class="headerlink" href="#changelog" title="Link to this heading"></a></h1>
+<section id="version-2-1-2">
+<h2>Version 2.1.2<a class="headerlink" href="#version-2-1-2" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Update type-hint for <code class="docutils literal notranslate"><span class="pre">&#64;Option.namespace</span></code> to make namespaces easier to use with type checkers</p></li>
+<li><p>Optimize <code class="docutils literal notranslate"><span class="pre">Dataset.evaluate</span></code> to avoid a large number of redundant function calls</p></li>
+</ul>
+</section>
+<section id="version-2-1-1">
+<h2>Version 2.1.1<a class="headerlink" href="#version-2-1-1" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fix bug introduced in 2.1.0 where exceptions raised during <code class="docutils literal notranslate"><span class="pre">.evaluate</span></code> are all masked as <code class="docutils literal notranslate"><span class="pre">EvaluationError</span></code></p></li>
+</ul>
+</section>
+<section id="version-2-1-0">
+<h2>Version 2.1.0<a class="headerlink" href="#version-2-1-0" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Add many helper functions in <code class="docutils literal notranslate"><span class="pre">labrea.functions</span></code>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">partial</span></code></p>
+<ul>
+<li><p>Analog of <code class="docutils literal notranslate"><span class="pre">functools.partial</span></code></p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">into</span></code></p>
+<ul>
+<li><p>Analog of <code class="docutils literal notranslate"><span class="pre">*</span></code> unpacking but for an evaluatable that returns an iterable</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ensure</span></code></p>
+<ul>
+<li><p>Make an assertion before continuing to next step</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_attribute</span></code></p>
+<ul>
+<li><p>Get attribute from an object</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">call_method</span></code></p>
+<ul>
+<li><p>Call a method on an object</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flatten</span></code></p>
+<ul>
+<li><p>Flatten an interable of iterables</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flatmap</span></code></p>
+<ul>
+<li><p>Map then flatten result</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">map_items</span></code>, <code class="docutils literal notranslate"><span class="pre">map_keys</span></code>, and <code class="docutils literal notranslate"><span class="pre">map_values</span></code></p>
+<ul>
+<li><p>Analogs of <code class="docutils literal notranslate"><span class="pre">map</span></code> but for mapping types</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filter_items</span></code>, <code class="docutils literal notranslate"><span class="pre">filter_keys</span></code>, and <code class="docutils literal notranslate"><span class="pre">filter_values</span></code></p>
+<ul>
+<li><p>Analogs of <code class="docutils literal notranslate"><span class="pre">filter</span></code> but for mapping types</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">concat</span></code>, <code class="docutils literal notranslate"><span class="pre">append</span></code></p>
+<ul>
+<li><p>Add items to an interable</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">intersect</span></code>, <code class="docutils literal notranslate"><span class="pre">union</span></code>, <code class="docutils literal notranslate"><span class="pre">difference</span></code>, <code class="docutils literal notranslate"><span class="pre">symmetric_difference</span></code></p>
+<ul>
+<li><p>Set operations</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">merge</span></code></p>
+<ul>
+<li><p>Merge two dictionaries</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get</span></code>, <code class="docutils literal notranslate"><span class="pre">get_from</span></code></p>
+<ul>
+<li><p>Get a key from an indexable object</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">length</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">add</span></code>, <code class="docutils literal notranslate"><span class="pre">subtract</span></code>, <code class="docutils literal notranslate"><span class="pre">multiply</span></code>, <code class="docutils literal notranslate"><span class="pre">divide_by</span></code>, <code class="docutils literal notranslate"><span class="pre">left_multiply</span></code>, <code class="docutils literal notranslate"><span class="pre">divide_into</span></code>, <code class="docutils literal notranslate"><span class="pre">negate</span></code>, <code class="docutils literal notranslate"><span class="pre">modulo</span></code></p>
+<ul>
+<li><p>Basic math operations</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eg</span></code>, <code class="docutils literal notranslate"><span class="pre">ne</span></code>, <code class="docutils literal notranslate"><span class="pre">lt</span></code>, <code class="docutils literal notranslate"><span class="pre">le</span></code>, <code class="docutils literal notranslate"><span class="pre">gt</span></code>, <code class="docutils literal notranslate"><span class="pre">ge</span></code></p>
+<ul>
+<li><p>Basic comparison operations</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">positive</span></code>, <code class="docutils literal notranslate"><span class="pre">negative</span></code>, <code class="docutils literal notranslate"><span class="pre">non_positive</span></code>, <code class="docutils literal notranslate"><span class="pre">non_negative</span></code></p>
+<ul>
+<li><p>Common comparisons</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_none</span></code>, <code class="docutils literal notranslate"><span class="pre">is_not_none</span></code></p>
+<ul>
+<li><p>Check if an object is None</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">has_remainder</span></code>, <code class="docutils literal notranslate"><span class="pre">even</span></code>, <code class="docutils literal notranslate"><span class="pre">odd</span></code></p>
+<ul>
+<li><p>Checking modulo of a number</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">any</span></code>, <code class="docutils literal notranslate"><span class="pre">all</span></code></p>
+<ul>
+<li><p>Check if multiple predicates hold</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">invert</span></code></p>
+<ul>
+<li><p>Invert a boolean value</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">instance_of</span></code></p>
+<ul>
+<li><p>Check if an object is an instance of a class</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_in</span></code>, <code class="docutils literal notranslate"><span class="pre">is_not_in</span></code>, <code class="docutils literal notranslate"><span class="pre">one_of</span></code>, <code class="docutils literal notranslate"><span class="pre">none_of</span></code>, <code class="docutils literal notranslate"><span class="pre">contains</span></code>, <code class="docutils literal notranslate"><span class="pre">does_not_contain</span></code>, <code class="docutils literal notranslate"><span class="pre">intersects</span></code>, <code class="docutils literal notranslate"><span class="pre">disjoint_from</span></code></p>
+<ul>
+<li><p>Check if a value is another collection</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Add optional <code class="docutils literal notranslate"><span class="pre">type</span></code> and <code class="docutils literal notranslate"><span class="pre">domain</span></code> arguments to the <code class="docutils literal notranslate"><span class="pre">Option</span></code> constructor</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span></code> is a type hint for the value of the option</p>
+<ul>
+<li><p>By default, not enforced at runtime</p></li>
+<li><p>An optional <code class="docutils literal notranslate"><span class="pre">labrea-type-validation</span></code> package is planned to enforce with pydantic</p></li>
+<li><p>Can use <code class="docutils literal notranslate"><span class="pre">Option[Type](&quot;KEY&quot;)</span></code> syntax instead</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">domain</span></code> is one of</p>
+<ul>
+<li><p>A container of valid values</p></li>
+<li><p>A predicate function</p></li>
+<li><p>An evaluatable that returns one of the above</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">&#64;Option.namespace</span></code> decorator for creating option namespaces</p>
+<ul>
+<li><p>Also <code class="docutils literal notranslate"><span class="pre">Option.auto</span></code> helper method for creating options within a namespace</p></li>
+</ul>
+</li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">Option.set</span></code> method for setting the value of an option in a dictionary</p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">callback</span></code> argument to <code class="docutils literal notranslate"><span class="pre">&#64;dataset</span></code> decorator for providing a callback function to be called after the dataset is evaluated</p>
+<ul>
+<li><p>This callback is inherited by all overloads of the dataset</p></li>
+</ul>
+</li>
+<li><p>Add the ability to stack the <code class="docutils literal notranslate"><span class="pre">Dataset.overload</span></code> decorator with the <code class="docutils literal notranslate"><span class="pre">&#64;dataset</span></code> decorator</p>
+<ul>
+<li><p>This allows for a nested overload tree to be defined</p></li>
+</ul>
+</li>
+<li><p>Add new <code class="docutils literal notranslate"><span class="pre">TypeValidationRequest</span></code> for validating types</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">Option</span></code>s will run this request when evaluated, but by default no handler is provided</p></li>
+</ul>
+</li>
+<li><p>Add request types for the core <code class="docutils literal notranslate"><span class="pre">.evaluate</span></code>, <code class="docutils literal notranslate"><span class="pre">.validate</span></code>, <code class="docutils literal notranslate"><span class="pre">.keys</span></code>, and <code class="docutils literal notranslate"><span class="pre">.explain</span></code> methods</p>
+<ul>
+<li><p>By default these just call the class’ implementation</p></li>
+<li><p>Can be handled to provide custom behavior, such as mocking</p></li>
+</ul>
+</li>
+<li><p>Improved logging for the evaluation traceback</p></li>
+<li><p>Modify <code class="docutils literal notranslate"><span class="pre">PartialApplication</span></code> type to work even if multiple arguments are missing</p></li>
+<li><p>Allow <code class="docutils literal notranslate"><span class="pre">dataset.where</span></code> to be used with functions with <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code></p></li>
+<li><p>Fix a bug that cause caching to be susceptible to hash collisions.</p></li>
+</ul>
+</section>
+<section id="version-2-0-4">
+<h2>Version 2.0.4<a class="headerlink" href="#version-2-0-4" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Make the <code class="docutils literal notranslate"><span class="pre">Dataset</span></code> type pickleable</p></li>
+</ul>
+</section>
+<section id="version-2-0-3">
+<h2>Version 2.0.3<a class="headerlink" href="#version-2-0-3" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fix bug introduced in 2.0.3 where dispatch is called with no options</p></li>
+</ul>
+</section>
+<section id="version-2-0-2">
+<h2>Version 2.0.2<a class="headerlink" href="#version-2-0-2" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Allow <code class="docutils literal notranslate"><span class="pre">dataset</span></code> to be used to directly wrap an evaluatable</p></li>
+<li><p>Fix bug in <code class="docutils literal notranslate"><span class="pre">Switch.keys</span></code> that didn’t properly handle when the dispatch by default will evaluate to something</p></li>
+</ul>
+</section>
+<section id="version-2-0-1">
+<h2>Version 2.0.1<a class="headerlink" href="#version-2-0-1" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fix bug where pipeline steps are evaluated before their inputs</p></li>
+</ul>
+</section>
+<section id="version-2-0-0">
+<h2>Version 2.0.0<a class="headerlink" href="#version-2-0-0" title="Link to this heading"></a></h2>
+<section id="breaking-changes">
+<h3>Breaking Changes<a class="headerlink" href="#breaking-changes" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Module structure has been fully changed.</p>
+<ul>
+<li><p>Any imports that look like <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">labrea.&lt;module&gt;</span> <span class="pre">import</span> <span class="pre">&lt;object&gt;</span></code> will need to be updated</p></li>
+</ul>
+</li>
+<li><p>Changes to dataset</p>
+<ul>
+<li><p>To overload a dataset, you now <em>must</em> provide a <code class="docutils literal notranslate"><span class="pre">dispatch=</span></code> argument to the decorator</p>
+<ul>
+<li><p>Previously, a default dispatch of <code class="docutils literal notranslate"><span class="pre">Option('LABREA.IMPLEMENTATIONS.pkg.module.dataset_name')</span></code> was used</p></li>
+<li><p>Similarly, a dispatch argument is required for the <code class="docutils literal notranslate"><span class="pre">&#64;interface</span></code> decorator</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;my_dataset.overload</span></code> now takes <code class="docutils literal notranslate"><span class="pre">alias=</span></code> as either an alias or a list of aliases</p>
+<ul>
+<li><p>Previously, <code class="docutils literal notranslate"><span class="pre">aliases=</span></code> was used for a list of aliases</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">where=</span></code> argument is now renamed <code class="docutils literal notranslate"><span class="pre">defaults=</span></code> for clarity</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;dataset</span></code> no longer accepts an <code class="docutils literal notranslate"><span class="pre">alias=</span></code> argument</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">callbacks=</span></code> has been renamed to <code class="docutils literal notranslate"><span class="pre">effects=</span></code></p>
+<ul>
+<li><p>Now takes functions of a single argument, or <code class="docutils literal notranslate"><span class="pre">Evaluatable</span></code> objects that return such functions</p></li>
+<li><p>Can also subclass the <code class="docutils literal notranslate"><span class="pre">labrea.computation.Effect</span></code> class to define custom effects</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Changes to options</p>
+<ul>
+<li><p>Previously, it was implicitly assumed that options must be a JSON-serializable dictionary</p></li>
+<li><p>This is now enforced. Providing a non-serializable option will raise an error</p>
+<ul>
+<li><p>e.g. a Pandas DataFrame cannot be provided as an option value</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Changes to pipelines</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">LabreaPipeline.step</span></code> has been removed in favor of the <code class="docutils literal notranslate"><span class="pre">pipeline_step</span></code> decorator</p>
+<ul>
+<li><p>Defining pipeline steps looks the same (like a dataset with empty first arg)</p></li>
+</ul>
+</li>
+<li><p>Composing pipeline steps is now done with the <code class="docutils literal notranslate"><span class="pre">+</span></code> operator rather than the <code class="docutils literal notranslate"><span class="pre">&gt;&gt;</span></code> operator</p>
+<ul>
+<li><p>This is because <code class="docutils literal notranslate"><span class="pre">&gt;&gt;</span></code> is now used as an alias for the new <code class="docutils literal notranslate"><span class="pre">.apply</span></code> method on all <code class="docutils literal notranslate"><span class="pre">Evaluatable</span></code> objects</p></li>
+</ul>
+</li>
+<li><p>Pipelines can now be invoked in one of two ways</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">pipeline(options)(value)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pipeline.transform(value,</span> <span class="pre">options)</span></code></p>
+<ul>
+<li><p>Here options can be omitted and an empty dictionary will be used</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Pipelines now return the plain value, rather than the special <code class="docutils literal notranslate"><span class="pre">LabreaPipelineData</span></code> object</p></li>
+</ul>
+</li>
+<li><p>Changes to Caching</p>
+<ul>
+<li><p>Datasets are cached, but overloads do not have their own cache</p>
+<ul>
+<li><p>This means that if you overload a dataset, it will be cached in the parent dataset’s cache rather than in a separate cache</p></li>
+</ul>
+</li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">get</span></code>, <code class="docutils literal notranslate"><span class="pre">set</span></code>, and <code class="docutils literal notranslate"><span class="pre">exists</span></code> hooks in the <code class="docutils literal notranslate"><span class="pre">Cache</span></code> ABC have changed signatures</p>
+<ul>
+<li><p>This only impacts those who were writing custom cache implementations</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Evaluatable</span></code> is now an <code class="docutils literal notranslate"><span class="pre">ABC</span></code> rather than a <code class="docutils literal notranslate"><span class="pre">Protocol</span></code></p>
+<ul>
+<li><p>This only impacts those who are extending the labrea framework with custom types</p></li>
+</ul>
+</li>
+<li><p>Implementing multiple interfaces at once is now done using the <code class="docutils literal notranslate"><span class="pre">&#64;implements</span></code> decorator</p>
+<ul>
+<li><p>Previously done with <code class="docutils literal notranslate"><span class="pre">&#64;Interface.implementation(Interface1,</span> <span class="pre">Interface2,</span> <span class="pre">alias='ALIAS')</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;implements(Interface1,</span> <span class="pre">Interface2,</span> <span class="pre">alias='ALIAS')</span></code></p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="new-features">
+<h3>New Features<a class="headerlink" href="#new-features" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>All <code class="docutils literal notranslate"><span class="pre">Evaluatable</span></code> objects (<code class="docutils literal notranslate"><span class="pre">datasets</span></code>, <code class="docutils literal notranslate"><span class="pre">Options</span></code>, etc.) now have a <code class="docutils literal notranslate"><span class="pre">.explain()</span></code> method that returns a set of option keys that are required to evaluate the object</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">Option('A').explain()</span> <span class="pre">==</span> <span class="pre">{'A'}</span></code></p></li>
+<li><p>Datasets will return every option key that is required to evaluate the dataset</p></li>
+</ul>
+</li>
+<li><p>All <code class="docutils literal notranslate"><span class="pre">Evaluatable</span></code> objects can be called with no argument and an empty options dictionary will be inferred</p></li>
+<li><p>All <code class="docutils literal notranslate"><span class="pre">Evaluatable</span></code> objects now support the following methods for chaining transformations</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">apply</span></code> (aliased as <code class="docutils literal notranslate"><span class="pre">&gt;&gt;</span></code>)</p>
+<ul>
+<li><p>Used to apply a function to the result of an object</p></li>
+<li><p>e.g. <code class="docutils literal notranslate"><span class="pre">my_dataset</span> <span class="pre">&gt;&gt;</span> <span class="pre">(lambda</span> <span class="pre">x:</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">1)</span></code></p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bind</span></code></p>
+<ul>
+<li><p>Used to apply a function to the result of an object and return a new labrea object based on the result</p></li>
+<li><p>e.g. <code class="docutils literal notranslate"><span class="pre">my_dataset.bind(lambda</span> <span class="pre">x:</span> <span class="pre">my_dataset2</span> <span class="pre">if</span> <span class="pre">x</span> <span class="pre">&gt;</span> <span class="pre">0</span> <span class="pre">else</span> <span class="pre">my_dataset3)</span></code></p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Utility functions for some common operations for chaning together</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">labrea.functions.map</span></code> recreates the <code class="docutils literal notranslate"><span class="pre">map</span></code> function for labrea objects</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">my_list_dataset</span> <span class="pre">&gt;&gt;</span> <span class="pre">labrea.functions.map(lambda</span> <span class="pre">x:</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">1)</span></code></p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">labrea.functions.filter</span></code> recreates the <code class="docutils literal notranslate"><span class="pre">filter</span></code> function for labrea objects</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">my_list_dataset</span> <span class="pre">&gt;&gt;</span> <span class="pre">labrea.functions.filter(lambda</span> <span class="pre">x:</span> <span class="pre">x</span> <span class="pre">&gt;</span> <span class="pre">0)</span></code></p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">labrea.functions.reduce</span></code> recreates the <code class="docutils literal notranslate"><span class="pre">reduce</span></code> function for labrea objects</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">my_list_dataset</span> <span class="pre">&gt;&gt;</span> <span class="pre">labrea.functions.reduce(lambda</span> <span class="pre">x,</span> <span class="pre">y:</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">y)</span></code></p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>New <code class="docutils literal notranslate"><span class="pre">&#64;pipeline_step</span></code> decorator for defining pipeline steps</p>
+<ul>
+<li><p>Pipelines are now <em>evaluatable</em>, meaning they act like a dataset the returns a function of one variable</p>
+<ul>
+<li><p>This means a pipeline can be provided as an argument to a dataset definition</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>New case / when / otherwise syntax for defining conditional logic that can’t be expressed with switches/overloads</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">case(Option('A')).when(lambda</span> <span class="pre">a:</span> <span class="pre">a</span> <span class="pre">&gt;</span> <span class="pre">0,</span> <span class="pre">positive_dataset).otherwise(negative_dataset)</span></code></p></li>
+</ul>
+</li>
+<li><p>New <code class="docutils literal notranslate"><span class="pre">Map</span></code> type for mapping a dataset over multiple options values</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">Map(Option('A'),</span> <span class="pre">{'A':</span> <span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3]}).apply(list)()</span></code> == <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3]</span></code></p></li>
+</ul>
+</li>
+<li><p>New <code class="docutils literal notranslate"><span class="pre">WithOptions</span></code> type that can be used to provide pre-set options to an <code class="docutils literal notranslate"><span class="pre">Evaluatable</span></code> object</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">my_dataset_a_1</span> <span class="pre">=</span> <span class="pre">WithOptions(my_dataset,</span> <span class="pre">{'A':</span> <span class="pre">1})</span></code></p></li>
+</ul>
+</li>
+<li><p>New <code class="docutils literal notranslate"><span class="pre">&#64;implements</span></code> decorator for implementing multiple interfaces at once</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;implements(Interface1,</span> <span class="pre">Interface2,</span> <span class="pre">alias='ALIAS')</span></code></p></li>
+</ul>
+</li>
+<li><p>New <code class="docutils literal notranslate"><span class="pre">Cached</span></code> type that can cache any labrea object (not just datasets)</p></li>
+<li><p>New <code class="docutils literal notranslate"><span class="pre">Overloaded</span></code> type that can provide overloads for any labrea object (not just datasets)</p></li>
+<li><p>New <code class="docutils literal notranslate"><span class="pre">FunctionApplication</span></code>, <code class="docutils literal notranslate"><span class="pre">PartialApplication</span></code>, and <code class="docutils literal notranslate"><span class="pre">EvaluatableArguments</span></code> types that are the foundational building blocks for datasets and pipeline steps</p></li>
+<li><p>New effects system and corresponding <code class="docutils literal notranslate"><span class="pre">Computation</span></code> type that performs side-effects after an evaluation of a labrea object</p></li>
+<li><p>New <code class="docutils literal notranslate"><span class="pre">runtime</span></code> module used for handling managed effects</p></li>
+</ul>
+</section>
+</section>
+<section id="version-1-4-0">
+<h2>Version 1.4.0<a class="headerlink" href="#version-1-4-0" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Release as open source</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="api.html" class="btn btn-neutral float-left" title="Labrea API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="contributing.html" class="btn btn-neutral float-right" title="Contributing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, 84.51 LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
