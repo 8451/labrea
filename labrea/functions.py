@@ -1632,6 +1632,28 @@ def disjoint_from(
     )
 
 
+def is_subset(
+    __super: MaybeEvaluatable[Iterable[H]],
+) -> PipelineStep[Iterable[H], bool]:
+    return PipelineStep(
+        partial(
+            lambda super, sub: set(sub).issubset(super), Evaluatable.ensure(__super)
+        ),
+        f"is_subset({__super!r})",
+    )
+
+
+def is_superset(
+    __sub: MaybeEvaluatable[Iterable[H]],
+) -> PipelineStep[Iterable[H], bool]:
+    return PipelineStep(
+        partial(
+            lambda sub, super: set(super).issuperset(sub), Evaluatable.ensure(__sub)
+        ),
+        f"is_superset({__sub!r})",
+    )
+
+
 def _ensure(value: A, predicate: Callable[[A], bool], msg: str) -> A:
     assert predicate(value), msg
     return value
