@@ -376,6 +376,34 @@ def test_does_not_contain():
     assert a({'A': [2, 3]}) == True
 
 
+def test_intersects():
+    a = Option('A') >> lf.intersects(Option('B'))
+
+    assert a({'A': [1, 2], 'B': [2, 3]}) == True
+    assert a({'A': [1, 2], 'B': [3, 4]}) == False
+
+
+def test_disjoint_from():
+    a = Option('A') >> lf.disjoint_from(Option('B'))
+
+    assert a({'A': [1, 2], 'B': [2, 3]}) == False
+    assert a({'A': [1, 2], 'B': [3, 4]}) == True
+
+
+def test_is_subset():
+    a = Option('A') >> lf.is_subset(Option('B'))
+
+    assert a({'A': [1, 2], 'B': [1, 2, 3, 4]}) == True
+    assert a({'A': [1, 2], 'B': [3, 4]}) == False
+
+
+def test_is_superset():
+    a = Option('A') >> lf.is_superset(Option('B'))
+
+    assert a({'A': [1, 2, 3, 4], 'B': [2, 3]}) == True
+    assert a({'A': [1, 2], 'B': [2, 3]}) == False
+
+
 def test_get_attribute():
     class Test:
         def __init__(self, value):
