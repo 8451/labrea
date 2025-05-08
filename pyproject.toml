@@ -43,8 +43,10 @@ documentation = "https://8451.github.io/labrea"
 bugs = "https://github.com/8451/labrea/issues"
 
 [project.optional-dependencies]
-test = ["coverage", "coverage-badge", "pytest", "pytest-cov"]
-doc = [
+test = ["labrea-test"]
+type-validation = ["labrea-type-validation"]
+_test = ["coverage", "coverage-badge", "pytest", "pytest-cov"]
+_doc = [
     "nbsphinx",
     "recommonmark",
     "sphinx",
@@ -60,8 +62,7 @@ dev = [
     "flake8>=3.7.9",
     "pre-commit",
     "coverage",
-    "labrea[test]",
-    "labrea[doc]",
+    "labrea[_test,_doc]",
 ]
 
 [tool.pytest.ini_options]

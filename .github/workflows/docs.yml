@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: |
-          pip install .[doc]
+          pip install .[_doc]
       - name: Sphinx build
         run: |
           sphinx-build docs/source _build
