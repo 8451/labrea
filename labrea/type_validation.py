@@ -33,7 +33,10 @@ def _labrea_type_validation_handler(request: TypeValidationRequest):
         import labrea_type_validation
     except ImportError:
         warnings.warn(
-            "labrea_type_validation is not installed; type validation will not be enforced"
+            "\n\n"
+            "  labrea-type-validation is not installed; type validation will not be enforced\n"
+            "    (note: you can use labrea[type-validation] in your requirements to install the"
+            " labrea-type-validation extension automatically)\n"
         )
         return
 
