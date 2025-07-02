@@ -111,7 +111,7 @@ class Runtime:
     def __init__(
         self, handlers: Optional[Mapping[Type[Request], Handler]] = None
     ) -> None:
-        self.handlers = {**_DEFAULT_HANDLERS, **(handlers or {})}
+        self.handlers = dict(handlers or {}).copy()
         self.previous = None
 
     def handle(
@@ -170,13 +170,11 @@ class Runtime:
         A
             The result of running the request with the correct handler.
         """
-
-        try:
-            handler = self.handlers[type(request)]
-        except KeyError as e:
-            raise TypeError(
-                f"No handler for request type {type(request).__qualname__}"
-            ) from e
+        handler = self.handlers.get(
+            type(request), _DEFAULT_HANDLERS.get(type(request), None)
+        )
+        if handler is None:
+            raise TypeError(f"No handler for request type {type(request).__qualname__}")
 
         return handler(request)
 
