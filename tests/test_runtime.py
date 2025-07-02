@@ -1,6 +1,6 @@
 import pytest
 import threading
-from labrea.runtime import Request, handle, inherit
+from labrea.runtime import Request, handle, inherit, current_runtime
 
 
 class UnhandledRequest(Request):
@@ -69,3 +69,17 @@ def test_inherit():
 
     with handle(UnhandledRequest, void):
         threading.Thread(target=worker, args=(threading.current_thread(), UnhandledRequest("hello"))).run()
+
+
+def test_defaults():
+    _ = current_runtime() # Make sure a runtime is initialized
+
+    class VoidRequest(Request[None]):
+        def __init__(self):
+            pass
+
+    @VoidRequest.handle
+    def void_handler(request: VoidRequest) -> None:
+        return
+
+    assert VoidRequest().run() is None
