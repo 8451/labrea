@@ -14,6 +14,7 @@ from .collections import (
 from .conditional import Switch, case, switch
 from .dataset import abstractdataset, dataset
 from .datasetclass import datasetclass
+from .env import ENV
 from .interface import implements, interface
 from .iterable import Iter, Map
 from .option import AllOptions, Option, WithDefaultOptions, WithOptions
@@ -47,6 +48,7 @@ __all__ = [
     "coalesce",
     "dataset",
     "datasetclass",
+    "ENV",
     "evaluatable_dict",
     "evaluatable_list",
     "evaluatable_set",
