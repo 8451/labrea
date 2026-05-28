@@ -1,0 +1,23 @@
+{
+  "name": "labrea-marketplace",
+  "description": "Claude plugin marketplace for the labrea plugin",
+  "owner": {
+    "name": "84.51°"
+  },
+  "plugins": [
+    {
+      "name": "labrea",
+      "source": "./.claude-plugin/labrea",
+      "description": "Coding skill for writing functional, declarative Python code with the labrea library",
+      "tags": [
+        "python",
+        "development",
+        "labrea",
+        "functional-programming",
+        "declarative-programming",
+        "code-style"
+      ],
+      "strict": true
+    }
+  ]
+}

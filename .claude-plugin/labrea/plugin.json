@@ -1,0 +1,16 @@
+{
+  "name": "labrea",
+  "description": "Coding skill for writing functional, declarative Python code with the labrea library",
+  "version": "1.0.0",
+  "author": {
+    "name": "84.51°"
+  },
+  "keywords": [
+    "python",
+    "development",
+    "labrea",
+    "functional-programming",
+    "declarative-programming",
+    "code-style"
+  ]
+}
